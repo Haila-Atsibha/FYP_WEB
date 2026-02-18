@@ -1,0 +1,66 @@
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "provider",
+  "email": "provider@test.com",
+  "password": "123456",
+  "role": "provider"
+
+}
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+    "email":"admin@test.com",
+    "password":"123456"
+}
+###
+GET http://localhost:5000/api/protected
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzcxMzUzMzU4LCJleHAiOjE3NzE0Mzk3NTh9.n9q1z0zRqi1sQlzfz8m4EEhxYtzIXcJGHqoDMYZ4J_A
+###
+GET http://localhost:5000/api/admin-only
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzcxMzUzNjE1LCJleHAiOjE3NzE0NDAwMTV9.K27e09bGe0LJAOQ17ZKd9ozV_kQYrOXwibqP_ZHW6Ig
+###
+POST http://localhost:5000/api/providers/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6InByb3ZpZGVyIiwiaWF0IjoxNzcxMzU0Mzg5LCJleHAiOjE3NzE0NDA3ODl9.09IR1szPHH9kYAo4315n86IbSMmveYW015qvikIr82Q
+Content-Type: application/json
+
+{
+  "bio": "Professional electrician with 5 years experience"
+}
+###
+GET http://localhost:5000/api/providers/profile/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6InByb3ZpZGVyIiwiaWF0IjoxNzcxMzU0Mzg5LCJleHAiOjE3NzE0NDA3ODl9.09IR1szPHH9kYAo4315n86IbSMmveYW015qvikIr82Q
+###
+POST http://localhost:5000/api/categories
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzcxNDEyODk3LCJleHAiOjE3NzE0OTkyOTd9.63HurNOcXdmxmCX5kIApt-O3k4BqdPFjZmp_VgpBoS0
+Content-Type: application/json
+
+{
+  "name": "Plumbing",
+  "description": "All plumbing related services"
+}
+###
+GET http://localhost:5000/api/categories
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+    "email":"provider@test.com",
+    "password":"123456"
+}
+###
+POST http://localhost:5000/api/services
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6InByb3ZpZGVyIiwiaWF0IjoxNzcxNDE0MTgwLCJleHAiOjE3NzE1MDA1ODB9.iNt4TH80be1wsU_amHvMKodUKypFWUFxTFggfWkNluM
+Content-Type: application/json
+
+{
+  "category_id": 1,
+  "title": "Kitchen Sink Repair",
+  "description": "Fix leaking or clogged kitchen sinks",
+  "price": 200
+}
+
