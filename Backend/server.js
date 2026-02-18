@@ -49,6 +49,10 @@ app.use('/api/availability', availabilityRoutes);
 const bookingRoutes = require('./src/routes/bookingRoutes');
 app.use('/api/bookings', bookingRoutes);
 
+// admin section
+const adminRoutes = require('./src/routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;
