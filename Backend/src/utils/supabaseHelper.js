@@ -12,7 +12,7 @@ async function uploadFile(buffer, mimeType, folder = '') {
     const filename = folder ? `${folder}/${uuidv4()}` : uuidv4();
 
     const { data, error } = await supabase.storage
-        .from('user-files')
+        .from('QuickServe_files')
         .upload(filename, buffer, {
             contentType: mimeType,
             upsert: true
@@ -22,7 +22,7 @@ async function uploadFile(buffer, mimeType, folder = '') {
         throw error;
     }
 
-    const { data: urlData } = supabase.storage.from('user-files').getPublicUrl(filename);
+    const { data: urlData } = supabase.storage.from('QuickServe_files').getPublicUrl(filename);
     return urlData.publicUrl;
 }
 

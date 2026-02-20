@@ -12,7 +12,9 @@ const {
 router.use(protect, authorizeRoles('admin'));
 
 router.get('/pending-users', getPendingUsers);
+// approval endpoint accepts PUT (existing) and POST for compatibility
 router.put('/approve/:id', approveUser);
+router.post('/approve/:id', approveUser);
 router.put('/reject/:id', rejectUser);
 
 module.exports = router;
