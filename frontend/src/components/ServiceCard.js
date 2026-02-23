@@ -6,23 +6,28 @@ export default function ServiceCard({ service, user }) {
   const { title, category, price, provider, rating, id } = service;
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 flex flex-col justify-between">
+    <div className="bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between group">
       <div>
-        <h3 className="text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-sm text-gray-500">{category?.name || service.category}</p>
-        <p className="mt-2 font-bold">${price}</p>
+        <div className="flex justify-between items-start mb-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded">
+            {category?.name || service.category}
+          </span>
+          <span className="font-bold text-lg text-foreground">${price}</span>
+        </div>
+        <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{title}</h3>
+        <p className="text-sm text-text-muted">by {provider?.name || service.provider}</p>
       </div>
-      <div className="mt-4 flex items-center justify-between">
-        <span className="text-sm text-gray-600">by {provider?.name || service.provider}</span>
-        <span className="text-yellow-500">{rating || "★☆☆☆☆"}</span>
-      </div>
-      <div className="mt-3">
+      <div className="mt-6 flex flex-col space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-yellow-500 font-medium">{rating || "★ 4.8"}</span>
+          <span className="text-xs text-text-muted">12 reviews</span>
+        </div>
         {user ? (
-          <Link href={`/services/${id}`} className="block text-center bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl">
+          <Link href={`/services/${id}`} className="block text-center bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg active:scale-95">
             Book Now
           </Link>
         ) : (
-          <Link href="/auth/login" className="block text-center bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl">
+          <Link href="/auth/login" className="block text-center bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg active:scale-95">
             Login to Book
           </Link>
         )}

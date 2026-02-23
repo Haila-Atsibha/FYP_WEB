@@ -35,12 +35,12 @@ GET http://localhost:5000/api/providers/profile/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6InByb3ZpZGVyIiwiaWF0IjoxNzcxMzU0Mzg5LCJleHAiOjE3NzE0NDA3ODl9.09IR1szPHH9kYAo4315n86IbSMmveYW015qvikIr82Q
 ###
 POST http://localhost:5000/api/categories
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzcxNDEyODk3LCJleHAiOjE3NzE0OTkyOTd9.63HurNOcXdmxmCX5kIApt-O3k4BqdPFjZmp_VgpBoS0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzcxODY5MjgzLCJleHAiOjE3NzE5NTU2ODN9.Lu9AKoS6DwTAs0p4zZwNiSYY4DAX6DvNxZmTptx93_k
 Content-Type: application/json
 
 {
-  "name": "Plumbing",
-  "description": "All plumbing related services"
+  "name": "electrician",
+  "description": "All elecric related services"
 }
 ###
 GET http://localhost:5000/api/categories

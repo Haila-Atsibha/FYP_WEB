@@ -1,12 +1,16 @@
 "use client";
 
-export default function Input({ label, type = "text", ...rest }) {
+export default function Input({ label, type = "text", className = "", ...rest }) {
   return (
-    <div className="mb-4">
-      {label && <label className="block mb-1 font-medium">{label}</label>}
+    <div className={`mb-5 ${className}`}>
+      {label && (
+        <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">
+          {label}
+        </label>
+      )}
       <input
         type={type}
-        className="w-full border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
+        className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-text-muted/50 shadow-sm"
         {...rest}
       />
     </div>

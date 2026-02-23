@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useContext } from "react";
+import { LogOut } from "lucide-react";
+import { AuthContext } from "../context/AuthContext";
 
 const menuByRole = {
   customer: [
@@ -10,32 +13,51 @@ const menuByRole = {
   ],
   provider: [
     { label: "Dashboard", href: "/provider" },
-    { label: "My Services", href: "/provider/services" },
     { label: "Bookings", href: "/provider/bookings" },
-    { label: "Earnings", href: "/provider/earnings" },
+    { label: "Reviews", href: "/provider/reviews" },
+    { label: "Profile", href: "/provider/profile" },
   ],
   admin: [
     { label: "Dashboard", href: "/admin" },
-    { label: "Pending Users", href: "/admin/pending" },
+    { label: "Bookings", href: "/admin/bookings" },
+    { label: "Complaints", href: "/admin/complaints" },
+    { label: "Categories", href: "/admin/categories" },
+    { label: "User Management", href: "/admin/users" },
+    { label: "Subscriptions", href: "/admin/subscriptions" },
+    { label: "Verification", href: "/admin/pending" },
   ],
 };
 
 export default function Sidebar({ role }) {
+  const { logout } = useContext(AuthContext);
   const links = menuByRole[role] || [];
 
   return (
-    <aside className="w-60 bg-white shadow-md">
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-orange-600">Menu</h2>
-        <ul className="mt-4 space-y-3">
+    <aside className="w-64 bg-surface border-r border-border min-h-screen transition-colors duration-300 flex flex-col">
+      <div className="p-8 flex-1">
+        <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted mb-8">Menu</h2>
+        <ul className="space-y-2">
           {links.map((l) => (
             <li key={l.href}>
-              <Link href={l.href} className="block px-4 py-2 rounded-xl hover:bg-orange-50">
+              <Link
+                href={l.href}
+                className="block px-4 py-3 rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-medium text-foreground/80 active:scale-95"
+              >
                 {l.label}
               </Link>
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="p-8 border-t border-border">
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-bold active:scale-95"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
     </aside>
   );

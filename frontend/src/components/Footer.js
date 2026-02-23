@@ -2,20 +2,23 @@
 
 export default function Footer() {
   return (
-    <footer className="bg-white shadow-inner mt-12">
-      <div className="max-w-7xl mx-auto px-6 py-8 text-center text-gray-600 text-sm">
-        <div className="flex justify-center space-x-6 mb-4">
-          <a href="/" className="hover:text-orange-600">
+    <footer className="bg-surface border-t border-border mt-20 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+        <div className="flex justify-center space-x-8 mb-6">
+          <a href="/" className="text-text-muted hover:text-primary transition-colors font-medium">
             Home
           </a>
-          <a href="/services" className="hover:text-orange-600">
+          <a href="/services" className="text-text-muted hover:text-primary transition-colors font-medium">
             Services
           </a>
-          <a href="/auth/login" className="hover:text-orange-600">
+          <a href="/auth/login" className="text-text-muted hover:text-primary transition-colors font-medium">
             Login
           </a>
+          <a href="/auth/register" className="text-text-muted hover:text-primary transition-colors font-medium">
+            Register
+          </a>
         </div>
-        <p>&copy; {new Date().getFullYear()} ServiceMarket. All rights reserved.</p>
+        <p className="text-text-muted text-sm">&copy; {new Date().getFullYear()} QuickServe. All rights reserved.</p>
       </div>
     </footer>
   );

@@ -19,14 +19,14 @@ export default function Features() {
     },
   ];
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section className="py-24 bg-background transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {items.map((i) => (
-            <div key={i.title} className="text-center p-6">
-              <div className="text-5xl mb-4 text-orange-500">{i.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{i.title}</h3>
-              <p className="text-gray-600">{i.description}</p>
+            <div key={i.title} className="text-center p-8 rounded-3xl bg-surface border border-border shadow-sm hover:shadow-md transition-all">
+              <div className="text-5xl mb-6 flex justify-center">{i.icon}</div>
+              <h3 className="text-xl font-bold mb-3 text-foreground">{i.title}</h3>
+              <p className="text-text-muted leading-relaxed">{i.description}</p>
             </div>
           ))}
         </div>
