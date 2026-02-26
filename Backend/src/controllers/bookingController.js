@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { createNotification } = require('./notificationController');
 
 // customers place bookings, providers manage them
 
@@ -32,6 +33,14 @@ exports.createBooking = async (req, res) => {
             [service_id, providerId, userId, totalPrice]
         );
 
+        await createNotification(
+            providerId,
+            "New Booking Request",
+            `You have a new booking request for "${service.title}"`,
+            'booking',
+            '/provider/bookings'
+        );
+
         res.status(201).json({
             message: "Booking created",
             booking: ins.rows[0]
@@ -47,9 +56,11 @@ exports.getMyBookings = async (req, res) => {
         const userId = req.user.id;
 
         const bookings = await pool.query(
-            `SELECT b.*, s.title, s.price
+            `SELECT b.*, s.title, s.price, u.name as provider_name
              FROM bookings b
              JOIN services s ON b.service_id = s.id
+             JOIN provider_profiles pp ON b.provider_id = pp.id
+             JOIN users u ON pp.user_id = u.id
              WHERE b.customer_id = $1
              ORDER BY b.created_at DESC`,
             [userId]
@@ -76,9 +87,10 @@ exports.getProviderBookings = async (req, res) => {
         const providerId = profileRes.rows[0].id;
 
         const bookings = await pool.query(
-            `SELECT b.*, s.title, s.price
+            `SELECT b.*, s.title, s.price, u.name AS customer_name, u.email AS customer_email
              FROM bookings b
              JOIN services s ON b.service_id = s.id
+             JOIN users u ON b.customer_id = u.id
              WHERE b.provider_id = $1
              ORDER BY b.created_at DESC`,
             [providerId]
@@ -86,6 +98,7 @@ exports.getProviderBookings = async (req, res) => {
 
         res.json(bookings.rows);
     } catch (error) {
+        console.error("Error in getProviderBookings:", error);
         res.status(500).json({ message: "Server error", error });
     }
 };
@@ -102,7 +115,7 @@ exports.updateBookingStatus = async (req, res) => {
         }
 
         const bookingRes = await pool.query(
-            "SELECT * FROM bookings WHERE id = $1",
+            "SELECT b.*, s.title FROM bookings b JOIN services s ON b.service_id = s.id WHERE b.id = $1",
             [id]
         );
         if (bookingRes.rows.length === 0) {
@@ -139,18 +152,39 @@ exports.updateBookingStatus = async (req, res) => {
                 if (current !== 'pending') {
                     return res.status(400).json({ message: "Can only accept pending bookings" });
                 }
+                await createNotification(
+                    booking.customer_id,
+                    "Booking Accepted",
+                    `Your booking for "${booking.title}" has been accepted.`,
+                    'booking',
+                    '/customer/bookings'
+                );
                 return persist('accepted');
             }
             if (status === 'rejected') {
                 if (current !== 'pending') {
                     return res.status(400).json({ message: "Can only reject pending bookings" });
                 }
+                await createNotification(
+                    booking.customer_id,
+                    "Booking Rejected",
+                    `Your booking for "${booking.title}" has been rejected.`,
+                    'booking',
+                    '/customer/bookings'
+                );
                 return persist('rejected');
             }
             if (status === 'completed') {
                 if (current !== 'accepted') {
                     return res.status(400).json({ message: "Can only complete accepted bookings" });
                 }
+                await createNotification(
+                    booking.customer_id,
+                    "Booking Completed",
+                    `Your service for "${booking.title}" has been marked as completed.`,
+                    'booking',
+                    '/customer/bookings'
+                );
                 return persist('completed');
             }
 
@@ -165,6 +199,13 @@ exports.updateBookingStatus = async (req, res) => {
                 if (current !== 'pending') {
                     return res.status(400).json({ message: "Can only cancel pending bookings" });
                 }
+                await createNotification(
+                    booking.provider_id,
+                    "Booking Cancelled",
+                    `The customer has cancelled the booking for "${booking.title}"`,
+                    'booking',
+                    '/provider/bookings'
+                );
                 return persist('cancelled');
             }
             return res.status(400).json({ message: "Invalid status transition for customer" });

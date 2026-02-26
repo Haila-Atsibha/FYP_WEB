@@ -76,7 +76,7 @@ exports.registerUser = async (req, res) => {
             if (Array.isArray(cats) && cats.length > 0) {
                 const insertPromises = cats.map((catId) => {
                     return pool.query(
-                        "INSERT INTO provider_categories (user_id, category_id) VALUES ($1, $2)",
+                        "INSERT INTO provider_categories (provider_id, category_id) VALUES ($1, $2)",
                         [user.id, catId]
                     );
                 });

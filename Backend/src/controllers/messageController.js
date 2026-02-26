@@ -29,13 +29,52 @@ exports.sendMessage = async (req, res) => {
 
         const insert = await pool.query(
             `INSERT INTO messages
-             (booking_id, sender_id, content)
-             VALUES ($1,$2,$3) RETURNING *`,
+             (booking_id, sender_id, message)
+             VALUES ($1,$2,$3) RETURNING id, booking_id, sender_id, message AS content, created_at`,
             [booking_id, userId, content]
         );
 
         res.status(201).json({ message: "Message sent", messageObj: insert.rows[0] });
     } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.getCustomerConversations = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Fetch unique "conversations" based on bookings
+        // This query gets the most recent message for each booking the user is involved in
+        const conversations = await pool.query(
+            `SELECT DISTINCT ON (b.id)
+                b.id AS booking_id,
+                b.status AS booking_status,
+                s.title AS service_title,
+                u.name AS partner_name,
+                u.id AS partner_id,
+                m.message AS last_message,
+                m.created_at AS last_message_time
+             FROM bookings b
+             JOIN services s ON b.service_id = s.id
+             JOIN provider_profiles pp ON b.provider_id = pp.id
+             JOIN users u ON pp.user_id = u.id
+             LEFT JOIN messages m ON b.id = m.booking_id
+             WHERE b.customer_id = $1
+             ORDER BY b.id, m.created_at DESC`,
+            [userId]
+        );
+
+        // Sort by last message time (descending)
+        const sortedConversations = conversations.rows.sort((a, b) => {
+            const timeA = a.last_message_time ? new Date(a.last_message_time) : new Date(0);
+            const timeB = b.last_message_time ? new Date(b.last_message_time) : new Date(0);
+            return timeB - timeA;
+        });
+
+        res.json(sortedConversations);
+    } catch (error) {
+        console.error("Error in getCustomerConversations:", error);
         res.status(500).json({ message: "Server error", error });
     }
 };
@@ -63,7 +102,7 @@ exports.getMessagesByBooking = async (req, res) => {
         }
 
         const messages = await pool.query(
-            `SELECT m.*, u.name AS sender_name
+            `SELECT m.id, m.booking_id, m.sender_id, m.message AS content, m.created_at, u.name AS sender_name
              FROM messages m
              LEFT JOIN users u ON m.sender_id = u.id
              WHERE m.booking_id = $1

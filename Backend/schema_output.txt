@@ -1,0 +1,7 @@
+average_rating: numeric
+created_at: timestamp without time zone
+user_id: integer
+id: integer
+is_verified: boolean
+verification_status: character varying
+bio: text

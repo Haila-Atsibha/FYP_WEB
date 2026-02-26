@@ -10,12 +10,12 @@ export default function ServiceCard({ service, user }) {
       <div>
         <div className="flex justify-between items-start mb-2">
           <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded">
-            {category?.name || service.category}
+            {service.category_name || service.category?.name || service.category}
           </span>
           <span className="font-bold text-lg text-foreground">${price}</span>
         </div>
         <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{title}</h3>
-        <p className="text-sm text-text-muted">by {provider?.name || service.provider}</p>
+        <p className="text-sm text-text-muted">by {service.provider_name || service.provider?.name || service.provider}</p>
       </div>
       <div className="mt-6 flex flex-col space-y-3">
         <div className="flex items-center justify-between">

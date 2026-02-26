@@ -62,13 +62,32 @@ exports.createService = async (req, res) => {
 
 exports.getAllServices = async (req, res) => {
     try {
-        const services = await pool.query(`
-            SELECT s.*, c.name AS category_name
+        const { category, q } = req.query;
+        let query = `
+            SELECT s.*, c.name AS category_name, u.name AS provider_name
             FROM services s
             LEFT JOIN service_categories c ON s.category_id = c.id
-            ORDER BY s.created_at DESC
-        `);
+            LEFT JOIN provider_profiles pp ON s.provider_id = pp.id
+            LEFT JOIN users u ON pp.user_id = u.id
+            WHERE 1=1
+        `;
+        const values = [];
+        let idx = 1;
 
+        if (category) {
+            query += ` AND s.category_id = $${idx++}`;
+            values.push(category);
+        }
+
+        if (q) {
+            query += ` AND (LOWER(s.title) LIKE $${idx} OR LOWER(s.description) LIKE $${idx})`;
+            values.push(`%${q.toLowerCase()}%`);
+            idx++;
+        }
+
+        query += ` ORDER BY s.created_at DESC`;
+
+        const services = await pool.query(query, values);
         res.json(services.rows);
 
     } catch (error) {

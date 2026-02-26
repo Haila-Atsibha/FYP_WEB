@@ -89,3 +89,35 @@ exports.getServiceReviews = async (req, res) => {
         res.status(500).json({ message: "Server error", error });
     }
 };
+
+// get reviews for the logged-in provider
+exports.getMyReviews = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // find provider profile id
+        const profileRes = await pool.query(
+            "SELECT id FROM provider_profiles WHERE user_id = $1",
+            [userId]
+        );
+        if (profileRes.rows.length === 0) {
+            return res.status(404).json({ message: "Provider profile not found" });
+        }
+        const providerId = profileRes.rows[0].id;
+
+        const reviews = await pool.query(
+            `SELECT r.*, u.name AS customer_name, s.title AS service_title
+             FROM reviews r
+             LEFT JOIN users u ON r.customer_id = u.id
+             JOIN services s ON r.service_id = s.id
+             WHERE r.provider_id = $1
+             ORDER BY r.created_at DESC`,
+            [providerId]
+        );
+
+        res.json(reviews.rows);
+    } catch (error) {
+        console.error("Error in getMyReviews:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};

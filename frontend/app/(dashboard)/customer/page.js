@@ -25,7 +25,7 @@ import ProviderMiniCard from "../../../src/components/ProviderMiniCard";
 import api from "../../../src/services/api";
 
 export default function CustomerDashboard() {
-  const { user } = useContext(AuthContext);
+  const { user, loading: authLoading } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     stats: { active: 0, completed: 0, cancelled: 0, unread: 0 },
@@ -38,7 +38,7 @@ export default function CustomerDashboard() {
       setLoading(true);
       try {
         const [statsRes, categoriesRes, topRes] = await Promise.all([
-          api.get("/api/customer/stats").catch(() => ({ data: mockStats })),
+          api.get("/api/customer/stats"),
           api.get("/api/categories").catch(() => ({ data: mockCategories })),
           api.get("/api/providers/top").catch(() => ({ data: mockTopProviders }))
         ]);
@@ -55,8 +55,10 @@ export default function CustomerDashboard() {
       }
     };
 
-    fetchData();
-  }, []);
+    if (!authLoading && user) {
+      fetchData();
+    }
+  }, [user, authLoading]);
 
   return (
     <ProtectedRoute roles={["customer"]}>

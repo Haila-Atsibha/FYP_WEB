@@ -16,7 +16,8 @@ const protect = (req, res, next) => {
         req.user = decoded; // attach user info to request
         next();
     } catch (error) {
-        res.status(401).json({ message: "Not authorized, invalid token" });
+        console.error("JWT verification failed:", error.message);
+        res.status(401).json({ message: "Not authorized, invalid token", detail: error.message });
     }
 };
 

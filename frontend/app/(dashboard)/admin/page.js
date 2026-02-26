@@ -65,13 +65,13 @@ export default function AdminDashboard() {
           subscriptionsRes,
           activityRes
         ] = await Promise.all([
-          api.get("/api/admin/stats").catch(() => ({ data: mockStats })),
-          api.get("/api/admin/bookings").catch(() => ({ data: mockBookings })),
-          api.get("/api/admin/users").catch(() => ({ data: mockUsers })),
-          api.get("/api/admin/complaints").catch(() => ({ data: mockComplaints })),
-          api.get("/api/admin/categories").catch(() => ({ data: mockCategories })),
-          api.get("/api/admin/subscriptions").catch(() => ({ data: mockSubscriptions })),
-          api.get("/api/admin/activity").catch(() => ({ data: mockActivity }))
+          api.get("/api/admin/stats"),
+          api.get("/api/admin/bookings"),
+          api.get("/api/admin/users"),
+          api.get("/api/admin/complaints"),
+          api.get("/api/admin/categories"),
+          api.get("/api/admin/subscriptions"),
+          api.get("/api/admin/activity")
         ]);
 
         setStats(statsRes.data);
@@ -81,9 +81,13 @@ export default function AdminDashboard() {
         setCategories(categoriesRes.data);
         setSubscriptions(subscriptionsRes.data);
         setActivity(activityRes.data);
-      } catch (err) {
-        setError("Failed to load dashboard data. Please try again later.");
-        console.error(err);
+      } catch (dashboardError) {
+        console.error("Dashboard fetch error:", dashboardError);
+        const errorMsg =
+          dashboardError.response?.data?.message ||
+          dashboardError.response?.data?.error ||
+          "Failed to load dashboard data. Please try again later.";
+        setError(errorMsg);
       } finally {
         setLoading(false);
       }

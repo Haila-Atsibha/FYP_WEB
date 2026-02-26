@@ -8,6 +8,7 @@ const {
     createCategory,
     getAllCategories,
     getCategoryById,
+    updateCategory,
     deleteCategory
 } = require('../controllers/categoriesController');
 
@@ -20,6 +21,13 @@ router.post(
 
 router.get('/', getAllCategories);
 router.get('/:id', getCategoryById);
+
+router.put(
+    '/:id',
+    protect,
+    authorizeRoles('admin'),
+    updateCategory
+);
 
 router.delete(
     '/:id',
