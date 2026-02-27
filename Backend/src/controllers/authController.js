@@ -62,25 +62,40 @@ exports.registerUser = async (req, res) => {
 
         const user = newUser.rows[0];
 
-        // if provider add categories
-        if (role === 'provider' && categories) {
-            let cats = categories;
-            if (typeof cats === 'string') {
-                try {
-                    cats = JSON.parse(cats);
-                } catch (e) {
-                    // string of comma-separated ids
-                    cats = cats.split(',').map((c) => c.trim());
+        // if provider, create profile and add categories
+        if (role === 'provider') {
+            // 1. Create mandatory provider profile
+            await pool.query(
+                "INSERT INTO provider_profiles (user_id, bio) VALUES ($1, $2)",
+                [user.id, `Hi, I am ${name}`]
+            );
+
+            // 2. Add categories if present
+            // Multer/Express might send categories[] as the key
+            let cats = categories || req.body['categories[]'];
+
+            if (cats) {
+                if (typeof cats === 'string') {
+                    try {
+                        cats = JSON.parse(cats);
+                    } catch (e) {
+                        // try splitting if it's a comma separated string
+                        cats = cats.split(',').map((c) => c.trim());
+                    }
                 }
-            }
-            if (Array.isArray(cats) && cats.length > 0) {
-                const insertPromises = cats.map((catId) => {
-                    return pool.query(
-                        "INSERT INTO provider_categories (provider_id, category_id) VALUES ($1, $2)",
-                        [user.id, catId]
-                    );
-                });
-                await Promise.all(insertPromises);
+
+                // Ensure it's an array
+                const catArray = Array.isArray(cats) ? cats : [cats];
+
+                if (catArray.length > 0) {
+                    const insertPromises = catArray.map((catId) => {
+                        return pool.query(
+                            "INSERT INTO provider_categories (provider_id, category_id) VALUES ($1, $2)",
+                            [user.id, catId]
+                        );
+                    });
+                    await Promise.all(insertPromises);
+                }
             }
         }
 

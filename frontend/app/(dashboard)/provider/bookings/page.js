@@ -5,6 +5,7 @@ import { AuthContext } from "../../../../src/context/AuthContext";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import api from "../../../../src/services/api";
+import Link from "next/link";
 import {
     Calendar,
     Clock,
@@ -16,7 +17,8 @@ import {
     MoreVertical,
     Check,
     X,
-    History
+    History,
+    MessageSquare
 } from "lucide-react";
 import Button from "../../../../src/components/Button";
 import Badge from "../../../../src/components/Badge";
@@ -186,6 +188,16 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                             </div>
                         </div>
                     </div>
+
+                    <div className="p-4 bg-surface-hover border border-border rounded-2xl">
+                        <p className="text-xs font-black text-text-muted uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <ChevronRight size={14} className="text-primary" />
+                            Job Description
+                        </p>
+                        <p className="text-sm text-foreground line-clamp-3">
+                            {booking.description || "No description provided."}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Pricing and Actions */}
@@ -195,9 +207,9 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                         <p className="text-3xl font-black text-foreground tracking-tighter">${booking.total_price}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 w-full">
+                    <div className="flex flex-col gap-2 w-full">
                         {isPending && (
-                            <>
+                            <div className="flex gap-2">
                                 <Button
                                     onClick={() => onUpdateStatus(booking.id, "accepted")}
                                     className="flex-1 bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
@@ -212,16 +224,26 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                                     <X size={18} />
                                     Reject
                                 </Button>
-                            </>
+                            </div>
                         )}
                         {isAccepted && (
-                            <Button
-                                onClick={() => onUpdateStatus(booking.id, "completed")}
-                                className="w-full bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
-                            >
-                                <CheckCircle size={18} />
-                                Mark Completed
-                            </Button>
+                            <>
+                                <Link href={`/chat/${booking.id}`} className="w-full">
+                                    <Button
+                                        className="w-full bg-secondary text-white hover:bg-secondary-dark shadow-lg shadow-secondary/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm mb-2"
+                                    >
+                                        <MessageSquare size={18} />
+                                        Open Chat
+                                    </Button>
+                                </Link>
+                                <Button
+                                    onClick={() => onUpdateStatus(booking.id, "completed")}
+                                    className="w-full bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
+                                >
+                                    <CheckCircle size={18} />
+                                    Mark Completed
+                                </Button>
+                            </>
                         )}
                         {!isPending && !isAccepted && (
                             <Button

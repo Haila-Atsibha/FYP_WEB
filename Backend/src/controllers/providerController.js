@@ -134,12 +134,13 @@ exports.getPublicProviders = async (req, res) => {
         `;
         const values = [];
 
-        if (category) {
+        if (category && !isNaN(parseInt(category))) {
+            const catInt = parseInt(category);
             query += ` AND (
                 EXISTS (SELECT 1 FROM services s2 WHERE s2.provider_id = p.id AND s2.category_id = $1)
                 OR EXISTS (SELECT 1 FROM provider_categories pc WHERE pc.provider_id = u.id AND pc.category_id = $1)
             )`;
-            values.push(category);
+            values.push(catInt);
         }
 
         query += ` GROUP BY u.id, p.id ORDER BY p.average_rating DESC NULLS LAST`;
@@ -182,6 +183,44 @@ exports.getTopProviders = async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+exports.getPublicProviderProfile = async (req, res) => {
+    try {
+        const { id } = req.params; // Provider Profile ID
+
+        // Get provider info
+        const providerRes = await pool.query(
+            `SELECT 
+                u.name, u.profile_image_url, 
+                p.id as provider_profile_id, p.bio, p.average_rating,
+                u.id as user_id
+             FROM provider_profiles p
+             JOIN users u ON p.user_id = u.id
+             WHERE p.id = $1 AND u.status = 'approved'`,
+            [id]
+        );
+
+        if (providerRes.rows.length === 0) {
+            return res.status(404).json({ message: "Provider not found" });
+        }
+
+        const provider = providerRes.rows[0];
+
+        // Get services for this provider
+        const servicesRes = await pool.query(
+            "SELECT * FROM services WHERE provider_id = $1",
+            [id]
+        );
+
+        res.json({
+            ...provider,
+            services: servicesRes.rows
+        });
+
+    } catch (error) {
+        console.error("Get Public Provider Profile Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

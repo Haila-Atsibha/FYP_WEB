@@ -20,6 +20,12 @@ router.get('/my', protect, authorizeRoles('customer'), getMyBookings);
 // get bookings for provider
 router.get('/provider', protect, authorizeRoles('provider'), getProviderBookings);
 
+// get single booking
+router.get('/:id', protect, (req, res, next) => {
+    const { getBookingById } = require('../controllers/bookingController');
+    return getBookingById(req, res, next);
+});
+
 // update status (customer or provider depending on action)
 router.put('/:id/status', protect, updateBookingStatus);
 

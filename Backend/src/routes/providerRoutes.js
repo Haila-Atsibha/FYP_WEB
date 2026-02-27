@@ -13,6 +13,11 @@ const {
 // Public routes
 router.get('/', getPublicProviders);
 router.get('/top', getTopProviders);
+router.get('/:id', (req, res, next) => {
+    // Controller is imported below
+    const { getPublicProviderProfile } = require('../controllers/providerController');
+    return getPublicProviderProfile(req, res, next);
+});
 
 router.post(
     '/profile',

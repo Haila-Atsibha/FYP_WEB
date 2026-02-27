@@ -1,0 +1,36 @@
+
+Table: bookings
+- created_at: timestamp without time zone
+- customer_id: integer
+- service_id: integer
+- provider_id: integer
+- booking_date: date
+- id: integer
+- total_price: numeric
+- status: character varying
+
+Table: messages
+- created_at: timestamp without time zone
+- id: integer
+- booking_id: integer
+- sender_id: integer
+- receiver_id: integer
+- payload: jsonb
+- private: boolean
+- updated_at: timestamp without time zone
+- inserted_at: timestamp without time zone
+- id: uuid
+- extension: text
+- topic: text
+- event: text
+- message: text
+
+Table: notifications
+- id: integer
+- user_id: integer
+- is_read: boolean
+- created_at: timestamp without time zone
+- type: text
+- link: text
+- title: text
+- message: text

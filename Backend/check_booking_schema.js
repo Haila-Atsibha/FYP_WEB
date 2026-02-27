@@ -2,20 +2,28 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-async function checkSchema() {
-    try {
-        console.log("--- bookings ---");
-        const resB = await pool.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'bookings'");
-        resB.rows.forEach(r => console.log(`${r.column_name}: ${r.data_type}`));
+const fs = require('fs');
 
-        console.log("--- provider_profiles ---");
-        const resP = await pool.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'provider_profiles'");
-        resP.rows.forEach(r => console.log(`${r.column_name}: ${r.data_type}`));
-    } catch (err) {
-        console.error("DB ERROR:", err.message);
+async function check() {
+    try {
+        let output = "";
+        const tables = ['bookings', 'messages', 'notifications'];
+        for (const t of tables) {
+            const res = await pool.query(
+                "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1",
+                [t]
+            );
+            output += `\nTable: ${t}\n`;
+            res.rows.forEach(r => {
+                output += `- ${r.column_name}: ${r.data_type}\n`;
+            });
+        }
+        fs.writeFileSync('schema_dump.txt', output);
+        console.log("Schema dumped to schema_dump.txt");
+    } catch (e) {
+        console.error(e);
     } finally {
         pool.end();
     }
 }
-
-checkSchema();
+check();

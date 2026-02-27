@@ -1,0 +1,117 @@
+TABLE SCHEMA DUMP
+=================
+
+Table: users
+- id: integer
+- instance_id: uuid
+- name: character varying
+- id: uuid
+- email: character varying
+- aud: character varying
+- password: text
+- role: character varying
+- email: character varying
+- role: character varying
+- created_at: timestamp without time zone
+- encrypted_password: character varying
+- email_confirmed_at: timestamp with time zone
+- profile_image_url: text
+- national_id_url: text
+- invited_at: timestamp with time zone
+- verification_selfie_url: text
+- confirmation_token: character varying
+- confirmation_sent_at: timestamp with time zone
+- status: character varying
+- rejection_reason: text
+- recovery_token: character varying
+- recovery_sent_at: timestamp with time zone
+- phone: text
+- email_change_token_new: character varying
+- email_change: character varying
+- email_change_sent_at: timestamp with time zone
+- last_sign_in_at: timestamp with time zone
+- raw_app_meta_data: jsonb
+- raw_user_meta_data: jsonb
+- is_super_admin: boolean
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- phone: text
+- phone_confirmed_at: timestamp with time zone
+- phone_change: text
+- phone_change_token: character varying
+- phone_change_sent_at: timestamp with time zone
+- confirmed_at: timestamp with time zone
+- email_change_token_current: character varying
+- email_change_confirm_status: smallint
+- banned_until: timestamp with time zone
+- reauthentication_token: character varying
+- reauthentication_sent_at: timestamp with time zone
+- is_sso_user: boolean
+- deleted_at: timestamp with time zone
+- is_anonymous: boolean
+
+Table: bookings
+- id: integer
+- customer_id: integer
+- service_id: integer
+- provider_id: integer
+- booking_date: date
+- status: character varying
+- total_price: numeric
+- created_at: timestamp without time zone
+
+Table: messages
+- id: integer
+- booking_id: integer
+- topic: text
+- sender_id: integer
+- receiver_id: integer
+- extension: text
+- message: text
+- payload: jsonb
+- created_at: timestamp without time zone
+- event: text
+- private: boolean
+- updated_at: timestamp without time zone
+- inserted_at: timestamp without time zone
+- id: uuid
+
+Table: notifications
+- id: integer
+- user_id: integer
+- title: text
+- message: text
+- type: text
+- is_read: boolean
+- link: text
+- created_at: timestamp without time zone
+
+Table: provider_profiles
+- id: integer
+- user_id: integer
+- bio: text
+- verification_status: character varying
+- is_verified: boolean
+- average_rating: numeric
+- created_at: timestamp without time zone
+
+Table: services
+- id: integer
+- provider_id: integer
+- category_id: integer
+- title: character varying
+- description: text
+- price: numeric
+- is_active: boolean
+- created_at: timestamp without time zone
+
+Table: service_categories
+- id: integer
+- name: character varying
+- description: text
+- created_at: timestamp without time zone
+
+Table: provider_categories
+- id: integer
+- provider_id: integer
+- category_id: integer

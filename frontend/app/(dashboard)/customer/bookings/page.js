@@ -9,7 +9,8 @@ import {
     AlertCircle,
     ArrowLeft,
     RefreshCw,
-    Search
+    Search,
+    MessageSquare
 } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "../../../../src/context/AuthContext";
@@ -197,7 +198,15 @@ const BookingCard = ({ booking, onCancel, isCancelling }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 self-end md:self-center">
+                <div className="flex flex-col items-center gap-2 self-end md:self-center">
+                    {booking.status === "accepted" && (
+                        <Link href={`/chat/${booking.id}`} className="w-full">
+                            <Button className="bg-secondary text-white hover:bg-secondary-dark border-none py-2 px-4 rounded-xl text-sm h-auto flex items-center gap-2 font-bold w-full">
+                                <MessageSquare size={16} />
+                                Chat with Provider
+                            </Button>
+                        </Link>
+                    )}
                     {booking.status === "pending" && (
                         <Button
                             onClick={onCancel}

@@ -74,9 +74,9 @@ exports.getAllServices = async (req, res) => {
         const values = [];
         let idx = 1;
 
-        if (category) {
+        if (category && !isNaN(parseInt(category))) {
             query += ` AND s.category_id = $${idx++}`;
-            values.push(category);
+            values.push(parseInt(category));
         }
 
         if (q) {

@@ -11,8 +11,12 @@ exports.sendMessage = async (req, res) => {
             return res.status(400).json({ message: "booking_id and content are required" });
         }
 
+        // query booking with provider user_id
         const bookingRes = await pool.query(
-            "SELECT * FROM bookings WHERE id = $1",
+            `SELECT b.*, pp.user_id AS provider_user_id 
+             FROM bookings b 
+             JOIN provider_profiles pp ON b.provider_id = pp.id 
+             WHERE b.id = $1`,
             [booking_id]
         );
         if (bookingRes.rows.length === 0) {
@@ -20,9 +24,14 @@ exports.sendMessage = async (req, res) => {
         }
         const booking = bookingRes.rows[0];
 
-        // ensure sender is either customer or provider tied to booking
+        // Status check: only accepted bookings
+        if (booking.status !== 'accepted') {
+            return res.status(403).json({ message: "Chat is only available for accepted bookings" });
+        }
+
+        // ensure sender is either customer or provider
         const isCustomer = booking.customer_id === userId;
-        const isProvider = booking.provider_id === userId;
+        const isProvider = booking.provider_user_id === userId;
         if (!isCustomer && !isProvider) {
             return res.status(403).json({ message: "Forbidden" });
         }
@@ -32,6 +41,17 @@ exports.sendMessage = async (req, res) => {
              (booking_id, sender_id, message)
              VALUES ($1,$2,$3) RETURNING id, booking_id, sender_id, message AS content, created_at`,
             [booking_id, userId, content]
+        );
+
+        // Notify receiver
+        const receiverId = isCustomer ? booking.provider_user_id : booking.customer_id;
+        const { createNotification } = require('./notificationController');
+        await createNotification(
+            receiverId,
+            "New Message",
+            `You have a new message regarding your booking.`,
+            'message',
+            `/chat/${booking_id}`
         );
 
         res.status(201).json({ message: "Message sent", messageObj: insert.rows[0] });
@@ -89,7 +109,10 @@ exports.getMessagesByBooking = async (req, res) => {
         }
 
         const bookingRes = await pool.query(
-            "SELECT * FROM bookings WHERE id = $1",
+            `SELECT b.*, pp.user_id AS provider_user_id 
+             FROM bookings b 
+             JOIN provider_profiles pp ON b.provider_id = pp.id 
+             WHERE b.id = $1`,
             [booking_id]
         );
         if (bookingRes.rows.length === 0) {
@@ -97,7 +120,11 @@ exports.getMessagesByBooking = async (req, res) => {
         }
         const booking = bookingRes.rows[0];
 
-        if (booking.customer_id !== userId && booking.provider_id !== userId) {
+        if (booking.status !== 'accepted') {
+            return res.status(403).json({ message: "Chat is not available" });
+        }
+
+        if (booking.customer_id !== userId && booking.provider_user_id !== userId) {
             return res.status(403).json({ message: "Forbidden" });
         }
 

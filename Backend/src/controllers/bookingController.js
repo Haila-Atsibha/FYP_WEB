@@ -7,7 +7,7 @@ const { createNotification } = require('./notificationController');
 exports.createBooking = async (req, res) => {
     try {
         const userId = req.user.id; // customer id
-        const { service_id } = req.body;
+        const { service_id, description } = req.body;
 
         if (!service_id) {
             return res.status(400).json({ message: "service_id is required" });
@@ -26,11 +26,20 @@ exports.createBooking = async (req, res) => {
         const providerId = service.provider_id;
         const totalPrice = service.price;
 
+        // Prevent duplicate pending bookings for same user/service
+        const duplicate = await pool.query(
+            "SELECT id FROM bookings WHERE customer_id = $1 AND service_id = $2 AND status = 'pending'",
+            [userId, service_id]
+        );
+        if (duplicate.rows.length > 0) {
+            return res.status(400).json({ message: "You already have a pending booking for this service." });
+        }
+
         const ins = await pool.query(
             `INSERT INTO bookings
-             (service_id, provider_id, customer_id, total_price, status)
-             VALUES ($1,$2,$3,$4,'pending') RETURNING *`,
-            [service_id, providerId, userId, totalPrice]
+             (service_id, provider_id, customer_id, total_price, status, description, booking_date)
+             VALUES ($1,$2,$3,$4,'pending',$5, CURRENT_DATE) RETURNING *`,
+            [service_id, providerId, userId, totalPrice, description || "No description provided"]
         );
 
         await createNotification(
@@ -214,5 +223,43 @@ exports.updateBookingStatus = async (req, res) => {
         res.status(403).json({ message: "Unauthorized role" });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.getBookingById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const bookingRes = await pool.query(
+            `SELECT b.*, s.title, u_prov.name AS provider_name, u_cust.name AS customer_name
+             FROM bookings b
+             JOIN services s ON b.service_id = s.id
+             JOIN provider_profiles pp ON b.provider_id = pp.id
+             JOIN users u_prov ON pp.user_id = u_prov.id
+             JOIN users u_cust ON b.customer_id = u_cust.id
+             WHERE b.id = $1`,
+            [id]
+        );
+
+        if (bookingRes.rows.length === 0) {
+            return res.status(404).json({ message: "Booking not found" });
+        }
+
+        const booking = bookingRes.rows[0];
+
+        // Security: only customer or provider
+        const profileRes = await pool.query("SELECT id FROM provider_profiles WHERE user_id = $1", [userId]);
+        const isProvider = profileRes.rows.length > 0 && profileRes.rows[0].id === booking.provider_id;
+        const isCustomer = booking.customer_id === userId;
+
+        if (!isProvider && !isCustomer) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+
+        res.json(booking);
+    } catch (error) {
+        console.error("Get Booking Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };

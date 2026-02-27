@@ -23,7 +23,11 @@ function ServicesContent() {
 
   useEffect(() => {
     const cat = searchParams.get("category");
-    setCategoryFilter(cat || null);
+    if (cat === "null" || cat === "undefined" || !cat) {
+      setCategoryFilter(null);
+    } else {
+      setCategoryFilter(cat);
+    }
   }, [searchParams]);
 
   const handleCategoryChange = (e) => {

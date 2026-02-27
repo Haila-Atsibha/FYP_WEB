@@ -1,0 +1,128 @@
+{
+  "bookings": [
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone"
+    },
+    {
+      "column_name": "customer_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "service_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "provider_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "booking_date",
+      "data_type": "date"
+    },
+    {
+      "column_name": "id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "total_price",
+      "data_type": "numeric"
+    },
+    {
+      "column_name": "status",
+      "data_type": "character varying"
+    }
+  ],
+  "messages": [
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone"
+    },
+    {
+      "column_name": "id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "booking_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "sender_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "receiver_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "payload",
+      "data_type": "jsonb"
+    },
+    {
+      "column_name": "private",
+      "data_type": "boolean"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone"
+    },
+    {
+      "column_name": "inserted_at",
+      "data_type": "timestamp without time zone"
+    },
+    {
+      "column_name": "id",
+      "data_type": "uuid"
+    },
+    {
+      "column_name": "extension",
+      "data_type": "text"
+    },
+    {
+      "column_name": "topic",
+      "data_type": "text"
+    },
+    {
+      "column_name": "event",
+      "data_type": "text"
+    },
+    {
+      "column_name": "message",
+      "data_type": "text"
+    }
+  ],
+  "notifications": [
+    {
+      "column_name": "id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "user_id",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "is_read",
+      "data_type": "boolean"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone"
+    },
+    {
+      "column_name": "type",
+      "data_type": "text"
+    },
+    {
+      "column_name": "link",
+      "data_type": "text"
+    },
+    {
+      "column_name": "title",
+      "data_type": "text"
+    },
+    {
+      "column_name": "message",
+      "data_type": "text"
+    }
+  ]
+}
