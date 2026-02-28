@@ -4,9 +4,10 @@ const pool = require('./src/db');
 async function check() {
     try {
         const res = await pool.query(`
-            SELECT table_name, column_name, data_type 
+            SELECT table_schema, table_name, column_name, data_type 
             FROM information_schema.columns 
-            WHERE table_name IN ('bookings', 'services')
+            WHERE table_name IN ('bookings', 'services', 'messages', 'users')
+            ORDER BY table_schema, table_name, column_name
         `);
         console.table(res.rows);
 

@@ -1,36 +1,68 @@
 
 Table: bookings
-- created_at: timestamp without time zone
+- id: integer
 - customer_id: integer
 - service_id: integer
 - provider_id: integer
 - booking_date: date
-- id: integer
-- total_price: numeric
 - status: character varying
+- total_price: numeric
+- created_at: timestamp without time zone
+- description: text
 
 Table: messages
-- created_at: timestamp without time zone
 - id: integer
 - booking_id: integer
 - sender_id: integer
 - receiver_id: integer
-- payload: jsonb
-- private: boolean
-- updated_at: timestamp without time zone
-- inserted_at: timestamp without time zone
-- id: uuid
-- extension: text
-- topic: text
-- event: text
 - message: text
+- created_at: timestamp without time zone
 
 Table: notifications
 - id: integer
 - user_id: integer
-- is_read: boolean
-- created_at: timestamp without time zone
-- type: text
-- link: text
 - title: text
 - message: text
+- type: text
+- is_read: boolean
+- link: text
+- created_at: timestamp without time zone
+
+Table: services
+- id: integer
+- provider_id: integer
+- category_id: integer
+- title: character varying
+- description: text
+- price: numeric
+- is_active: boolean
+- created_at: timestamp without time zone
+
+Table: provider_profiles
+- id: integer
+- user_id: integer
+- bio: text
+- verification_status: character varying
+- is_verified: boolean
+- average_rating: numeric
+- created_at: timestamp without time zone
+
+Table: service_categories
+- id: integer
+- name: character varying
+- description: text
+- created_at: timestamp without time zone
+
+Table: users
+- id: integer
+- name: character varying
+- email: character varying
+- password: text
+- role: character varying
+- created_at: timestamp without time zone
+- profile_image_url: text
+- national_id_url: text
+- verification_selfie_url: text
+- status: character varying
+- rejection_reason: text
+- phone: text

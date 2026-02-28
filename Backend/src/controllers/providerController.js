@@ -224,3 +224,63 @@ exports.getPublicProviderProfile = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
+exports.getProviderStats = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Find provider profile ID
+        const profileRes = await pool.query(
+            "SELECT id FROM provider_profiles WHERE user_id = $1",
+            [userId]
+        );
+
+        if (profileRes.rows.length === 0) {
+            return res.status(404).json({ message: "Provider profile not found" });
+        }
+
+        const providerProfileId = profileRes.rows[0].id;
+
+        // 1. Pending Bookings
+        const pendingRes = await pool.query(
+            "SELECT COUNT(*)::int as count FROM bookings WHERE provider_id = $1 AND status = 'pending'",
+            [providerProfileId]
+        );
+
+        // 2. Active Bookings (Accepted)
+        const activeRes = await pool.query(
+            "SELECT COUNT(*)::int as count FROM bookings WHERE provider_id = $1 AND status = 'accepted'",
+            [providerProfileId]
+        );
+
+        // 3. Completed Jobs
+        const completedRes = await pool.query(
+            "SELECT COUNT(*)::int as count FROM bookings WHERE provider_id = $1 AND status = 'completed'",
+            [providerProfileId]
+        );
+
+        // 4. Total Earnings
+        const earningsRes = await pool.query(
+            "SELECT COALESCE(SUM(total_price), 0)::numeric as total FROM bookings WHERE provider_id = $1 AND status = 'completed'",
+            [providerProfileId]
+        );
+
+        const stats = {
+            pendingRequests: pendingRes.rows[0]?.count || 0,
+            activeBookings: activeRes.rows[0]?.count || 0,
+            completedJobs: completedRes.rows[0]?.count || 0,
+            totalEarnings: Number(earningsRes.rows[0]?.total || 0)
+        };
+
+        console.log("DEBUG: getProviderStats SUCCESS", stats);
+        res.json(stats);
+
+    } catch (error) {
+        console.error("DEBUG: getProviderStats Error:", error.message, error.stack);
+        res.status(500).json({
+            message: "Server error in stats",
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+};

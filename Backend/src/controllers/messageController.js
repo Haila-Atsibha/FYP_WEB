@@ -56,7 +56,8 @@ exports.sendMessage = async (req, res) => {
 
         res.status(201).json({ message: "Message sent", messageObj: insert.rows[0] });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error });
+        console.error("SendMessage Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
@@ -95,7 +96,7 @@ exports.getCustomerConversations = async (req, res) => {
         res.json(sortedConversations);
     } catch (error) {
         console.error("Error in getCustomerConversations:", error);
-        res.status(500).json({ message: "Server error", error });
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
@@ -139,6 +140,7 @@ exports.getMessagesByBooking = async (req, res) => {
 
         res.json(messages.rows);
     } catch (error) {
-        res.status(500).json({ message: "Server error", error });
+        console.error("GetMessagesByBooking Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };

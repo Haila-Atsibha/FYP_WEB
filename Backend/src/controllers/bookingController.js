@@ -90,25 +90,41 @@ exports.getProviderBookings = async (req, res) => {
             "SELECT id FROM provider_profiles WHERE user_id = $1",
             [userId]
         );
-        if (profileRes.rows.length === 0) {
-            return res.status(404).json({ message: "Provider profile not found" });
-        }
-        const providerId = profileRes.rows[0].id;
 
-        const bookings = await pool.query(
-            `SELECT b.*, s.title, s.price, u.name AS customer_name, u.email AS customer_email
-             FROM bookings b
-             JOIN services s ON b.service_id = s.id
-             JOIN users u ON b.customer_id = u.id
-             WHERE b.provider_id = $1
-             ORDER BY b.created_at DESC`,
-            [providerId]
-        );
+        if (profileRes.rows.length === 0) {
+            console.warn(`DEBUG: No provider profile for user ${userId}`);
+            return res.json([]); // Return empty list instead of 404 to avoid dashboard crash
+        }
+
+        const providerId = profileRes.rows[0].id;
+        const { status } = req.query;
+
+        let query = `
+            SELECT b.*, s.title, s.price, u.name AS customer_name, u.email AS customer_email
+            FROM bookings b
+            JOIN services s ON b.service_id = s.id
+            JOIN users u ON b.customer_id = u.id
+            WHERE b.provider_id = $1
+        `;
+        const params = [providerId];
+
+        if (status) {
+            query += " AND b.status = $2";
+            params.push(status);
+        }
+
+        query += " ORDER BY b.created_at DESC";
+
+        const bookings = await pool.query(query, params);
 
         res.json(bookings.rows);
     } catch (error) {
-        console.error("Error in getProviderBookings:", error);
-        res.status(500).json({ message: "Server error", error });
+        console.error("DEBUG: getProviderBookings Error:", error.message, error.stack);
+        res.status(500).json({
+            message: "Server error in bookings",
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 

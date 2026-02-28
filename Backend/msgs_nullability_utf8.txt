@@ -1,0 +1,93 @@
+﻿[dotenv@17.3.1] injecting env (6) from .env -- tip: ≡ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+node : [eval]:1
+At line:1 char:1
++ node -e "const pool 
+= 
+require('./src/db'); r
+equire('dotenv').confi
+g() ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([eval]:1:S   
+ tring) [], Remote    
+Exception
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+const pool = 
+require('./src/db'); r
+equire('dotenv').confi
+g(); 
+pool.query('SELECT 
+column_name, 
+is_nullable FROM infor
+mation_schema.columns 
+WHERE table_name = 
+\'messages\'', (err, 
+res) => { console.tabl
+e(res.rows); 
+pool.end(); })
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+        ^
+
+TypeError: Cannot 
+read properties of 
+undefined (reading 
+'rows')
+    at [eval]:1:207
+    at 
+PendingItem.callback (
+C:\Users\Y\OneDrive\De
+sktop\FYP-WEB\Backend\
+node_modules\pg-pool\i
+ndex.js:415:16)
+    at Client._connect
+ionCallback (C:\Users\
+Y\OneDrive\Desktop\FYP
+-WEB\Backend\node_modu
+les\pg-pool\index.js:2
+69:23)
+    at Client._handleE
+rrorWhileConnecting (C
+:\Users\Y\OneDrive\Des
+ktop\FYP-WEB\Backend\n
+ode_modules\pg\lib\cli
+ent.js:376:19)
+    at Client._handleE
+rrorEvent (C:\Users\Y\
+OneDrive\Desktop\FYP-W
+EB\Backend\node_module
+s\pg\lib\client.js:386
+:19)
+    at 
+Connection.emit 
+(node:events:518:28)
+    at 
+Socket.<anonymous> (C:
+\Users\Y\OneDrive\Desk
+top\FYP-WEB\Backend\no
+de_modules\pg\lib\conn
+ection.js:75:23)
+    at 
+Object.onceWrapper 
+(node:events:633:26)
+    at Socket.emit 
+(node:events:518:28)
+    at addChunk (node:
+internal/streams/reada
+ble:561:12)
+
+Node.js v22.17.1

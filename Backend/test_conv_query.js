@@ -1,12 +1,13 @@
 require('dotenv').config();
-const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const pool = require('./src/db');
 
-async function testQuery() {
-    const userId = 1; // Assuming a user id exists, we just want to see if the query fails due to schema
+async function test() {
     try {
-        const query = `
-            SELECT DISTINCT ON (b.id)
+        const userId = 1; // Assuming there is a user with ID 1
+        console.log(`Testing getCustomerConversations for userId: ${userId}`);
+
+        const conversations = await pool.query(
+            `SELECT DISTINCT ON (b.id)
                 b.id AS booking_id,
                 b.status AS booking_status,
                 s.title AS service_title,
@@ -20,16 +21,18 @@ async function testQuery() {
              JOIN users u ON pp.user_id = u.id
              LEFT JOIN messages m ON b.id = m.booking_id
              WHERE b.customer_id = $1
-             ORDER BY b.id, m.created_at DESC
-        `;
-        const res = await pool.query(query, [userId]);
-        console.log("Query successful:", res.rows.length, "rows");
-    } catch (err) {
-        console.error("QUERY ERROR:", err.message);
-        console.error(err);
+             ORDER BY b.id, m.created_at DESC`,
+            [userId]
+        );
+
+        console.log(`Query succeeded. Found ${conversations.rows.length} conversations.`);
+        console.table(conversations.rows);
+
+    } catch (e) {
+        console.error("QUERY FAILED:", e);
     } finally {
         pool.end();
     }
 }
 
-testQuery();
+test();

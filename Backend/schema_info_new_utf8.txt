@@ -1,0 +1,92 @@
+﻿[dotenv@17.3.1] injecting env (6) from .env -- tip: ΓÜí∩╕Å secrets for agents: https://dotenvx.com/as2
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index) Γöé table_name Γöé column_name                   Γöé data_type                     Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé 0       Γöé 'services' Γöé 'created_at'                  Γöé 'timestamp without time zone' Γöé
+Γöé 1       Γöé 'users'    Γöé 'is_super_admin'              Γöé 'boolean'                     Γöé
+Γöé 2       Γöé 'users'    Γöé 'created_at'                  Γöé 'timestamp with time zone'    Γöé
+Γöé 3       Γöé 'users'    Γöé 'updated_at'                  Γöé 'timestamp with time zone'    Γöé
+Γöé 4       Γöé 'users'    Γöé 'phone_confirmed_at'          Γöé 'timestamp with time zone'    Γöé
+Γöé 5       Γöé 'users'    Γöé 'phone_change_sent_at'        Γöé 'timestamp with time zone'    Γöé
+Γöé 6       Γöé 'users'    Γöé 'confirmed_at'                Γöé 'timestamp with time zone'    Γöé
+Γöé 7       Γöé 'users'    Γöé 'email_change_confirm_status' Γöé 'smallint'                    Γöé
+Γöé 8       Γöé 'users'    Γöé 'banned_until'                Γöé 'timestamp with time zone'    Γöé
+Γöé 9       Γöé 'users'    Γöé 'reauthentication_sent_at'    Γöé 'timestamp with time zone'    Γöé
+Γöé 10      Γöé 'users'    Γöé 'is_sso_user'                 Γöé 'boolean'                     Γöé
+Γöé 11      Γöé 'users'    Γöé 'deleted_at'                  Γöé 'timestamp with time zone'    Γöé
+Γöé 12      Γöé 'users'    Γöé 'is_anonymous'                Γöé 'boolean'                     Γöé
+Γöé 13      Γöé 'bookings' Γöé 'id'                          Γöé 'integer'                     Γöé
+Γöé 14      Γöé 'bookings' Γöé 'customer_id'                 Γöé 'integer'                     Γöé
+Γöé 15      Γöé 'bookings' Γöé 'service_id'                  Γöé 'integer'                     Γöé
+Γöé 16      Γöé 'bookings' Γöé 'provider_id'                 Γöé 'integer'                     Γöé
+Γöé 17      Γöé 'bookings' Γöé 'booking_date'                Γöé 'date'                        Γöé
+Γöé 18      Γöé 'bookings' Γöé 'total_price'                 Γöé 'numeric'                     Γöé
+Γöé 19      Γöé 'bookings' Γöé 'created_at'                  Γöé 'timestamp without time zone' Γöé
+Γöé 20      Γöé 'services' Γöé 'id'                          Γöé 'integer'                     Γöé
+Γöé 21      Γöé 'services' Γöé 'provider_id'                 Γöé 'integer'                     Γöé
+Γöé 22      Γöé 'services' Γöé 'category_id'                 Γöé 'integer'                     Γöé
+Γöé 23      Γöé 'services' Γöé 'price'                       Γöé 'numeric'                     Γöé
+Γöé 24      Γöé 'services' Γöé 'is_active'                   Γöé 'boolean'                     Γöé
+Γöé 25      Γöé 'users'    Γöé 'id'                          Γöé 'integer'                     Γöé
+Γöé 26      Γöé 'users'    Γöé 'created_at'                  Γöé 'timestamp without time zone' Γöé
+Γöé 27      Γöé 'messages' Γöé 'id'                          Γöé 'integer'                     Γöé
+Γöé 28      Γöé 'messages' Γöé 'booking_id'                  Γöé 'integer'                     Γöé
+Γöé 29      Γöé 'messages' Γöé 'sender_id'                   Γöé 'integer'                     Γöé
+Γöé 30      Γöé 'messages' Γöé 'receiver_id'                 Γöé 'integer'                     Γöé
+Γöé 31      Γöé 'messages' Γöé 'created_at'                  Γöé 'timestamp without time zone' Γöé
+Γöé 32      Γöé 'messages' Γöé 'payload'                     Γöé 'jsonb'                       Γöé
+Γöé 33      Γöé 'messages' Γöé 'private'                     Γöé 'boolean'                     Γöé
+Γöé 34      Γöé 'messages' Γöé 'updated_at'                  Γöé 'timestamp without time zone' Γöé
+Γöé 35      Γöé 'messages' Γöé 'inserted_at'                 Γöé 'timestamp without time zone' Γöé
+Γöé 36      Γöé 'messages' Γöé 'id'                          Γöé 'uuid'                        Γöé
+Γöé 37      Γöé 'users'    Γöé 'instance_id'                 Γöé 'uuid'                        Γöé
+Γöé 38      Γöé 'users'    Γöé 'id'                          Γöé 'uuid'                        Γöé
+Γöé 39      Γöé 'users'    Γöé 'email_confirmed_at'          Γöé 'timestamp with time zone'    Γöé
+Γöé 40      Γöé 'users'    Γöé 'invited_at'                  Γöé 'timestamp with time zone'    Γöé
+Γöé 41      Γöé 'users'    Γöé 'confirmation_sent_at'        Γöé 'timestamp with time zone'    Γöé
+Γöé 42      Γöé 'users'    Γöé 'recovery_sent_at'            Γöé 'timestamp with time zone'    Γöé
+Γöé 43      Γöé 'users'    Γöé 'email_change_sent_at'        Γöé 'timestamp with time zone'    Γöé
+Γöé 44      Γöé 'users'    Γöé 'last_sign_in_at'             Γöé 'timestamp with time zone'    Γöé
+Γöé 45      Γöé 'users'    Γöé 'raw_app_meta_data'           Γöé 'jsonb'                       Γöé
+Γöé 46      Γöé 'users'    Γöé 'raw_user_meta_data'          Γöé 'jsonb'                       Γöé
+Γöé 47      Γöé 'messages' Γöé 'extension'                   Γöé 'text'                        Γöé
+Γöé 48      Γöé 'users'    Γöé 'phone_change_token'          Γöé 'character varying'           Γöé
+Γöé 49      Γöé 'messages' Γöé 'event'                       Γöé 'text'                        Γöé
+Γöé 50      Γöé 'bookings' Γöé 'description'                 Γöé 'text'                        Γöé
+Γöé 51      Γöé 'users'    Γöé 'profile_image_url'           Γöé 'text'                        Γöé
+Γöé 52      Γöé 'users'    Γöé 'email_change_token_current'  Γöé 'character varying'           Γöé
+Γöé 53      Γöé 'users'    Γöé 'national_id_url'             Γöé 'text'                        Γöé
+Γöé 54      Γöé 'users'    Γöé 'verification_selfie_url'     Γöé 'text'                        Γöé
+Γöé 55      Γöé 'users'    Γöé 'reauthentication_token'      Γöé 'character varying'           Γöé
+Γöé 56      Γöé 'users'    Γöé 'aud'                         Γöé 'character varying'           Γöé
+Γöé 57      Γöé 'users'    Γöé 'role'                        Γöé 'character varying'           Γöé
+Γöé 58      Γöé 'users'    Γöé 'email'                       Γöé 'character varying'           Γöé
+Γöé 59      Γöé 'users'    Γöé 'encrypted_password'          Γöé 'character varying'           Γöé
+Γöé 60      Γöé 'services' Γöé 'title'                       Γöé 'character varying'           Γöé
+Γöé 61      Γöé 'services' Γöé 'description'                 Γöé 'text'                        Γöé
+Γöé 62      Γöé 'users'    Γöé 'confirmation_token'          Γöé 'character varying'           Γöé
+Γöé 63      Γöé 'users'    Γöé 'status'                      Γöé 'character varying'           Γöé
+Γöé 64      Γöé 'users'    Γöé 'recovery_token'              Γöé 'character varying'           Γöé
+Γöé 65      Γöé 'users'    Γöé 'rejection_reason'            Γöé 'text'                        Γöé
+Γöé 66      Γöé 'users'    Γöé 'email_change_token_new'      Γöé 'character varying'           Γöé
+Γöé 67      Γöé 'users'    Γöé 'email_change'                Γöé 'character varying'           Γöé
+Γöé 68      Γöé 'messages' Γöé 'topic'                       Γöé 'text'                        Γöé
+Γöé 69      Γöé 'users'    Γöé 'phone'                       Γöé 'text'                        Γöé
+Γöé 70      Γöé 'users'    Γöé 'name'                        Γöé 'character varying'           Γöé
+Γöé 71      Γöé 'users'    Γöé 'email'                       Γöé 'character varying'           Γöé
+Γöé 72      Γöé 'users'    Γöé 'password'                    Γöé 'text'                        Γöé
+Γöé 73      Γöé 'bookings' Γöé 'status'                      Γöé 'character varying'           Γöé
+Γöé 74      Γöé 'users'    Γöé 'role'                        Γöé 'character varying'           Γöé
+Γöé 75      Γöé 'users'    Γöé 'phone'                       Γöé 'text'                        Γöé
+Γöé 76      Γöé 'messages' Γöé 'message'                     Γöé 'text'                        Γöé
+Γöé 77      Γöé 'users'    Γöé 'phone_change'                Γöé 'text'                        Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index) Γöé table_name Γöé column_name   Γöé foreign_table_name   Γöé foreign_column_name Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé 0       Γöé 'bookings' Γöé 'customer_id' Γöé 'users'              Γöé 'id'                Γöé
+Γöé 1       Γöé 'bookings' Γöé 'provider_id' Γöé 'provider_profiles'  Γöé 'id'                Γöé
+Γöé 2       Γöé 'bookings' Γöé 'service_id'  Γöé 'services'           Γöé 'id'                Γöé
+Γöé 3       Γöé 'services' Γöé 'category_id' Γöé 'service_categories' Γöé 'id'                Γöé
+Γöé 4       Γöé 'services' Γöé 'provider_id' Γöé 'provider_profiles'  Γöé 'id'                Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ

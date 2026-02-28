@@ -128,6 +128,44 @@ exports.getServiceById = async (req, res) => {
 
 // ---------- additional controller actions ----------
 
+exports.getMyServices = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // 1️⃣ Find provider profile
+        const profile = await pool.query(
+            "SELECT id FROM provider_profiles WHERE user_id = $1",
+            [userId]
+        );
+
+        if (profile.rows.length === 0) {
+            console.warn(`DEBUG: No provider profile for user ${userId} in getMyServices`);
+            return res.json([]); // Return empty list to avoid dashboard crash
+        }
+
+        const providerProfileId = profile.rows[0].id;
+
+        const services = await pool.query(
+            `SELECT s.*, c.name AS category_name 
+             FROM services s 
+             LEFT JOIN service_categories c ON s.category_id = c.id 
+             WHERE s.provider_id = $1 
+             ORDER BY s.created_at DESC`,
+            [providerProfileId]
+        );
+
+        res.json(services.rows);
+
+    } catch (error) {
+        console.error("DEBUG: getMyServices Error:", error.message, error.stack);
+        res.status(500).json({
+            message: "Server error in services",
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+};
+
 exports.updateService = async (req, res) => {
     try {
         const userId = req.user.id;
