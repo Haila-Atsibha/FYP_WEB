@@ -33,8 +33,17 @@ export default function ProviderBookings() {
     useEffect(() => {
         if (!authLoading && user) {
             fetchBookings();
+            clearNotifications();
         }
     }, [user, authLoading]);
+
+    const clearNotifications = async () => {
+        try {
+            await api.put("/api/notifications/mark-type", { type: 'booking' });
+        } catch (err) {
+            console.error("Error clearing booking notifications:", err);
+        }
+    };
 
     const fetchBookings = async () => {
         setLoading(true);

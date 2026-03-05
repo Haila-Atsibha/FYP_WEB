@@ -10,7 +10,8 @@ import {
     ArrowLeft,
     RefreshCw,
     Search,
-    MessageSquare
+    MessageSquare,
+    Star
 } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "../../../../src/context/AuthContext";
@@ -20,6 +21,7 @@ import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
 import Skeleton, { CardSkeleton } from "../../../../src/components/Skeleton";
 import api from "../../../../src/services/api";
+import Modal from "../../../../src/components/Modal";
 
 export default function BookingsPage() {
     const { user, loading: authLoading } = useContext(AuthContext);
@@ -27,6 +29,13 @@ export default function BookingsPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("active"); // "active" or "history"
     const [cancellingId, setCancellingId] = useState(null);
+
+    // Review Modal State
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState("");
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
     const fetchBookings = async () => {
         if (!user) return;
@@ -44,8 +53,17 @@ export default function BookingsPage() {
     useEffect(() => {
         if (!authLoading && user) {
             fetchBookings();
+            clearNotifications();
         }
     }, [user, authLoading]);
+
+    const clearNotifications = async () => {
+        try {
+            await api.put("/api/notifications/mark-type", { type: 'booking' });
+        } catch (err) {
+            console.error("Error clearing booking notifications:", err);
+        }
+    };
 
     const handleCancelBooking = async (id) => {
         if (!confirm("Are you sure you want to cancel this booking?")) return;
@@ -60,6 +78,34 @@ export default function BookingsPage() {
             alert(err.response?.data?.message || "Failed to cancel booking");
         } finally {
             setCancellingId(null);
+        }
+    };
+
+    const handleOpenReviewModal = (booking) => {
+        setSelectedBooking(booking);
+        setRating(5);
+        setComment("");
+        setIsReviewModalOpen(true);
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        setIsSubmittingReview(true);
+        try {
+            await api.post("/api/reviews", {
+                booking_id: selectedBooking.id,
+                rating,
+                comment
+            });
+            setIsReviewModalOpen(false);
+            // Mark as reviewed in local state
+            setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, is_reviewed: true } : b));
+            alert("Thank you for your review!");
+        } catch (err) {
+            console.error("Error submitting review:", err);
+            alert(err.response?.data?.message || "Failed to submit review");
+        } finally {
+            setIsSubmittingReview(false);
         }
     };
 
@@ -137,18 +183,79 @@ export default function BookingsPage() {
                                     key={booking.id}
                                     booking={booking}
                                     onCancel={() => handleCancelBooking(booking.id)}
+                                    onReview={() => handleOpenReviewModal(booking)}
                                     isCancelling={cancellingId === booking.id}
                                 />
                             ))
                         )}
                     </div>
                 </div>
+
+                {/* Review Modal */}
+                <Modal isOpen={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)}>
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Star className="w-8 h-8 text-primary fill-primary" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-foreground">Rate & Review</h3>
+                            <p className="text-text-muted text-sm mt-1">How was your experience with {selectedBooking?.provider_name}?</p>
+                        </div>
+
+                        <form onSubmit={handleSubmitReview} className="space-y-4">
+                            <div className="flex justify-center gap-2 py-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setRating(star)}
+                                        className="focus:outline-none transition-transform active:scale-90"
+                                    >
+                                        <Star
+                                            size={32}
+                                            className={`${star <= rating ? "text-yellow-400 fill-yellow-400" : "text-border"}`}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-foreground/80 ml-1">Your Comment</label>
+                                <textarea
+                                    className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[120px]"
+                                    placeholder="Tell others what you thought of the service..."
+                                    required
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1 bg-transparent border-border text-foreground hover:bg-surface-hover shadow-none"
+                                    onClick={() => setIsReviewModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="flex-1"
+                                    disabled={isSubmittingReview}
+                                >
+                                    {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </Modal>
             </DashboardLayout>
         </ProtectedRoute>
     );
 }
 
-const BookingCard = ({ booking, onCancel, isCancelling }) => {
+const BookingCard = ({ booking, onCancel, onReview, isCancelling }) => {
     const getStatusBadge = (status) => {
         switch (status) {
             case "pending": return <Badge variant="warning">Pending Approval</Badge>;
@@ -199,6 +306,20 @@ const BookingCard = ({ booking, onCancel, isCancelling }) => {
                 </div>
 
                 <div className="flex flex-col items-center gap-2 self-end md:self-center">
+                    {booking.status === "completed" && !booking.is_reviewed && (
+                        <Button
+                            onClick={onReview}
+                            className="bg-primary text-white hover:bg-primary-hover border-none py-2.5 px-6 rounded-xl text-sm h-auto flex items-center gap-2 font-bold w-full"
+                        >
+                            <Star size={16} fill="currentColor" />
+                            Rate & Review
+                        </Button>
+                    )}
+                    {booking.status === "completed" && booking.is_reviewed && (
+                        <Badge variant="success" className="py-2 px-4 rounded-xl flex items-center gap-1.5 opacity-80">
+                            <CheckCircle size={14} /> Reviewed
+                        </Badge>
+                    )}
                     {booking.status === "accepted" && (
                         <Link href={`/chat/${booking.id}`} className="w-full">
                             <Button className="bg-secondary text-white hover:bg-secondary-dark border-none py-2 px-4 rounded-xl text-sm h-auto flex items-center gap-2 font-bold w-full">

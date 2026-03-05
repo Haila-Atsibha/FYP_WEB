@@ -56,7 +56,7 @@ export default function ProviderDashboard() {
         const fetchStats = api.get("/api/providers/stats").catch(err => { console.error("Stats Fetch Error:", err.response?.data || err.message); throw err; });
         const fetchBookings = api.get("/api/bookings/provider?status=pending").catch(err => { console.error("Bookings Fetch Error:", err.response?.data || err.message); throw err; });
         const fetchServices = api.get("/api/services/me").catch(err => { console.error("Services Fetch Error:", err.response?.data || err.message); throw err; });
-        const fetchCategories = api.get("/api/categories").catch(err => { console.error("Categories Fetch Error:", err.response?.data || err.message); throw err; });
+        const fetchCategories = api.get("/api/providers/my-categories").catch(err => { console.error("Categories Fetch Error:", err.response?.data || err.message); throw err; });
 
         const [statsRes, bookingsRes, servicesRes, categoriesRes] = await Promise.all([
           fetchStats, fetchBookings, fetchServices, fetchCategories
@@ -140,8 +140,8 @@ export default function ProviderDashboard() {
               <div className="flex flex-col md:flex-row items-center gap-8">
                 <div className="relative">
                   <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden border-4 border-white/20 shadow-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                    {user?.profileImage ? (
-                      <img src={user.profileImage} alt={user?.name} className="w-full h-full object-cover" />
+                    {user?.profile_image_url ? (
+                      <img src={user.profile_image_url} alt={user?.name} className="w-full h-full object-cover" />
                     ) : (
                       <User className="w-12 h-12 md:w-16 md:h-16 text-white/60" />
                     )}
@@ -178,8 +178,8 @@ export default function ProviderDashboard() {
             <div className="flex items-center justify-center md:justify-start gap-6 pt-6 relative z-10 border-t border-white/10 mt-6 max-w-xs mx-auto md:mx-0">
               <div className="flex items-center gap-1.5">
                 <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                <span className="text-xl font-bold">4.8</span>
-                <span className="text-white/60 text-sm">(124 Reviews)</span>
+                <span className="text-xl font-bold">{stats?.averageRating?.toFixed(1) || "0.0"}</span>
+                <span className="text-white/60 text-sm">({stats?.totalReviews || 0} Reviews)</span>
               </div>
             </div>
 

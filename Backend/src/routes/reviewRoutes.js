@@ -6,6 +6,7 @@ const authorizeRoles = require('../middlewares/roleMiddleware');
 const {
     createReview,
     getServiceReviews,
+    getProviderReviews,
     getMyReviews
 } = require('../controllers/reviewController');
 
@@ -14,6 +15,9 @@ router.post('/', protect, authorizeRoles('customer'), createReview);
 
 // public: reviews for a service
 router.get('/service/:service_id', getServiceReviews);
+
+// public: reviews for a provider
+router.get('/provider/:provider_id', getProviderReviews);
 
 // provider: reviews for self
 router.get('/me', protect, authorizeRoles('provider'), getMyReviews);

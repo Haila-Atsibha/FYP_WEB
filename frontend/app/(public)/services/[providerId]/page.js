@@ -13,6 +13,7 @@ export default function ProviderProfilePage() {
     const router = useRouter();
 
     const [provider, setProvider] = useState(null);
+    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedService, setSelectedService] = useState(null);
     const [description, setDescription] = useState("");
@@ -21,10 +22,14 @@ export default function ProviderProfilePage() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        const fetchProvider = async () => {
+        const fetchProviderData = async () => {
             try {
-                const res = await api.get(`/api/providers/${providerId}`);
-                setProvider(res.data);
+                const [providerRes, reviewsRes] = await Promise.all([
+                    api.get(`/api/providers/${providerId}`),
+                    api.get(`/api/reviews/provider/${providerId}`)
+                ]);
+                setProvider(providerRes.data);
+                setReviews(reviewsRes.data);
             } catch (e) {
                 console.error(e);
                 setError("Failed to load provider profile.");
@@ -32,7 +37,7 @@ export default function ProviderProfilePage() {
                 setLoading(false);
             }
         };
-        fetchProvider();
+        fetchProviderData();
     }, [providerId]);
 
     const handleBooking = async (e) => {
@@ -90,7 +95,7 @@ export default function ProviderProfilePage() {
                                     <img src={provider.profile_image_url} alt={provider.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-primary">
-                                        {provider.name[0]}
+                                        {provider.name?.[0]}
                                     </div>
                                 )}
                             </div>
@@ -98,8 +103,8 @@ export default function ProviderProfilePage() {
                                 <h1 className="text-2xl font-bold text-foreground">{provider.name}</h1>
                                 <div className="flex items-center justify-center gap-1 text-yellow-500 font-bold mt-1">
                                     <Star size={18} fill="currentColor" />
-                                    <span>{provider.average_rating || "4.8"}</span>
-                                    <span className="text-text-muted font-normal text-sm ml-1">(12+ reviews)</span>
+                                    <span>{Number(provider.average_rating || 0).toFixed(1)}</span>
+                                    <span className="text-text-muted font-normal text-sm ml-1">({reviews.length} reviews)</span>
                                 </div>
                             </div>
 
@@ -124,14 +129,14 @@ export default function ProviderProfilePage() {
                             </div>
                             <div className="flex items-center gap-3 text-text-muted text-sm">
                                 <CheckCircle size={16} className="text-primary" />
-                                <span>15+ successful bookings</span>
+                                <span>{provider.completedJobs || 0}+ successful bookings</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Column: Services & Booking */}
-                <div className="lg:col-span-2 space-y-8">
+                <div className="lg:col-span-2 space-y-12">
                     <section>
                         <h2 className="text-2xl font-bold mb-6 text-foreground">Services Offered</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -140,8 +145,8 @@ export default function ProviderProfilePage() {
                                     key={svc.id}
                                     onClick={() => setSelectedService(svc)}
                                     className={`p-6 rounded-2xl border transition-all cursor-pointer group ${selectedService?.id === svc.id
-                                            ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                            : "border-border bg-surface hover:border-primary/40"
+                                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                        : "border-border bg-surface hover:border-primary/40"
                                         }`}
                                 >
                                     <div className="flex justify-between items-start mb-2">
@@ -191,9 +196,61 @@ export default function ProviderProfilePage() {
                                 className="w-full py-4 text-sm uppercase tracking-widest font-black"
                                 disabled={bookingLoading || success || !selectedService}
                             >
-                                {bookingLoading ? "SENSING REQUEST..." : "SUBMIT BOOKING REQUEST"}
+                                {bookingLoading ? "SENDING REQUEST..." : "SUBMIT BOOKING REQUEST"}
                             </Button>
                         </form>
+                    </section>
+
+                    {/* Reviews Section */}
+                    <section className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-foreground">Customer Reviews</h2>
+                            <div className="flex items-center gap-2 text-sm font-bold bg-surface border border-border px-4 py-2 rounded-2xl shadow-sm">
+                                <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                                <span>{Number(provider.average_rating || 0).toFixed(1)} / 5.0</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {reviews.length > 0 ? (
+                                reviews.map((review) => (
+                                    <div key={review.id} className="bg-surface border border-border p-6 rounded-3xl shadow-sm space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+                                                    {review.customer_name?.[0] || "C"}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-foreground leading-none">{review.customer_name}</h4>
+                                                    <div className="flex items-center gap-0.5 mt-1">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star
+                                                                key={i}
+                                                                size={12}
+                                                                className={`${i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-border"}`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] text-text-muted font-medium bg-surface-hover px-2 py-1 rounded-lg">
+                                                {new Date(review.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-text-muted italic leading-relaxed">
+                                            "{review.comment}"
+                                        </p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="py-12 text-center bg-surface border-2 border-dashed border-border rounded-[2rem]">
+                                    <div className="w-12 h-12 bg-background rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                        <MessageSquare size={24} className="text-text-muted" />
+                                    </div>
+                                    <p className="text-text-muted font-medium">No reviews yet for this professional.</p>
+                                </div>
+                            )}
+                        </div>
                     </section>
                 </div>
 

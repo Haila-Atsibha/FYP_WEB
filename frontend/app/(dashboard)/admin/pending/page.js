@@ -40,7 +40,16 @@ export default function PendingUsers() {
 
   useEffect(() => {
     fetchPending();
+    clearNotifications();
   }, []);
+
+  const clearNotifications = async () => {
+    try {
+      await api.put("/api/notifications/mark-type", { type: 'verification' });
+    } catch (err) {
+      console.error("Error clearing verification notifications:", err);
+    }
+  };
 
   const approve = async (id) => {
     try {

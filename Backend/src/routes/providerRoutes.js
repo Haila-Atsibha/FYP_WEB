@@ -8,10 +8,18 @@ const {
     updateMyProfile,
     getPublicProviders,
     getTopProviders,
-    getProviderStats
+    getProviderStats,
+    getMyCategories
 } = require('../controllers/providerController');
 
 // Protected provider routes (Move static routes above dynamic ones)
+router.get(
+    '/my-categories',
+    protect,
+    authorizeRoles('provider'),
+    getMyCategories
+);
+
 router.get(
     '/stats',
     protect,

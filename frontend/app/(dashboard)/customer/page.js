@@ -73,8 +73,12 @@ export default function CustomerDashboard() {
                 <p className="text-text-muted mt-1 text-sm font-medium">Find the best professionals for your needs.</p>
               </div>
               <div className="flex items-center gap-3 bg-surface p-2 rounded-2xl border border-border shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {user?.name?.[0] || 'C'}
+                <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center text-primary font-bold border border-primary/20">
+                  {user?.profile_image_url ? (
+                    <img src={user.profile_image_url} alt={user?.name} className="w-full h-full object-cover" />
+                  ) : (
+                    user?.name?.[0] || 'C'
+                  )}
                 </div>
                 <div className="pr-4">
                   <p className="text-xs font-bold text-foreground leading-tight">{user?.name || 'Customer'}</p>

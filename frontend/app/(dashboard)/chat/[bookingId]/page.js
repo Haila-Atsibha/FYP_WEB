@@ -41,9 +41,17 @@ export default function ChatPage() {
                 setLoading(false);
             }
         };
+        const clearNotifications = async () => {
+            try {
+                await api.put("/api/notifications/mark-type", { type: 'message' });
+            } catch (e) {
+                console.error("Error clearing message notifications:", e);
+            }
+        };
 
         if (user) {
             fetchBookingAndMessages();
+            clearNotifications();
             // Poll for new messages every 3 seconds
             const interval = setInterval(async () => {
                 try {
@@ -169,8 +177,8 @@ export default function ChatPage() {
                                     </div>
                                     <div>
                                         <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed ${isMe
-                                                ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/20'
-                                                : 'bg-surface-hover text-foreground border border-border rounded-tl-none'
+                                            ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/20'
+                                            : 'bg-surface-hover text-foreground border border-border rounded-tl-none'
                                             }`}>
                                             {msg.message || msg.content}
                                         </div>

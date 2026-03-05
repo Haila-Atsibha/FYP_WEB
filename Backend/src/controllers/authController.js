@@ -70,6 +70,19 @@ exports.registerUser = async (req, res) => {
                 [user.id, `Hi, I am ${name}`]
             );
 
+            // Notify admins about new application
+            const { createNotification } = require('./notificationController');
+            const admins = await pool.query("SELECT id FROM users WHERE role = 'admin'");
+            for (const admin of admins.rows) {
+                await createNotification(
+                    admin.id,
+                    "New Provider Application",
+                    `${name} has registered as a provider and is waiting for verification.`,
+                    'verification',
+                    '/admin/pending'
+                );
+            }
+
             // 2. Add categories if present
             // Multer/Express might send categories[] as the key
             let cats = categories || req.body['categories[]'];
@@ -155,7 +168,8 @@ exports.loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                status: user.status
+                status: user.status,
+                profile_image_url: user.profile_image_url
             }
         });
 

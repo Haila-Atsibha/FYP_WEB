@@ -25,8 +25,17 @@ export default function ProviderReviews() {
     useEffect(() => {
         if (!authLoading && user) {
             fetchReviews();
+            clearNotifications();
         }
     }, [user, authLoading]);
+
+    const clearNotifications = async () => {
+        try {
+            await api.put("/api/notifications/mark-type", { type: 'review' });
+        } catch (err) {
+            console.error("Error clearing review notifications:", err);
+        }
+    };
 
     const fetchReviews = async () => {
         setLoading(true);

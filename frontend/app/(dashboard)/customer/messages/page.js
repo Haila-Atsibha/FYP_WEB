@@ -27,8 +27,17 @@ export default function CustomerMessages() {
     useEffect(() => {
         if (!authLoading && user) {
             fetchConversations();
+            clearNotifications();
         }
     }, [user, authLoading]);
+
+    const clearNotifications = async () => {
+        try {
+            await api.put("/api/notifications/mark-type", { type: 'message' });
+        } catch (err) {
+            console.error("Error clearing message notifications:", err);
+        }
+    };
 
     useEffect(() => {
         if (selectedBookingId) {

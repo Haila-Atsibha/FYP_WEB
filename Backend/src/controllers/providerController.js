@@ -43,7 +43,7 @@ exports.getMyProfile = async (req, res) => {
         // Use LEFT JOIN to ensure we get user info even if no profile exists yet
         const result = await pool.query(
             `SELECT 
-                u.id as user_id, u.name, u.email, u.phone, u.status AS user_status,
+                u.id as user_id, u.name, u.email, u.phone, u.status AS user_status, u.profile_image_url,
                 p.id as profile_id, p.bio, p.average_rating, p.is_verified, p.verification_status
              FROM users u
              LEFT JOIN provider_profiles p ON u.id = p.user_id 
@@ -265,22 +265,55 @@ exports.getProviderStats = async (req, res) => {
             [providerProfileId]
         );
 
+        // 5. Average Rating and Total Reviews
+        const reviewStatsRes = await pool.query(
+            `SELECT 
+                COALESCE(average_rating, 0)::numeric as "averageRating",
+                (SELECT COUNT(*)::int FROM reviews WHERE provider_id = $1) as "totalReviews"
+             FROM provider_profiles 
+             WHERE id = $1`,
+            [providerProfileId]
+        );
+
         const stats = {
             pendingRequests: pendingRes.rows[0]?.count || 0,
             activeBookings: activeRes.rows[0]?.count || 0,
             completedJobs: completedRes.rows[0]?.count || 0,
-            totalEarnings: Number(earningsRes.rows[0]?.total || 0)
+            totalEarnings: Number(earningsRes.rows[0]?.total || 0),
+            averageRating: Number(reviewStatsRes.rows[0]?.averageRating || 0),
+            totalReviews: reviewStatsRes.rows[0]?.totalReviews || 0
         };
 
         console.log("DEBUG: getProviderStats SUCCESS", stats);
         res.json(stats);
-
     } catch (error) {
         console.error("DEBUG: getProviderStats Error:", error.message, error.stack);
         res.status(500).json({
             message: "Server error in stats",
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+};
+
+exports.getMyCategories = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const result = await pool.query(
+            `SELECT sc.id, sc.name 
+             FROM service_categories sc
+             JOIN provider_categories pc ON sc.id = pc.category_id
+             WHERE pc.provider_id = $1`,
+            [userId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Get My Categories Error:", error);
+        res.status(500).json({
+            message: "Server error",
+            error: error.message
         });
     }
 };

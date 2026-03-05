@@ -23,9 +23,15 @@ export default function Navbar() {
             <div className="flex items-center space-x-4">
               <Link
                 href={`/${user.role}`}
-                className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors font-medium"
+                className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors font-medium group"
               >
-                <LayoutDashboard size={18} />
+                <div className="w-8 h-8 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+                  {user?.profile_image_url ? (
+                    <img src={user.profile_image_url} alt={user?.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={16} />
+                  )}
+                </div>
                 Dashboard
               </Link>
               <button

@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { createNotification } = require('./notificationController');
 
 // customers write reviews once a booking is completed
 exports.createReview = async (req, res) => {
@@ -61,6 +62,18 @@ exports.createReview = async (req, res) => {
             [avg, providerId]
         );
 
+        // Notify provider about new review
+        const provUserRes = await pool.query("SELECT user_id FROM provider_profiles WHERE id = $1", [providerId]);
+        if (provUserRes.rows.length > 0) {
+            await createNotification(
+                provUserRes.rows[0].user_id,
+                "New Review",
+                `You have a new ${rating}-star review.`,
+                'review',
+                '/provider/reviews'
+            );
+        }
+
         res.status(201).json({ message: "Review created", review });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
@@ -118,6 +131,30 @@ exports.getMyReviews = async (req, res) => {
         res.json(reviews.rows);
     } catch (error) {
         console.error("Error in getMyReviews:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+// fetch all reviews for a given provider profile
+exports.getProviderReviews = async (req, res) => {
+    try {
+        const { provider_id } = req.params;
+        if (!provider_id) {
+            return res.status(400).json({ message: "provider_id is required" });
+        }
+
+        const reviews = await pool.query(
+            `SELECT r.*, u.name AS customer_name
+             FROM reviews r
+             LEFT JOIN users u ON r.customer_id = u.id
+             WHERE r.provider_id = $1
+             ORDER BY r.created_at DESC`,
+            [provider_id]
+        );
+
+        res.json(reviews.rows);
+    } catch (error) {
+        console.error("Error in getProviderReviews:", error);
         res.status(500).json({ message: "Server error", error });
     }
 };

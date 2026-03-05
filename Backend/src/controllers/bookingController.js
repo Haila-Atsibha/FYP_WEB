@@ -26,14 +26,7 @@ exports.createBooking = async (req, res) => {
         const providerId = service.provider_id;
         const totalPrice = service.price;
 
-        // Prevent duplicate pending bookings for same user/service
-        const duplicate = await pool.query(
-            "SELECT id FROM bookings WHERE customer_id = $1 AND service_id = $2 AND status = 'pending'",
-            [userId, service_id]
-        );
-        if (duplicate.rows.length > 0) {
-            return res.status(400).json({ message: "You already have a pending booking for this service." });
-        }
+        // No longer preventing duplicate pending bookings to allow flexibility
 
         const ins = await pool.query(
             `INSERT INTO bookings
@@ -42,8 +35,12 @@ exports.createBooking = async (req, res) => {
             [service_id, providerId, userId, totalPrice, description || "No description provided"]
         );
 
+        // Get provider's user_id for notification
+        const provUserRes = await pool.query("SELECT user_id FROM provider_profiles WHERE id = $1", [providerId]);
+        const providerUserId = provUserRes.rows[0].user_id;
+
         await createNotification(
-            providerId,
+            providerUserId,
             "New Booking Request",
             `You have a new booking request for "${service.title}"`,
             'booking',
@@ -224,8 +221,12 @@ exports.updateBookingStatus = async (req, res) => {
                 if (current !== 'pending') {
                     return res.status(400).json({ message: "Can only cancel pending bookings" });
                 }
+                // Get provider's user_id for notification
+                const provUserRes = await pool.query("SELECT user_id FROM provider_profiles WHERE id = $1", [booking.provider_id]);
+                const providerUserId = provUserRes.rows[0].user_id;
+
                 await createNotification(
-                    booking.provider_id,
+                    providerUserId,
                     "Booking Cancelled",
                     `The customer has cancelled the booking for "${booking.title}"`,
                     'booking',

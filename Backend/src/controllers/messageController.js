@@ -121,8 +121,8 @@ exports.getMessagesByBooking = async (req, res) => {
         }
         const booking = bookingRes.rows[0];
 
-        if (booking.status !== 'accepted') {
-            return res.status(403).json({ message: "Chat is not available" });
+        if (booking.status === 'pending') {
+            return res.status(403).json({ message: "Chat is not available for pending bookings" });
         }
 
         if (booking.customer_id !== userId && booking.provider_user_id !== userId) {
