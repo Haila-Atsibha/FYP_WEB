@@ -69,7 +69,7 @@ exports.getAllServices = async (req, res) => {
             LEFT JOIN service_categories c ON s.category_id = c.id
             LEFT JOIN provider_profiles pp ON s.provider_id = pp.id
             LEFT JOIN users u ON pp.user_id = u.id
-            WHERE 1=1
+            WHERE pp.subscription_status = 'active' AND pp.subscription_expiry > CURRENT_DATE
         `;
         const values = [];
         let idx = 1;

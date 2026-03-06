@@ -130,7 +130,9 @@ exports.getPublicProviders = async (req, res) => {
                 SELECT p2.user_id, s.category_id FROM services s JOIN provider_profiles p2 ON s.provider_id = p2.id
             ) all_cats ON u.id = all_cats.user_id
             LEFT JOIN service_categories sc ON all_cats.category_id = sc.id
-            WHERE u.status = 'approved'
+            WHERE u.status = 'approved' 
+              AND p.subscription_status = 'active' 
+              AND p.subscription_expiry > CURRENT_DATE
         `;
         const values = [];
 
@@ -177,7 +179,9 @@ exports.getTopProviders = async (req, res) => {
                  LIMIT 1) as "category"
             FROM users u
             JOIN provider_profiles p ON u.id = p.user_id
-            WHERE u.status = 'approved'
+            WHERE u.status = 'approved' 
+              AND p.subscription_status = 'active' 
+              AND p.subscription_expiry > CURRENT_DATE
             ORDER BY p.average_rating DESC NULLS LAST
             LIMIT 6
         `);
@@ -269,7 +273,9 @@ exports.getProviderStats = async (req, res) => {
         const reviewStatsRes = await pool.query(
             `SELECT 
                 COALESCE(average_rating, 0)::numeric as "averageRating",
-                (SELECT COUNT(*)::int FROM reviews WHERE provider_id = $1) as "totalReviews"
+                (SELECT COUNT(*)::int FROM reviews WHERE provider_id = $1) as "totalReviews",
+                subscription_status as "subscriptionStatus",
+                subscription_expiry as "subscriptionExpiry"
              FROM provider_profiles 
              WHERE id = $1`,
             [providerProfileId]
@@ -281,7 +287,9 @@ exports.getProviderStats = async (req, res) => {
             completedJobs: completedRes.rows[0]?.count || 0,
             totalEarnings: Number(earningsRes.rows[0]?.total || 0),
             averageRating: Number(reviewStatsRes.rows[0]?.averageRating || 0),
-            totalReviews: reviewStatsRes.rows[0]?.totalReviews || 0
+            totalReviews: reviewStatsRes.rows[0]?.totalReviews || 0,
+            subscriptionStatus: reviewStatsRes.rows[0]?.subscriptionStatus,
+            subscriptionExpiry: reviewStatsRes.rows[0]?.subscriptionExpiry
         };
 
         console.log("DEBUG: getProviderStats SUCCESS", stats);

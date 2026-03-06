@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Activity
 } from "lucide-react";
+import Link from "next/link";
 import ProtectedRoute from "../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../src/components/DashboardLayout";
 import Badge from "../../../src/components/Badge";
@@ -51,6 +52,12 @@ export default function AdminDashboard() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "", icon: "" });
   const [isSaving, setIsSaving] = useState(false);
+
+  // Complaint Reply Modal states
+  const [isReplyModalOpen, setReplyModalOpen] = useState(false);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [adminReply, setAdminReply] = useState("");
+  const [isReplying, setIsReplying] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -129,6 +136,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleReplyToComplaint = async () => {
+    if (!adminReply) {
+      alert("Reply content is required");
+      return;
+    }
+
+    setIsReplying(true);
+    try {
+      await api.post(`/api/complaints/${selectedComplaint.id}/reply`, { reply: adminReply });
+
+      // Refresh complaints list
+      const complaintsRes = await api.get("/api/admin/complaints");
+      setComplaints(complaintsRes.data);
+
+      setReplyModalOpen(false);
+      setSelectedComplaint(null);
+      setAdminReply("");
+      alert("Reply sent successfully!");
+    } catch (err) {
+      console.error("Failed to send reply:", err);
+      alert(err.response?.data?.message || "Failed to send reply");
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
   if (error) {
     return (
       <ProtectedRoute roles={["admin"]}>
@@ -172,9 +205,10 @@ export default function AdminDashboard() {
                 <SummaryCard title="Total Bookings" value={stats?.totalBookings} icon={<ShoppingBag />} variant="info" />
                 <SummaryCard title="Active Bookings" value={stats?.activeBookings} icon={<Clock />} variant="warning" />
                 <SummaryCard title="Completed" value={stats?.completedBookings} icon={<CheckCircle />} variant="success" />
-                <SummaryCard title="Cancelled" value={stats?.cancelledBookings} icon={<XCircle />} variant="danger" />
-                <SummaryCard title="Total Revenue" value={`$${stats?.totalRevenue}`} icon={<TrendingUp />} variant="success" />
-                <SummaryCard title="Avg. Rating" value={stats?.avgRating} icon={<Star />} variant="warning" />
+                <SummaryCard title="Rejected" value={stats?.rejectedBookings} icon={<XCircle />} variant="danger" />
+                <SummaryCard title="Booking Revenue" value={`$${stats?.totalRevenue}`} icon={<TrendingUp />} variant="success" />
+                <SummaryCard title="Sub Revenue" value={`$${stats?.subscriptionRevenue}`} icon={<CreditCard />} variant="info" />
+                <SummaryCard title="Avg. Platform Rating" value={stats?.avgRating ? `${parseFloat(stats.avgRating).toFixed(1)}/5` : "N/A"} icon={<Star />} variant="warning" />
               </>
             )}
           </div>
@@ -220,7 +254,7 @@ export default function AdminDashboard() {
               {/* Complaints / Disputes */}
               <ModuleCard
                 title="Complaints & Disputes"
-                subtitle={`${complaints.filter(c => c.status === 'open').length} Open / ${complaints.filter(c => c.priority === 'high').length} High Priority`}
+                subtitle={`${stats?.complaintsSummary?.open || 0} Open / ${stats?.complaintsSummary?.highPriority || 0} High Priority`}
                 icon={<AlertCircle className="text-red-500" />}
                 action={<Button variant="ghost" className="text-primary font-bold">Manage All <ArrowRight className="ml-2 w-4 h-4" /></Button>}
               >
@@ -230,9 +264,20 @@ export default function AdminDashboard() {
                     { header: "User", accessor: "userName" },
                     { header: "Complaint", accessor: "subject" },
                     { header: "Priority", render: (row) => <Badge variant={row.priority === 'high' ? 'danger' : 'warning'}>{row.priority}</Badge> },
-                    { header: "Status", render: (row) => <Badge variant={row.status === 'open' ? 'info' : 'success'}>{row.status}</Badge> }
+                    {
+                      header: "Status", render: (row) => (
+                        <div className="flex items-center gap-2">
+                          <Badge variant={row.status === 'open' ? 'info' : 'success'}>{row.status}</Badge>
+                          {row.admin_reply && <Badge variant="success" className="bg-green-500/20 text-green-600 border-green-500/30">Replied</Badge>}
+                        </div>
+                      )
+                    }
                   ]}
-                  data={complaints.slice(0, 3)}
+                  data={complaints.slice(0, 5)}
+                  onRowClick={(row) => {
+                    setSelectedComplaint(row);
+                    setReplyModalOpen(true);
+                  }}
                 />
               </ModuleCard>
 
@@ -272,30 +317,39 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Subscriptions */}
             <ModuleCard
-              title="Revenue & Subscriptions"
-              subtitle={`$${subscriptions?.monthlyRevenue} Monthly Revenue`}
+              title="Subscriptions & Tracking"
+              subtitle={`$${subscriptions?.monthlyRevenue} Revenue (Last 30 Days)`}
               icon={<CreditCard className="text-green-500" />}
-              action={<Button variant="secondary" className="py-2 px-4 text-sm font-bold">Manage Plans</Button>}
+              action={<Link href="/admin/subscriptions"><Button variant="secondary" className="py-2 px-4 text-sm font-bold">Details</Button></Link>}
             >
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="p-4 bg-background/50 border border-border rounded-xl">
-                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Premium Providers</p>
-                  <p className="text-2xl font-bold">{subscriptions?.activePremium}</p>
+                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Active Subscribers</p>
+                  <p className="text-2xl font-bold text-primary">{subscriptions?.activePremium}</p>
                 </div>
-                <div className="p-4 bg-background/50 border border-border rounded-xl text-red-500">
+                <div className="p-4 bg-background/50 border border-border rounded-xl">
                   <p className="text-xs text-text-muted uppercase font-bold mb-1">Expiring Soon</p>
-                  <p className="text-2xl font-bold">{subscriptions?.expiringSoon}</p>
+                  <p className="text-2xl font-bold text-yellow-500">{subscriptions?.expiringSoon}</p>
                 </div>
               </div>
               <div className="pt-4 border-t border-border">
-                <p className="text-sm font-medium mb-4">Top Revenue Streams</p>
+                <p className="text-sm font-bold mb-4">Recent Subscription Payments</p>
                 <div className="space-y-3">
-                  {subscriptions?.streams?.map((s, i) => (
-                    <div key={i} className="flex justify-between items-center text-sm">
-                      <span className="text-text-muted">{s.name}</span>
-                      <span className="font-bold">${s.amount}</span>
+                  {subscriptions?.history?.slice(0, 3).map((h, i) => (
+                    <div key={i} className="flex justify-between items-center text-sm p-2 hover:bg-surface-hover rounded-lg transition-colors">
+                      <div className="flex flex-col">
+                        <span className="font-bold">{h.providerName}</span>
+                        <span className="text-xs text-text-muted">{new Date(h.date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-green-500 font-mono">${h.amount}</p>
+                        <Badge variant={h.status === 'success' ? 'success' : 'warning'} className="text-[10px] py-0">{h.status}</Badge>
+                      </div>
                     </div>
                   ))}
+                  {(!subscriptions?.history || subscriptions.history.length === 0) && (
+                    <p className="text-xs text-text-muted text-center py-4">No recent payments</p>
+                  )}
                 </div>
               </div>
             </ModuleCard>
@@ -404,6 +458,77 @@ export default function AdminDashboard() {
               {isSaving ? "Saving..." : "Save Category"}
             </Button>
           </div>
+        </Modal>
+
+        {/* Complaint Reply Modal */}
+        <Modal isOpen={isReplyModalOpen} onClose={() => { setReplyModalOpen(false); setSelectedComplaint(null); setAdminReply(""); }}>
+          {selectedComplaint && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold">Complaint Details</h3>
+                <Badge variant={selectedComplaint.status === 'open' ? 'info' : 'success'}>{selectedComplaint.status}</Badge>
+              </div>
+
+              <div className="bg-background/50 border border-border rounded-2xl p-6 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xs text-text-muted uppercase font-bold mb-1">From</p>
+                    <p className="font-bold">{selectedComplaint.userName} ({selectedComplaint.user_role || 'User'})</p>
+                    <p className="text-xs text-text-muted">{selectedComplaint.user_email}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-text-muted uppercase font-bold mb-1">Date</p>
+                    <p className="text-sm">{new Date(selectedComplaint.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Subject</p>
+                  <p className="font-bold text-lg">{selectedComplaint.subject}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Message</p>
+                  <div className="bg-background p-4 rounded-xl border border-border/50 text-sm leading-relaxed italic">
+                    "{selectedComplaint.description}"
+                  </div>
+                </div>
+
+                {selectedComplaint.admin_reply && (
+                  <div className="pt-4 border-t border-border/50">
+                    <p className="text-xs text-primary uppercase font-bold mb-1 flex items-center gap-1">
+                      <MessageSquare className="w-3 h-3" /> Previous Admin Reply
+                    </p>
+                    <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 text-sm leading-relaxed">
+                      {selectedComplaint.admin_reply}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selectedComplaint.status === 'open' ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-text-muted mb-2">Reply to User</label>
+                    <textarea
+                      value={adminReply}
+                      onChange={(e) => setAdminReply(e.target.value)}
+                      className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[120px]"
+                      placeholder="Type your response here..."
+                    />
+                  </div>
+                  <div className="flex space-x-4">
+                    <Button variant="secondary" className="flex-1" onClick={() => setReplyModalOpen(false)}>Cancel</Button>
+                    <Button className="flex-1" onClick={handleReplyToComplaint} disabled={isReplying}>
+                      {isReplying ? "Sending..." : "Send Reply & Resolve"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="secondary" className="w-full" onClick={() => setReplyModalOpen(false)}>Close</Button>
+              )}
+            </div>
+          )}
         </Modal>
       </DashboardLayout>
     </ProtectedRoute>

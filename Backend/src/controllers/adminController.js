@@ -82,32 +82,32 @@ exports.getStats = async (req, res) => {
             const bookingsStats = await pool.query(`
                 SELECT 
                     COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE status = 'Active') as active,
-                    COUNT(*) FILTER (WHERE status = 'Completed') as completed,
-                    COUNT(*) FILTER (WHERE status = 'Cancelled') as cancelled,
-                    SUM(total_price) FILTER (WHERE status = 'Completed') as revenue
+                    COUNT(*) FILTER (WHERE status = 'accepted') as active,
+                    COUNT(*) FILTER (WHERE status = 'completed') as completed,
+                    COUNT(*) FILTER (WHERE status = 'rejected') as rejected,
+                    SUM(total_price) FILTER (WHERE status = 'completed') as revenue
                 FROM bookings
             `);
             stats.totalBookings = parseInt(bookingsStats.rows[0].total);
             stats.activeBookings = parseInt(bookingsStats.rows[0].active);
             stats.completedBookings = parseInt(bookingsStats.rows[0].completed);
-            stats.cancelledBookings = parseInt(bookingsStats.rows[0].cancelled);
+            stats.rejectedBookings = parseInt(bookingsStats.rows[0].rejected);
             stats.totalRevenue = parseFloat(bookingsStats.rows[0].revenue || 0).toFixed(2);
         } catch (e) {
             console.error("Stats Error (Bookings):", e.message);
             stats.totalBookings = 0;
             stats.activeBookings = 0;
             stats.completedBookings = 0;
-            stats.cancelledBookings = 0;
+            stats.rejectedBookings = 0;
             stats.totalRevenue = "0.00";
         }
 
-        // 3. Avg Rating
+        // 3. Platform Avg Rating
         try {
-            const ratingResult = await pool.query("SELECT AVG(average_rating) FROM provider_profiles");
+            const ratingResult = await pool.query("SELECT AVG(rating) FROM platform_ratings");
             stats.avgRating = parseFloat(ratingResult.rows[0].avg || 0).toFixed(1) + "/5";
         } catch (e) {
-            console.error("Stats Error (Avg Rating):", e.message);
+            console.error("Stats Error (Platform Avg Rating):", e.message);
             stats.avgRating = "0.0/5";
         }
 
@@ -171,6 +171,42 @@ exports.getStats = async (req, res) => {
         } catch (e) {
             console.error("Stats Error (Category Data):", e.message);
             stats.categoryData = { labels: [], values: [] };
+        }
+
+        // 7. Subscription Stats
+        try {
+            const subStats = await pool.query(`
+                SELECT 
+                    COALESCE(SUM(amount), 0) as total_revenue
+                FROM payments
+                WHERE status = 'success'
+            `);
+            const activeSubRes = await pool.query("SELECT COUNT(*) FROM provider_profiles WHERE subscription_status = 'active'");
+            stats.subscriptionRevenue = parseFloat(subStats.rows[0].total_revenue).toFixed(2);
+            stats.activeSubscribers = parseInt(activeSubRes.rows[0].count);
+        } catch (e) {
+            console.error("Stats Error (Sub Stats):", e.message);
+            stats.subscriptionRevenue = "0.00";
+            stats.activeSubscribers = 0;
+        }
+
+        // 8. Complaints Summary
+        try {
+            const complaintStats = await pool.query(`
+                SELECT 
+                    COUNT(*) as total,
+                    COUNT(*) FILTER (WHERE status = 'open') as open_count,
+                    COUNT(*) FILTER (WHERE priority = 'high' AND status = 'open') as high_priority
+                FROM complaints
+            `);
+            stats.complaintsSummary = {
+                total: parseInt(complaintStats.rows[0].total),
+                open: parseInt(complaintStats.rows[0].open_count),
+                highPriority: parseInt(complaintStats.rows[0].high_priority)
+            };
+        } catch (e) {
+            console.error("Stats Error (Complaints):", e.message);
+            stats.complaintsSummary = { total: 0, open: 0, highPriority: 0 };
         }
 
         res.json(stats);
@@ -276,12 +312,11 @@ exports.deleteUser = async (req, res) => {
 exports.getComplaints = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT u.name as "userName", n.title as subject, n.message, n.created_at, 'low' as priority, 'open' as status
-            FROM notifications n
-            JOIN users u ON n.user_id = u.id
-            WHERE n.type = 'complaint'
-            ORDER BY n.created_at DESC
-            LIMIT 10
+            SELECT c.*, u.name as "userName"
+            FROM complaints c
+            JOIN users u ON c.user_id = u.id
+            ORDER BY c.created_at DESC
+            LIMIT 20
         `);
         res.json(result.rows);
     } catch (error) {
@@ -320,11 +355,46 @@ exports.getActivity = async (req, res) => {
 };
 
 exports.getSubscriptions = async (req, res) => {
-    // Mocking subscriptions as they aren't fully implemented in DB yet
-    res.json({
-        monthlyRevenue: "0",
-        activePremium: 0,
-        expiringSoon: 0,
-        streams: []
-    });
+    try {
+        // 1. Get Monthly Revenue
+        const revRes = await pool.query(`
+            SELECT COALESCE(SUM(amount), 0) as total 
+            FROM payments 
+            WHERE created_at >= NOW() - INTERVAL '30 days'
+        `);
+
+        // 2. Get Active/Expiring Stats
+        const profileStats = await pool.query(`
+            SELECT 
+                COUNT(*) FILTER (WHERE subscription_status = 'active') as active,
+                COUNT(*) FILTER (WHERE subscription_status = 'active' AND subscription_expiry <= NOW() + INTERVAL '7 days') as expiring_soon
+            FROM provider_profiles
+        `);
+
+        // 3. Get Recent History
+        const historyRes = await pool.query(`
+            SELECT 
+                p.id,
+                u.name as "providerName",
+                p.amount,
+                p.status,
+                p.created_at as date,
+                p.tx_ref
+            FROM payments p
+            JOIN provider_profiles pp ON p.provider_id = pp.id
+            JOIN users u ON pp.user_id = u.id
+            ORDER BY p.created_at DESC
+            LIMIT 20
+        `);
+
+        res.json({
+            monthlyRevenue: parseFloat(revRes.rows[0].total).toFixed(2),
+            activePremium: parseInt(profileStats.rows[0].active),
+            expiringSoon: parseInt(profileStats.rows[0].expiring_soon),
+            history: historyRes.rows
+        });
+    } catch (error) {
+        console.error("Get Subscriptions Error:", error.message);
+        res.status(500).json({ message: "Server error while fetching subscriptions", error: error.message });
+    }
 };

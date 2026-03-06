@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-const AdminDataTable = ({ columns, data, loading, emptyMessage = "No data available" }) => {
+const AdminDataTable = ({ columns, data, loading, emptyMessage = "No data available", onRowClick }) => {
     if (loading) {
         return (
             <div className="w-full overflow-x-auto">
@@ -54,7 +54,11 @@ const AdminDataTable = ({ columns, data, loading, emptyMessage = "No data availa
                 </thead>
                 <tbody className="divide-y divide-border/50">
                     {data.map((row, i) => (
-                        <tr key={i} className="hover:bg-surface-hover transition-colors group">
+                        <tr
+                            key={i}
+                            className={`hover:bg-surface-hover transition-colors group ${onRowClick ? 'cursor-pointer' : ''}`}
+                            onClick={() => onRowClick && onRowClick(row)}
+                        >
                             {columns.map((col, j) => (
                                 <td key={j} className="py-4 px-4 text-sm text-foreground">
                                     {col.render ? col.render(row) : row[col.accessor]}

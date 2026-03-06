@@ -7,6 +7,7 @@ const authorizeRoles = require('./src/middlewares/roleMiddleware');
 
 
 const app = express();
+// Force restart to ensure code changes are active
 
 app.use(cors());
 app.use(express.json());
@@ -68,7 +69,27 @@ app.use('/api/notifications', notificationRoutes);
 const messageRoutes = require('./src/routes/messageRoutes');
 app.use('/api/messages', messageRoutes);
 
-const customerRoutes = require('./src/routes/customerRoutes');// error handler
+// payments
+const paymentRoutes = require('./src/routes/paymentRoutes');
+app.use('/api/payments', paymentRoutes);
+
+// customer
+const customerRoutes = require('./src/routes/customerRoutes');
+app.use('/api/customer', customerRoutes);
+
+// reviews
+const reviewRoutes = require('./src/routes/reviewRoutes');
+app.use('/api/reviews', reviewRoutes);
+
+// complaints
+const complaintRoutes = require('./src/routes/complaintRoutes');
+app.use('/api/complaints', complaintRoutes);
+
+// platform ratings
+const platformRatingRoutes = require('./src/routes/platformRatingRoutes');
+app.use('/api/ratings', platformRatingRoutes);
+
+// global error handler
 app.use((err, req, res, next) => {
   console.error('GLOBAL ERROR:', err);
   res.status(500).json({
@@ -76,11 +97,6 @@ app.use((err, req, res, next) => {
     error: err.message || err
   });
 });
-app.use('/api/customer', customerRoutes);
-
-// reviews
-const reviewRoutes = require('./src/routes/reviewRoutes');
-app.use('/api/reviews', reviewRoutes);
 
 
 

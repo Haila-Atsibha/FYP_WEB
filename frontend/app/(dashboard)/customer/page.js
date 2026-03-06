@@ -12,13 +12,20 @@ import {
   ArrowRight,
   Star,
   Users,
-  Grid
+  Grid,
+  AlertCircle,
+  MessageSquare,
+  ShieldCheck,
+  Clock,
+  ChevronRight
 } from "lucide-react";
 import { AuthContext } from "../../../src/context/AuthContext";
 import ProtectedRoute from "../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../src/components/DashboardLayout";
 import Badge from "../../../src/components/Badge";
 import Button from "../../../src/components/Button";
+import Input from "../../../src/components/Input";
+import Modal from "../../../src/components/Modal";
 import Skeleton, { CardSkeleton, CategorySkeleton, ProviderSkeleton } from "../../../src/components/Skeleton";
 import CategoryCard from "../../../src/components/CategoryCard";
 import ProviderMiniCard from "../../../src/components/ProviderMiniCard";
@@ -32,6 +39,18 @@ export default function CustomerDashboard() {
     categories: [],
     topProviders: []
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Complaint & Rating Modal States
+  const [complaintModalOpen, setComplaintModalOpen] = useState(false);
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [complaintData, setComplaintData] = useState({ subject: "", description: "", priority: "medium" });
+  const [platformRating, setPlatformRating] = useState({ rating: 5, feedback: "" });
+
+  // My Complaints States
+  const [myComplaints, setMyComplaints] = useState([]);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [viewComplaintModalOpen, setViewComplaintModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,10 +74,54 @@ export default function CustomerDashboard() {
       }
     };
 
+    const fetchMyComplaints = async () => {
+      try {
+        const res = await api.get("/api/complaints/my");
+        setMyComplaints(res.data);
+      } catch (err) {
+        console.error("Failed to fetch my complaints:", err);
+      }
+    };
+
     if (!authLoading && user) {
       fetchData();
+      fetchMyComplaints();
     }
   }, [user, authLoading]);
+
+  const handleSubmitComplaint = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await api.post("/api/complaints", complaintData);
+      alert("Complaint submitted successfully. Our team will review it.");
+      setComplaintModalOpen(false);
+      setComplaintData({ subject: "", description: "", priority: "medium" });
+
+      // Refresh complaints list
+      const res = await api.get("/api/complaints/my");
+      setMyComplaints(res.data);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit complaint");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitRating = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await api.post("/api/ratings/platform", platformRating);
+      alert("Thank you for your feedback!");
+      setRatingModalOpen(false);
+      setPlatformRating({ rating: 5, feedback: "" });
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit rating");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <ProtectedRoute roles={["customer"]}>
@@ -144,6 +207,37 @@ export default function CustomerDashboard() {
             </div>
           </section>
 
+          {/* New Section: Support & Feedback */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-surface border border-border rounded-[2.5rem] p-10 flex flex-col items-center text-center gap-6 hover:shadow-xl transition-all group overflow-hidden relative">
+              <div className="p-5 bg-orange-500/10 text-orange-600 rounded-3xl group-hover:scale-110 transition-transform">
+                <AlertCircle className="w-10 h-10" />
+              </div>
+              <div className="space-y-2 relative z-10">
+                <h3 className="text-2xl font-black text-foreground tracking-tight">Need Help?</h3>
+                <p className="text-sm text-text-muted font-medium max-w-[240px]">Have an issue with a booking or a service? We're here to help.</p>
+              </div>
+              <Button onClick={() => setComplaintModalOpen(true)} className="bg-orange-600 border-none hover:bg-orange-700 w-full rounded-2xl py-4 font-bold relative z-10">
+                Report a Complaint
+              </Button>
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-orange-500/5 rounded-full"></div>
+            </div>
+
+            <div className="bg-surface border border-border rounded-[2.5rem] p-10 flex flex-col items-center text-center gap-6 hover:shadow-xl transition-all group overflow-hidden relative">
+              <div className="p-5 bg-primary/10 text-primary rounded-3xl group-hover:scale-110 transition-transform">
+                <Star className="w-10 h-10" />
+              </div>
+              <div className="space-y-2 relative z-10">
+                <h3 className="text-2xl font-black text-foreground tracking-tight">Your Feedback</h3>
+                <p className="text-sm text-text-muted font-medium max-w-[240px]">Tell us what you like or what we can improve on QuickServe.</p>
+              </div>
+              <Button onClick={() => setRatingModalOpen(true)} className="w-full rounded-2xl py-4 font-bold relative z-10">
+                Rate the Platform
+              </Button>
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-primary/5 rounded-full"></div>
+            </div>
+          </section>
+
           {/* New Marketplace CTA */}
           <section className="bg-primary rounded-[3rem] p-10 sm:p-16 relative overflow-hidden group shadow-2xl shadow-primary/20">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-1000"></div>
@@ -159,6 +253,194 @@ export default function CustomerDashboard() {
           </section>
 
         </div>
+
+        {/* Support Modals */}
+        <Modal isOpen={complaintModalOpen} onClose={() => setComplaintModalOpen(false)}>
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-orange-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Submit a Complaint</h3>
+              <p className="text-text-muted text-sm mt-1">Provide details and we will investigate the matter.</p>
+            </div>
+
+            <form onSubmit={handleSubmitComplaint} className="space-y-4">
+              <Input
+                label="Subject"
+                placeholder="e.g. Booking dispute, Technical issue"
+                required
+                value={complaintData.subject}
+                onChange={(e) => setComplaintData({ ...complaintData, subject: e.target.value })}
+              />
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-foreground/80 ml-1">Priority</label>
+                <select
+                  className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
+                  value={complaintData.priority}
+                  onChange={(e) => setComplaintData({ ...complaintData, priority: e.target.value })}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-foreground/80 ml-1">Description</label>
+                <textarea
+                  className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[120px]"
+                  placeholder="Tell us more about the issue..."
+                  required
+                  value={complaintData.description}
+                  onChange={(e) => setComplaintData({ ...complaintData, description: e.target.value })}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setComplaintModalOpen(false)}>Cancel</Button>
+                <Button type="submit" className="flex-1 bg-orange-600 border-none hover:bg-orange-700" disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : "Submit Complaint"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+
+        {/* Platform Rating Modal */}
+        <Modal isOpen={ratingModalOpen} onClose={() => setRatingModalOpen(false)}>
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Rate QuickServe</h3>
+              <p className="text-text-muted text-sm mt-1">Your feedback helps us build a better platform.</p>
+            </div>
+
+            <form onSubmit={handleSubmitRating} className="space-y-6">
+              <div className="flex flex-col items-center gap-4">
+                <p className="font-bold text-foreground text-center">How would you rate your experience?</p>
+                <div className="flex gap-3">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setPlatformRating({ ...platformRating, rating: s })}
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${platformRating.rating >= s ? 'bg-primary text-white scale-110 shadow-lg' : 'bg-surface border border-border text-text-muted'}`}
+                    >
+                      <Star className={`w-6 h-6 ${platformRating.rating >= s ? 'fill-current' : ''}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-foreground/80 ml-1">Feedback (Optional)</label>
+                <textarea
+                  className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px]"
+                  placeholder="Anything we can improve?"
+                  value={platformRating.feedback}
+                  onChange={(e) => setPlatformRating({ ...platformRating, feedback: e.target.value })}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setRatingModalOpen(false)}>Skip</Button>
+                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                  {isSubmitting ? "Sending..." : "Submit Feedback"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+        {/* My Complaints Section */}
+        {myComplaints.length > 0 && (
+          <div className="mt-12 space-y-6 pb-12 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-foreground flex items-center gap-2">
+                <AlertCircle className="text-primary w-6 h-6" /> My History
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {myComplaints.map((complaint) => (
+                <div
+                  key={complaint.id}
+                  className="p-6 cursor-pointer hover:-translate-y-2 transition-all duration-500 border border-border border-l-4 border-l-primary rounded-[2rem] bg-surface relative overflow-hidden group shadow-sm hover:shadow-lg"
+                  onClick={() => { setSelectedComplaint(complaint); setViewComplaintModalOpen(true); }}
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <MessageSquare className="w-12 h-12" />
+                  </div>
+                  <div className="flex justify-between items-start mb-4">
+                    <Badge variant={complaint.status === 'open' ? 'info' : 'success'}>{complaint.status}</Badge>
+                    <span className="text-[10px] uppercase font-bold text-text-muted">{new Date(complaint.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <h4 className="font-bold mb-2 truncate text-foreground">{complaint.subject}</h4>
+                  <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed italic">
+                    "{complaint.description}"
+                  </p>
+                  {(complaint.admin_reply && String(complaint.admin_reply).trim() !== "") && (
+                    <div className="mt-2 py-2.5 px-3 bg-primary/10 rounded-xl border border-primary/20 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-primary" />
+                      <span className="text-[10px] font-bold text-primary uppercase">Response Available</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Modal isOpen={viewComplaintModalOpen} onClose={() => { setViewComplaintModalOpen(false); setSelectedComplaint(null); }}>
+          {selectedComplaint && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-black text-foreground">Ticket Review</h3>
+                <Badge variant={selectedComplaint.status === 'open' ? 'info' : 'success'} className="px-3 py-1 text-sm">{selectedComplaint.status.toUpperCase()}</Badge>
+              </div>
+
+              <div className="space-y-5">
+                <div className="bg-background/50 border border-border rounded-[2rem] p-6 space-y-4">
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest mb-1.5">Your Subject</p>
+                    <p className="font-bold text-xl text-foreground mb-4">{selectedComplaint.subject}</p>
+
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest mb-1.5">Your Message</p>
+                    <div className="bg-background p-5 rounded-2xl border border-border/50 text-sm leading-relaxed italic text-foreground/80">
+                      "{selectedComplaint.description}"
+                    </div>
+                  </div>
+                </div>
+
+                {(selectedComplaint.admin_reply && String(selectedComplaint.admin_reply).trim() !== "") ? (
+                  <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-6 animate-in zoom-in-95 duration-500">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] text-primary uppercase font-bold tracking-widest flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4" /> Official Response
+                      </p>
+                      <span className="text-[10px] font-medium text-text-muted">
+                        Replied on {selectedComplaint.replied_at ? new Date(selectedComplaint.replied_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="text-sm leading-relaxed font-medium text-foreground p-1">
+                      {selectedComplaint.admin_reply}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-surface-hover/30 border border-dashed border-border rounded-[2rem] p-10 text-center">
+                    <Clock className="w-10 h-10 text-primary/40 mx-auto mb-3 animate-pulse" />
+                    <h5 className="font-bold text-foreground mb-1">Under Review</h5>
+                    <p className="text-xs text-text-muted max-w-[200px] mx-auto">Our specialized team is currently reviewing your ticket. We'll respond shortly.</p>
+                  </div>
+                )}
+              </div>
+
+              <Button variant="secondary" className="w-full py-4 !rounded-2xl font-bold" onClick={() => setViewComplaintModalOpen(false)}>Close Review</Button>
+            </div>
+          )}
+        </Modal>
       </DashboardLayout>
     </ProtectedRoute>
   );
