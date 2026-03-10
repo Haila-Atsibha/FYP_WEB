@@ -238,6 +238,34 @@ export default function PendingUsers() {
                     )}
                   </div>
                 </div>
+
+                {reviewing.educational_documents && reviewing.educational_documents.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-text-muted flex items-center gap-2">
+                      <FileText size={14} /> Educational Documents
+                    </label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {reviewing.educational_documents.map((doc, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-background rounded-xl border border-border group hover:border-primary/50 transition-all">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                              <FileText size={16} />
+                            </div>
+                            <span className="text-sm font-medium text-foreground truncate">{doc.name || `Document ${idx + 1}`}</span>
+                          </div>
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            className="bg-primary/10 text-primary hover:bg-primary/20 p-2 rounded-lg transition-all"
+                            title="View Document"
+                          >
+                            <ExternalLink size={16} />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-border mt-6">

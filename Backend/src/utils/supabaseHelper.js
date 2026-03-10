@@ -20,7 +20,7 @@ async function uploadFile(buffer, mimeType, folder = '') {
         });
 
     if (error) {
-        console.error("Supabase Storage Error Details:", error);
+        console.error(`Supabase Storage Error for bucket '${bucketName}', file '${filename}':`, error);
         if (error.message?.includes("Bucket not found") || error.error === "Bucket not found") {
             throw new Error(`Storage configuration error: Bucket '${bucketName}' not found in Supabase. Please create it or check the name.`);
         }

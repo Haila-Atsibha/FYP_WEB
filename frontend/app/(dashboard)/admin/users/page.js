@@ -12,12 +12,16 @@ import {
     Shield,
     User,
     Clock,
-    MoreVertical
+    MoreVertical,
+    FileText,
+    Download,
+    ExternalLink
 } from "lucide-react";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
+import Modal from "../../../../src/components/Modal";
 import AdminDataTable from "../../../../src/components/AdminDataTable";
 import api from "../../../../src/services/api";
 
@@ -28,6 +32,7 @@ export default function UserManagement() {
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [viewingFiles, setViewingFiles] = useState(null);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -145,6 +150,13 @@ export default function UserManagement() {
                         </button>
                     )}
                     <button
+                        onClick={() => setViewingFiles(row)}
+                        className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors"
+                        title="View Documents"
+                    >
+                        <FileText size={16} />
+                    </button>
+                    <button
                         onClick={() => handleDeleteUser(row.id)}
                         className="p-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
                         title="Delete User"
@@ -247,11 +259,129 @@ export default function UserManagement() {
                             </div>
                         )}
                     </div>
+                    {/* View Files Modal */}
+                    {viewingFiles && (
+                        <Modal
+                            isOpen={!!viewingFiles}
+                            onClose={() => setViewingFiles(null)}
+                            title={`Documents: ${viewingFiles.name}`}
+                        >
+                            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                                {/* Identity Documents */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FileCard
+                                        title="Profile Image"
+                                        url={viewingFiles.profile_image_url}
+                                        icon={<User size={16} />}
+                                    />
+                                    <FileCard
+                                        title="National ID"
+                                        url={viewingFiles.national_id_url}
+                                        icon={<Shield size={16} />}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <FileCard
+                                        title="Verification Selfie"
+                                        url={viewingFiles.verification_selfie_url}
+                                        icon={<Clock size={16} />}
+                                        wide
+                                    />
+                                </div>
+
+                                {/* Educational Documents */}
+                                {viewingFiles.educational_documents && viewingFiles.educational_documents.length > 0 && (
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                                            <FileText size={16} className="text-primary" />
+                                            Educational Documents
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {viewingFiles.educational_documents.map((doc, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 bg-background rounded-xl border border-border group hover:border-primary/50 transition-all">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                                                            <FileText size={16} />
+                                                        </div>
+                                                        <span className="text-sm font-medium text-foreground truncate">{doc.name || `Document ${idx + 1}`}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <a
+                                                            href={doc.url}
+                                                            target="_blank"
+                                                            className="bg-primary/10 text-primary hover:bg-primary/20 p-2 rounded-lg transition-all"
+                                                            title="View Document"
+                                                        >
+                                                            <ExternalLink size={16} />
+                                                        </a>
+                                                        <a
+                                                            href={doc.url}
+                                                            download={doc.name || `doc_${idx + 1}`}
+                                                            className="bg-green-500/10 text-green-500 hover:bg-green-500/20 p-2 rounded-lg transition-all"
+                                                            title="Download"
+                                                            onClick={(e) => {
+                                                                // Manual download for external URLs if needed
+                                                                // e.preventDefault();
+                                                                // window.open(doc.url, '_blank');
+                                                            }}
+                                                        >
+                                                            <Download size={16} />
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-8 flex justify-end">
+                                <Button onClick={() => setViewingFiles(null)} className="w-full md:w-auto">Close</Button>
+                            </div>
+                        </Modal>
+                    )}
                 </div>
             </DashboardLayout>
         </ProtectedRoute>
     );
 }
+
+const FileCard = ({ title, url, icon, wide = false }) => (
+    <div className={`space-y-2 ${wide ? 'col-span-full' : ''}`}>
+        <label className="text-xs font-bold text-text-muted flex items-center gap-2 uppercase tracking-wider">
+            {icon} {title}
+        </label>
+        <div className="relative group overflow-hidden rounded-2xl border border-border aspect-video bg-background flex flex-col items-center justify-center">
+            {url ? (
+                <>
+                    <img src={url} className="w-full h-full object-contain" alt={title} />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                        <a
+                            href={url}
+                            target="_blank"
+                            className="bg-white/10 hover:bg-white/20 p-3 rounded-full backdrop-blur-md text-white transition-all transform hover:scale-110"
+                            title="View Full Size"
+                        >
+                            <ExternalLink size={20} />
+                        </a>
+                        <a
+                            href={url}
+                            download={title.toLowerCase().replace(/\s+/g, '_')}
+                            className="bg-primary hover:bg-primary-hover p-3 rounded-full text-white transition-all transform hover:scale-110 shadow-lg"
+                            title="Download"
+                        >
+                            <Download size={20} />
+                        </a>
+                    </div>
+                </>
+            ) : (
+                <div className="text-red-500/50 flex flex-col items-center gap-2">
+                    <AlertCircle size={32} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Document Missing</span>
+                </div>
+            )}
+        </div>
+    </div>
+);
 
 const StatMiniCard = ({ title, value, icon, color }) => (
     <div className="bg-surface border border-border p-4 rounded-2xl flex items-center gap-4">

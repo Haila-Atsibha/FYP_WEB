@@ -32,6 +32,7 @@ router.get('/pending-users', getPendingUsers);
 router.put('/approve/:id', approveUser);
 router.post('/approve/:id', approveUser);
 router.put('/reject/:id', rejectUser);
+router.post('/reject/:id', rejectUser);
 router.patch('/users/:id/status', updateUserStatus);
 router.delete('/users/:id', deleteUser);
 

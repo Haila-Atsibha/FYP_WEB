@@ -1,119 +1,73 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const pool = require('./src/db');
+
+// Import routes
+const authRoutes = require('./src/routes/authRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
+const providerRoutes = require('./src/routes/providerRoutes');
+const serviceRoutes = require('./src/routes/serviceRoutes');
+const bookingRoutes = require('./src/routes/bookingRoutes');
+const categoriesRoutes = require('./src/routes/categoriesRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
+const reviewRoutes = require('./src/routes/reviewRoutes');
+const availabilityRoutes = require('./src/routes/availabilityRoutes');
+const complaintRoutes = require('./src/routes/complaintRoutes');
+const paymentRoutes = require('./src/routes/paymentRoutes');
+const platformRatingRoutes = require('./src/routes/platformRatingRoutes');
+const customerRoutes = require('./src/routes/customerRoutes');
+
+// Import middlewares
 const protect = require('./src/middlewares/authMiddleware');
 const authorizeRoles = require('./src/middlewares/roleMiddleware');
 
-
 const app = express();
-// Force restart to ensure code changes are active
+const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Request logger
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/providers', providerRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/ratings', platformRatingRoutes);
+app.use('/api/customer', customerRoutes);
+
+// Custom protected test routes (from test.rest)
+app.get('/api/protected', protect, (req, res) => {
+    res.json({ message: "This is a protected route", user: req.user });
+});
+
+app.get('/api/admin-only', protect, authorizeRoles('admin'), (req, res) => {
+    res.json({ message: "Welcome, Admin!" });
 });
 
 app.get('/', (req, res) => {
-  res.send('QuickServe API Running 🚀');
-});
-const authRoutes = require('./src/routes/authRoutes');
-app.use('/api/auth', authRoutes);
-app.get('/api/protected', protect, (req, res) => {
-  res.json({
-    message: "You accessed a protected route 🔐",
-    user: req.user
-  });
+    res.send('QuickServe Backend API is running...');
 });
 
-app.get(
-  '/api/admin-only',
-  protect,
-  authorizeRoles('admin'),
-  (req, res) => {
-    res.json({
-      message: "Welcome Admin 👑"
-    });
-  }
-);
-const providerRoutes = require('./src/routes/providerRoutes');
-app.use('/api/providers', providerRoutes);
-
-const categoriesRoutes = require('./src/routes/categoriesRoutes');
-app.use('/api/categories', categoriesRoutes);
-
-const serviceRoutes = require('./src/routes/serviceRoutes');
-app.use('/api/services', serviceRoutes);
-
-// availability endpoints for providers
-const availabilityRoutes = require('./src/routes/availabilityRoutes');
-app.use('/api/availability', availabilityRoutes);
-
-// bookings
-const bookingRoutes = require('./src/routes/bookingRoutes');
-app.use('/api/bookings', bookingRoutes);
-
-// admin section
-const adminRoutes = require('./src/routes/adminRoutes');
-app.use('/api/admin', adminRoutes);
-
-// notifications
-const notificationRoutes = require('./src/routes/notificationRoutes');
-app.use('/api/notifications', notificationRoutes);
-
-// messages
-const messageRoutes = require('./src/routes/messageRoutes');
-app.use('/api/messages', messageRoutes);
-
-// payments
-const paymentRoutes = require('./src/routes/paymentRoutes');
-app.use('/api/payments', paymentRoutes);
-
-// customer
-const customerRoutes = require('./src/routes/customerRoutes');
-app.use('/api/customer', customerRoutes);
-
-// reviews
-const reviewRoutes = require('./src/routes/reviewRoutes');
-app.use('/api/reviews', reviewRoutes);
-
-// complaints
-const complaintRoutes = require('./src/routes/complaintRoutes');
-app.use('/api/complaints', complaintRoutes);
-
-// platform ratings
-const platformRatingRoutes = require('./src/routes/platformRatingRoutes');
-app.use('/api/ratings', platformRatingRoutes);
-
-// global error handler
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('GLOBAL ERROR:', err);
-  res.status(500).json({
-    message: "Global server error",
-    error: err.message || err
-  });
+    console.error(err.stack);
+    res.status(500).json({
+        message: 'Something went wrong!',
+        error: err.message
+    });
 });
 
-
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use.`);
-  } else {
-    console.error('Server error:', error);
-  }
-  process.exit(1);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

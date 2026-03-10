@@ -110,6 +110,30 @@ exports.registerUser = async (req, res) => {
                     await Promise.all(insertPromises);
                 }
             }
+
+            // 3. Add educational documents if present
+            const eduDocs = req.files.educationalDocuments || req.files['educationalDocuments[]'];
+            if (eduDocs) {
+                for (const file of eduDocs) {
+                    try {
+                        const docUrl = await upload(
+                            file.buffer,
+                            file.mimetype,
+                            'educational-docs'
+                        );
+                        await pool.query(
+                            "INSERT INTO provider_documents (provider_id, document_url, document_name) VALUES ($1, $2, $3)",
+                            [user.id, docUrl, file.originalname]
+                        );
+                    } catch (uploadError) {
+                        console.error(`Error uploading educational document ${file.originalname}:`, uploadError);
+                        // We continue with other files even if one fails, or we could throw. 
+                        // For registration, it's better to log and decide if it's fatal.
+                        // Here we'll throw to ensure the user knows something went wrong.
+                        throw uploadError;
+                    }
+                }
+            }
         }
 
         res.status(201).json({
@@ -142,9 +166,15 @@ exports.loginUser = async (req, res) => {
         const user = userResult.rows[0];
 
         // disallow login if account not yet approved by admin
-        if (user.status !== 'approved') {
+        if (user.status === 'pending') {
             return res.status(403).json({
                 message: "Account pending admin approval"
+            });
+        }
+
+        if (user.status === 'rejected') {
+            return res.status(403).json({
+                message: `Account rejected: ${user.rejection_reason || 'No reason provided'}`
             });
         }
 

@@ -9,11 +9,23 @@ exports.getPendingUsers = async (req, res) => {
         const { getSignedUrl } = require('../utils/supabaseHelper');
 
         const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
+            // Fetch educational documents
+            const docsResult = await pool.query(
+                "SELECT document_url, document_name FROM provider_documents WHERE provider_id = $1",
+                [user.id]
+            );
+
+            const educational_documents = await Promise.all(docsResult.rows.map(async (doc) => ({
+                name: doc.document_name,
+                url: await getSignedUrl(doc.document_url)
+            })));
+
             return {
                 ...user,
                 profile_image_url: await getSignedUrl(user.profile_image_url),
                 national_id_url: await getSignedUrl(user.national_id_url),
-                verification_selfie_url: await getSignedUrl(user.verification_selfie_url)
+                verification_selfie_url: await getSignedUrl(user.verification_selfie_url),
+                educational_documents
             };
         }));
 
@@ -27,14 +39,43 @@ exports.getPendingUsers = async (req, res) => {
 exports.approveUser = async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await pool.query(
-            "UPDATE users SET status='approved' WHERE id=$1 RETURNING *",
-            [id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // 1. Update user status
+            const userResult = await client.query(
+                "UPDATE users SET status='approved' WHERE id=$1 RETURNING *",
+                [id]
+            );
+
+            if (userResult.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            const user = userResult.rows[0];
+
+            // 2. If provider, activate initial subscription
+            if (user.role === 'provider') {
+                await client.query(
+                    `UPDATE provider_profiles 
+                     SET subscription_status = 'active', 
+                         subscription_expiry = NOW() + INTERVAL '1 month',
+                         is_verified = true
+                     WHERE user_id = $1`,
+                    [id]
+                );
+            }
+
+            await client.query('COMMIT');
+            res.json({ message: 'User approved and subscription activated', user });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
-        res.json({ message: 'User approved', user: result.rows[0] });
     } catch (error) {
         console.error("Approve User Error:", error.message);
         res.status(500).json({ message: 'Server error while approving user', error: error.message });
@@ -247,14 +288,41 @@ exports.getBookings = async (req, res) => {
 exports.getUsers = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT id, name, email, role, status, created_at
+            SELECT id, name, email, role, status, created_at, profile_image_url, national_id_url, verification_selfie_url
             FROM users
             ORDER BY created_at DESC
         `);
-        res.json(result.rows);
+
+        const { getSignedUrl } = require('../utils/supabaseHelper');
+
+        const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
+            // Fetch educational documents if user is a provider
+            let educational_documents = [];
+            if (user.role === 'provider') {
+                const docsResult = await pool.query(
+                    "SELECT document_url, document_name FROM provider_documents WHERE provider_id = $1",
+                    [user.id]
+                );
+
+                educational_documents = await Promise.all(docsResult.rows.map(async (doc) => ({
+                    name: doc.document_name,
+                    url: await getSignedUrl(doc.document_url)
+                })));
+            }
+
+            return {
+                ...user,
+                profile_image_url: await getSignedUrl(user.profile_image_url),
+                national_id_url: await getSignedUrl(user.national_id_url),
+                verification_selfie_url: await getSignedUrl(user.verification_selfie_url),
+                educational_documents
+            };
+        }));
+
+        res.json(usersWithSignedUrls);
     } catch (error) {
-        console.error("Controller Error:", error.message);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error("Get Users Error:", error.message);
+        res.status(500).json({ message: 'Server error while fetching users', error: error.message });
     }
 };
 

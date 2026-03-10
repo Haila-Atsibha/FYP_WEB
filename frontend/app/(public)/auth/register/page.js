@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { FileText } from "lucide-react";
 import api from "../../../../src/services/api";
 import Input from "../../../../src/components/Input";
 import Button from "../../../../src/components/Button";
@@ -16,9 +17,12 @@ export default function RegisterPage() {
   const [profileImage, setProfileImage] = useState(null);
   const [nationalId, setNationalId] = useState(null);
   const [verificationSelfie, setSelfie] = useState(null);
+  const [educationalDocuments, setEducationalDocuments] = useState([]);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const videoRef = useRef();
+  const educationalDocsInputRef = useRef();
 
   useEffect(() => {
     if (role === "provider") {
@@ -62,6 +66,8 @@ export default function RegisterPage() {
     setProfileImage(null);
     setNationalId(null);
     setSelfie(null);
+    setEducationalDocuments([]);
+    if (educationalDocsInputRef.current) educationalDocsInputRef.current.value = "";
     // Reset file inputs manually if needed using refs, but clearing state is the primary goal
   };
 
@@ -79,7 +85,9 @@ export default function RegisterPage() {
     if (verificationSelfie) formData.append("verificationSelfie", verificationSelfie);
     if (role === "provider") {
       selectedCats.forEach((c) => formData.append("categories[]", c));
+      educationalDocuments.forEach((doc) => formData.append("educationalDocuments[]", doc));
     }
+    setLoading(true);
     try {
       const res = await api.post("/api/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -88,6 +96,8 @@ export default function RegisterPage() {
       resetForm();
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,6 +195,28 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {role === "provider" && (
+              <div className="mt-8 bg-background/50 p-6 rounded-3xl border border-dashed border-border">
+                <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                  <FileText size={16} className="text-primary" />
+                  Educational Documents
+                </h4>
+                <p className="text-text-muted text-xs mb-4">Upload certifications, degrees, or other relevant files (Multiple allowed)</p>
+                <input
+                  type="file"
+                  multiple
+                  ref={educationalDocsInputRef}
+                  onChange={(e) => setEducationalDocuments(Array.from(e.target.files))}
+                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
+                />
+                {educationalDocuments.length > 0 && (
+                  <div className="mt-3 text-xs text-text-muted">
+                    Selected: {educationalDocuments.map(d => d.name).join(", ")}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="mt-8">
               <label className="block mb-4 font-semibold text-foreground/80 text-sm ml-1">Selfie Verification</label>
               <div className="bg-background rounded-3xl p-6 border border-border overflow-hidden">
@@ -241,8 +273,8 @@ export default function RegisterPage() {
           )}
 
           <div className="pt-8">
-            <Button type="submit" className="w-full py-4 text-lg">
-              Complete Registration
+            <Button type="submit" className="w-full py-4 text-lg" loading={loading}>
+              {loading ? "Registering..." : "Complete Registration"}
             </Button>
           </div>
         </form>
