@@ -9,16 +9,11 @@ import {
   TrendingUp,
   Star,
   AlertCircle,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  ArrowRight,
+  Activity,
   Clock,
   ShieldCheck,
   CreditCard,
-  MessageSquare,
-  Activity
+  ArrowRight
 } from "lucide-react";
 import Link from "next/link";
 import ProtectedRoute from "../../../src/components/ProtectedRoute";
@@ -26,15 +21,9 @@ import DashboardLayout from "../../../src/components/DashboardLayout";
 import Badge from "../../../src/components/Badge";
 import Button from "../../../src/components/Button";
 import Modal from "../../../src/components/Modal";
-import AdminDataTable from "../../../src/components/AdminDataTable";
 import Skeleton, { CardSkeleton, TableSkeleton } from "../../../src/components/Skeleton";
-import {
-  ChartCard,
-  MonthlyBookingsChart,
-  RevenueChart,
-  CategoryChart
-} from "../../../src/components/DashboardCharts";
 import api from "../../../src/services/api";
+import { useToast } from "../../../src/context/ToastContext";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -46,18 +35,7 @@ export default function AdminDashboard() {
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Modal states
-  const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [categoryForm, setCategoryForm] = useState({ name: "", description: "", icon: "" });
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Complaint Reply Modal states
-  const [isReplyModalOpen, setReplyModalOpen] = useState(false);
-  const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [adminReply, setAdminReply] = useState("");
-  const [isReplying, setIsReplying] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -103,64 +81,6 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
-  const handleSaveCategory = async () => {
-    if (!categoryForm.name) {
-      alert("Category name is required");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      if (editingCategory) {
-        // Update logic if needed, but the request was specifically for "add category"
-        // await api.put(`/api/categories/${editingCategory.id}`, categoryForm);
-      } else {
-        await api.post("/api/categories", {
-          name: categoryForm.name,
-          description: categoryForm.description || "Service category"
-        });
-      }
-
-      // Refresh categories list
-      const categoriesRes = await api.get("/api/categories");
-      setCategories(categoriesRes.data);
-
-      setCategoryModalOpen(false);
-      setEditingCategory(null);
-      setCategoryForm({ name: "", description: "", icon: "" });
-    } catch (err) {
-      console.error("Failed to save category:", err);
-      alert(err.response?.data?.message || "Failed to save category");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleReplyToComplaint = async () => {
-    if (!adminReply) {
-      alert("Reply content is required");
-      return;
-    }
-
-    setIsReplying(true);
-    try {
-      await api.post(`/api/complaints/${selectedComplaint.id}/reply`, { reply: adminReply });
-
-      // Refresh complaints list
-      const complaintsRes = await api.get("/api/admin/complaints");
-      setComplaints(complaintsRes.data);
-
-      setReplyModalOpen(false);
-      setSelectedComplaint(null);
-      setAdminReply("");
-      alert("Reply sent successfully!");
-    } catch (err) {
-      console.error("Failed to send reply:", err);
-      alert(err.response?.data?.message || "Failed to send reply");
-    } finally {
-      setIsReplying(false);
-    }
-  };
 
   if (error) {
     return (
@@ -185,13 +105,7 @@ export default function AdminDashboard() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-extrabold text-foreground tracking-tight">System Overview</h1>
-              <p className="text-text-muted mt-1">Manage and monitor your platform's health.</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button onClick={() => setCategoryModalOpen(true)} className="flex items-center space-x-2">
-                <Plus className="w-4 h-4" />
-                <span>Add Category</span>
-              </Button>
+              <p className="text-text-muted mt-1">Real-time platform performance and management hub.</p>
             </div>
           </div>
 
@@ -213,31 +127,73 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* 2. Analytics Section */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <ChartCard title="Monthly Bookings Growth">
-              {loading ? <Skeleton className="w-full h-full" /> : <MonthlyBookingsChart data={stats?.monthlyData} />}
-            </ChartCard>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ChartCard title="Revenue Breakdown">
-                {loading ? <Skeleton className="w-full h-full" /> : <RevenueChart data={stats?.revenueData} />}
-              </ChartCard>
-              <ChartCard title="Top Service Categories">
-                {loading ? <Skeleton className="w-full h-full" /> : <CategoryChart data={stats?.categoryData} />}
-              </ChartCard>
-            </div>
-          </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* 3. Recent Activity Feed */}
+            {/* 3. Navigation Hub */}
+            <div className="xl:col-span-2 space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <NavHubCard
+                  title="Bookings"
+                  description="Monitor and manage all service bookings"
+                  icon={<ShoppingBag />}
+                  href="/admin/bookings"
+                  stats={`${bookings.length} Total`}
+                  color="primary"
+                />
+                <NavHubCard
+                  title="User Management"
+                  description="Manage platform accounts and roles"
+                  icon={<Users />}
+                  href="/admin/users"
+                  stats={`${stats?.totalUsers || 0} Members`}
+                  color="info"
+                />
+                <NavHubCard
+                  title="Categories"
+                  description="Organize service types and options"
+                  icon={<ShieldCheck />}
+                  href="/admin/categories"
+                  stats={`${categories.length} Active`}
+                  color="warning"
+                />
+                <NavHubCard
+                  title="Verifications"
+                  description="Review pending provider applications"
+                  icon={<CheckCircle />}
+                  href="/admin/pending"
+                  stats={`${stats?.pendingVerifications || 0} Pending`}
+                  color="success"
+                />
+                <NavHubCard
+                  title="Complaints"
+                  description="Resolve user disputes and reports"
+                  icon={<AlertCircle />}
+                  href="/admin/complaints"
+                  stats={`${stats?.complaintsSummary?.open || 0} Open`}
+                  color="danger"
+                  isUrgent={stats?.complaintsSummary?.highPriority > 0}
+                />
+                <NavHubCard
+                  title="Subscriptions"
+                  description="Track provider premium plans"
+                  icon={<CreditCard />}
+                  href="/admin/subscriptions"
+                  stats={`$${subscriptions?.monthlyRevenue || 0} Monthly`}
+                  color="info"
+                />
+              </div>
+
+            </div>
+
+            {/* 4. Recent Activity Feed */}
             <div className="xl:col-span-1">
-              <div className="bg-surface border border-border rounded-3xl p-6 h-full flex flex-col">
+              <div className="bg-surface border border-border rounded-3xl p-6 h-full flex flex-col shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                     <Activity className="w-5 h-5 text-primary" />
-                    Recent Activity
+                    Live Activity
                   </h3>
-                  <Badge variant="info">Live</Badge>
+                  <Badge variant="info" className="animate-pulse">Live</Badge>
                 </div>
                 <div className="space-y-6 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
                   {loading ? (
@@ -246,290 +202,14 @@ export default function AdminDashboard() {
                     <ActivityItem key={i} {...act} />
                   ))}
                 </div>
-              </div>
-            </div>
-
-            {/* 4. & 5. Management Overviews */}
-            <div className="xl:col-span-2 space-y-8">
-              {/* Complaints / Disputes */}
-              <ModuleCard
-                title="Complaints & Disputes"
-                subtitle={`${stats?.complaintsSummary?.open || 0} Open / ${stats?.complaintsSummary?.highPriority || 0} High Priority`}
-                icon={<AlertCircle className="text-red-500" />}
-                action={<Button variant="ghost" className="text-primary font-bold">Manage All <ArrowRight className="ml-2 w-4 h-4" /></Button>}
-              >
-                <AdminDataTable
-                  loading={loading}
-                  columns={[
-                    { header: "User", accessor: "userName" },
-                    { header: "Complaint", accessor: "subject" },
-                    { header: "Priority", render: (row) => <Badge variant={row.priority === 'high' ? 'danger' : 'warning'}>{row.priority}</Badge> },
-                    {
-                      header: "Status", render: (row) => (
-                        <div className="flex items-center gap-2">
-                          <Badge variant={row.status === 'open' ? 'info' : 'success'}>{row.status}</Badge>
-                          {row.admin_reply && <Badge variant="success" className="bg-green-500/20 text-green-600 border-green-500/30">Replied</Badge>}
-                        </div>
-                      )
-                    }
-                  ]}
-                  data={complaints.slice(0, 5)}
-                  onRowClick={(row) => {
-                    setSelectedComplaint(row);
-                    setReplyModalOpen(true);
-                  }}
-                />
-              </ModuleCard>
-
-              {/* Booking Management */}
-              <ModuleCard
-                title="Latest Bookings"
-                subtitle={`Showing ${bookings.length} recent transactions`}
-                icon={<ShoppingBag className="text-primary" />}
-                action={<Button variant="ghost" className="text-primary font-bold">View All <ArrowRight className="ml-2 w-4 h-4" /></Button>}
-              >
-                <AdminDataTable
-                  loading={loading}
-                  columns={[
-                    { header: "Booking ID", accessor: "id" },
-                    { header: "Customer", accessor: "customer" },
-                    { header: "Service", accessor: "service" },
-                    {
-                      header: "Status", render: (row) => (
-                        <Badge variant={
-                          row.status === 'Completed' ? 'success' :
-                            row.status === 'Active' ? 'primary' :
-                              row.status === 'Cancelled' ? 'danger' : 'warning'
-                        }>
-                          {row.status}
-                        </Badge>
-                      )
-                    },
-                    { header: "Price", render: (row) => <span className="font-bold">${row.price}</span> }
-                  ]}
-                  data={bookings.slice(0, 5)}
-                />
-              </ModuleCard>
-            </div>
-          </div>
-
-          {/* 7. & 8. Subscription & User Management */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Subscriptions */}
-            <ModuleCard
-              title="Subscriptions & Tracking"
-              subtitle={`$${subscriptions?.monthlyRevenue} Revenue (Last 30 Days)`}
-              icon={<CreditCard className="text-green-500" />}
-              action={<Link href="/admin/subscriptions"><Button variant="secondary" className="py-2 px-4 text-sm font-bold">Details</Button></Link>}
-            >
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-4 bg-background/50 border border-border rounded-xl">
-                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Active Subscribers</p>
-                  <p className="text-2xl font-bold text-primary">{subscriptions?.activePremium}</p>
-                </div>
-                <div className="p-4 bg-background/50 border border-border rounded-xl">
-                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Expiring Soon</p>
-                  <p className="text-2xl font-bold text-yellow-500">{subscriptions?.expiringSoon}</p>
+                <div className="mt-6 pt-6 border-t border-border flex justify-center">
+                   <p className="text-xs text-text-muted font-medium italic">Showing latest system events</p>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border">
-                <p className="text-sm font-bold mb-4">Recent Subscription Payments</p>
-                <div className="space-y-3">
-                  {subscriptions?.history?.slice(0, 3).map((h, i) => (
-                    <div key={i} className="flex justify-between items-center text-sm p-2 hover:bg-surface-hover rounded-lg transition-colors">
-                      <div className="flex flex-col">
-                        <span className="font-bold">{h.providerName}</span>
-                        <span className="text-xs text-text-muted">{new Date(h.date).toLocaleDateString()}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-black text-green-500 font-mono">${h.amount}</p>
-                        <Badge variant={h.status === 'success' ? 'success' : 'warning'} className="text-[10px] py-0">{h.status}</Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {(!subscriptions?.history || subscriptions.history.length === 0) && (
-                    <p className="text-xs text-text-muted text-center py-4">No recent payments</p>
-                  )}
-                </div>
-              </div>
-            </ModuleCard>
-
-            {/* User Quick Management */}
-            <ModuleCard
-              title="User Quick Management"
-              subtitle="Search and manage platform members"
-              icon={<Users className="text-blue-500" />}
-            >
-              <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <input
-                  type="text"
-                  placeholder="Search by name, email or ID..."
-                  className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-                />
-              </div>
-              <div className="space-y-4">
-                {users.slice(0, 3).map((u, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-background/50 border border-border rounded-2xl">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-surface-hover flex items-center justify-center font-bold text-primary">
-                        {u.name[0]}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">{u.name}</p>
-                        <p className="text-xs text-text-muted">{u.role}</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" className="p-2 h-auto text-red-500 hover:bg-red-500/10"><XCircle className="w-4 h-4" /></Button>
-                      <Button variant="ghost" className="p-2 h-auto text-primary hover:bg-primary/10"><ShieldCheck className="w-4 h-4" /></Button>
-                    </div>
-                  </div>
-                ))}
-                <Button className="w-full bg-surface-hover !text-foreground mt-2 border border-border">View All Users</Button>
-              </div>
-            </ModuleCard>
-          </div>
-
-          {/* 6. Service Category Management Shortcut */}
-          <div className="bg-surface border border-border p-8 rounded-3xl shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-2xl font-bold">Service Category Management</h3>
-                <p className="text-text-muted">Edit and organize platform service categories.</p>
-              </div>
-              <Button onClick={() => setCategoryModalOpen(true)} className="flex items-center space-x-2">
-                <Plus className="w-4 h-4" />
-                <span>Add Category</span>
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {categories.map((cat, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-background border border-border rounded-2xl hover:border-primary/50 transition-all group">
-                  <span className="font-bold">{cat.name}</span>
-                  <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditingCategory(cat); setCategoryModalOpen(true); }} className="p-2 text-primary hover:bg-primary/5 rounded-lg"><Edit className="w-4 h-4" /></button>
-                    <button className="p-2 text-red-500 hover:bg-red-500/5 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
 
-        {/* Modal for Category Management */}
-        <Modal isOpen={isCategoryModalOpen} onClose={() => { setCategoryModalOpen(false); setEditingCategory(null); setCategoryForm({ name: "", description: "", icon: "" }); }}>
-          <h3 className="text-2xl font-bold mb-6">{editingCategory ? 'Edit' : 'Add New'} Category</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold text-text-muted mb-2">Category Name</label>
-              <input
-                type="text"
-                value={categoryForm.name}
-                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                placeholder="e.g. Home Cleaning"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-text-muted mb-2">Description</label>
-              <input
-                type="text"
-                value={categoryForm.description}
-                onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                placeholder="e.g. Services related to home cleaning"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-text-muted mb-2">Icon (Lucide name)</label>
-              <input
-                type="text"
-                value={categoryForm.icon}
-                onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                placeholder="e.g. Sparkles"
-              />
-            </div>
-          </div>
-          <div className="mt-10 flex space-x-4">
-            <Button variant="secondary" className="flex-1" onClick={() => { setCategoryModalOpen(false); setEditingCategory(null); setCategoryForm({ name: "", description: "", icon: "" }); }}>Cancel</Button>
-            <Button className="flex-1" onClick={handleSaveCategory} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Category"}
-            </Button>
-          </div>
-        </Modal>
-
-        {/* Complaint Reply Modal */}
-        <Modal isOpen={isReplyModalOpen} onClose={() => { setReplyModalOpen(false); setSelectedComplaint(null); setAdminReply(""); }}>
-          {selectedComplaint && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold">Complaint Details</h3>
-                <Badge variant={selectedComplaint.status === 'open' ? 'info' : 'success'}>{selectedComplaint.status}</Badge>
-              </div>
-
-              <div className="bg-background/50 border border-border rounded-2xl p-6 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-xs text-text-muted uppercase font-bold mb-1">From</p>
-                    <p className="font-bold">{selectedComplaint.userName} ({selectedComplaint.user_role || 'User'})</p>
-                    <p className="text-xs text-text-muted">{selectedComplaint.user_email}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-text-muted uppercase font-bold mb-1">Date</p>
-                    <p className="text-sm">{new Date(selectedComplaint.created_at).toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Subject</p>
-                  <p className="font-bold text-lg">{selectedComplaint.subject}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-text-muted uppercase font-bold mb-1">Message</p>
-                  <div className="bg-background p-4 rounded-xl border border-border/50 text-sm leading-relaxed italic">
-                    "{selectedComplaint.description}"
-                  </div>
-                </div>
-
-                {selectedComplaint.admin_reply && (
-                  <div className="pt-4 border-t border-border/50">
-                    <p className="text-xs text-primary uppercase font-bold mb-1 flex items-center gap-1">
-                      <MessageSquare className="w-3 h-3" /> Previous Admin Reply
-                    </p>
-                    <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 text-sm leading-relaxed">
-                      {selectedComplaint.admin_reply}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {selectedComplaint.status === 'open' ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-text-muted mb-2">Reply to User</label>
-                    <textarea
-                      value={adminReply}
-                      onChange={(e) => setAdminReply(e.target.value)}
-                      className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[120px]"
-                      placeholder="Type your response here..."
-                    />
-                  </div>
-                  <div className="flex space-x-4">
-                    <Button variant="secondary" className="flex-1" onClick={() => setReplyModalOpen(false)}>Cancel</Button>
-                    <Button className="flex-1" onClick={handleReplyToComplaint} disabled={isReplying}>
-                      {isReplying ? "Sending..." : "Send Reply & Resolve"}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button variant="secondary" className="w-full" onClick={() => setReplyModalOpen(false)}>Close</Button>
-              )}
-            </div>
-          )}
-        </Modal>
       </DashboardLayout>
     </ProtectedRoute>
   );
@@ -583,23 +263,47 @@ const ActivitySkeleton = () => (
   </div>
 );
 
-const ModuleCard = ({ title, subtitle, icon, action, children }) => (
-  <div className="bg-surface border border-border rounded-3xl p-8 shadow-sm">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-      <div className="flex items-center space-x-4">
-        <div className="p-3 bg-background border border-border rounded-xl">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-foreground">{title}</h3>
-          <p className="text-sm text-text-muted">{subtitle}</p>
-        </div>
-      </div>
-      <div>{action}</div>
+const NoDataPlaceholder = ({ text }) => (
+  <div className="flex flex-col items-center justify-center h-full text-text-muted italic space-y-2">
+    <div className="p-4 bg-background/50 rounded-full border border-border/50">
+      <TrendingUp className="w-8 h-8 opacity-20" />
     </div>
-    {children}
+    <p className="text-sm">{text || "No data available yet"}</p>
   </div>
 );
+
+const NavHubCard = ({ title, description, icon, href, stats, color, isUrgent }) => {
+  const colorMap = {
+    primary: "text-primary bg-primary/10 border-primary/20 hover:border-primary/40 shadow-primary/5",
+    success: "text-green-500 bg-green-500/10 border-green-500/20 hover:border-green-500/40 shadow-green-500/5",
+    warning: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/40 shadow-yellow-500/5",
+    danger: "text-red-500 bg-red-500/10 border-red-500/20 hover:border-red-500/40 shadow-red-500/5",
+    info: "text-blue-500 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 shadow-blue-500/5"
+  };
+
+  return (
+    <Link href={href} className={`bg-surface border p-6 rounded-3xl transition-all duration-300 hover:translate-y-[-4px] group shadow-sm flex flex-col justify-between h-full ${colorMap[color] || colorMap.primary}`}>
+      <div className="flex items-start justify-between mb-4">
+        <div className={`p-3 rounded-2xl ${colorMap[color]?.split(' border')[0]}`}>
+          {React.cloneElement(icon, { size: 24, className: "group-hover:scale-110 transition-transform" })}
+        </div>
+        {isUrgent && <Badge variant="danger" className="animate-bounce">Action Required</Badge>}
+      </div>
+      <div>
+        <h3 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+          {title}
+          <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+        </h3>
+        <p className="text-sm text-text-muted mb-4">{description}</p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-black px-3 py-1 bg-surface rounded-full border border-border shadow-inner truncate max-w-full">
+            {stats}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+};
 
 // Mock data as fallback
 const mockStats = {

@@ -21,6 +21,7 @@ import {
     MessageSquare
 } from "lucide-react";
 import Button from "../../../../src/components/Button";
+import { useToast } from "../../../../src/context/ToastContext";
 import Badge from "../../../../src/components/Badge";
 import Skeleton from "../../../../src/components/Skeleton";
 
@@ -29,6 +30,7 @@ export default function ProviderBookings() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("active"); // "active" or "history"
+    const { showToast } = useToast();
 
     useEffect(() => {
         if (!authLoading && user) {
@@ -64,9 +66,10 @@ export default function ProviderBookings() {
             setBookings(prev => prev.map(b =>
                 b.id === bookingId ? { ...b, status } : b
             ));
+            showToast(`Booking ${status} successfully`, "success");
         } catch (err) {
             console.error(`Error updating booking to ${status}:`, err);
-            alert(`Failed to ${status} booking. Please try again.`);
+            showToast(`Failed to ${status} booking. Please try again.`, "error");
         }
     };
 

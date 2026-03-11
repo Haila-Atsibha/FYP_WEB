@@ -15,6 +15,7 @@ const menuByRole = {
   provider: [
     { label: "Dashboard", href: "/provider" },
     { label: "Bookings", href: "/provider/bookings" },
+    { label: "Messages", href: "/provider/messages" },
     { label: "Reviews", href: "/provider/reviews" },
     { label: "Profile", href: "/provider/profile" },
   ],

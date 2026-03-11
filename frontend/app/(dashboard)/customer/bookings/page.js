@@ -21,6 +21,7 @@ import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
 import Skeleton, { CardSkeleton } from "../../../../src/components/Skeleton";
 import api from "../../../../src/services/api";
+import { useToast } from "../../../../src/context/ToastContext";
 import Modal from "../../../../src/components/Modal";
 
 export default function BookingsPage() {
@@ -29,6 +30,7 @@ export default function BookingsPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("active"); // "active" or "history"
     const [cancellingId, setCancellingId] = useState(null);
+    const { showToast } = useToast();
 
     // Review Modal State
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -73,9 +75,10 @@ export default function BookingsPage() {
             await api.put(`/api/bookings/${id}/status`, { status: "cancelled" });
             // Update local state instead of refetching for better UX
             setBookings(prev => prev.map(b => b.id === id ? { ...b, status: "cancelled" } : b));
+            showToast("Booking cancelled successfully", "success");
         } catch (err) {
             console.error("Error cancelling booking:", err);
-            alert(err.response?.data?.message || "Failed to cancel booking");
+            showToast(err.response?.data?.message || "Failed to cancel booking", "error");
         } finally {
             setCancellingId(null);
         }
@@ -99,11 +102,11 @@ export default function BookingsPage() {
             });
             setIsReviewModalOpen(false);
             // Mark as reviewed in local state
-            setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, is_reviewed: true } : b));
-            alert("Thank you for your review!");
+            setReviewing(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, is_reviewed: true } : b));
+            showToast("Thank you for your review!", "success");
         } catch (err) {
             console.error("Error submitting review:", err);
-            alert(err.response?.data?.message || "Failed to submit review");
+            showToast(err.response?.data?.message || "Failed to submit review", "error");
         } finally {
             setIsSubmittingReview(false);
         }

@@ -12,6 +12,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import api from "../../../../src/services/api";
+import { useToast } from "../../../../src/context/ToastContext";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import Button from "../../../../src/components/Button";
@@ -25,6 +26,7 @@ export default function PendingUsers() {
   const [reviewing, setReviewing] = useState(null);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const fetchPending = async () => {
     setLoading(true);
@@ -56,8 +58,9 @@ export default function PendingUsers() {
       await api.post(`/api/admin/approve/${id}`);
       setUsers((u) => u.filter((x) => x.id !== id));
       setReviewing(null);
+      showToast("User approved successfully!", "success");
     } catch (err) {
-      alert("Failed to approve user");
+      showToast("Failed to approve user", "error");
     }
   };
 
@@ -67,15 +70,19 @@ export default function PendingUsers() {
   };
 
   const submitReject = async () => {
-    if (!reason.trim()) return alert("Please provide a reason");
+    if (!reason.trim()) {
+      showToast("Please provide a reason", "error");
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post(`/api/admin/reject/${rejecting.id}`, { rejection_reason: reason });
       setUsers((u) => u.filter((x) => x.id !== rejecting.id));
       setRejecting(null);
       setReviewing(null);
+      showToast("User rejected successfully", "warning");
     } catch (err) {
-      alert("Failed to reject user");
+      showToast("Failed to reject user", "error");
     } finally {
       setSubmitting(false);
     }

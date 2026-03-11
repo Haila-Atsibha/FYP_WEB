@@ -1,8 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../src/context/AuthContext";
+import { ToastProvider } from "../src/context/ToastContext";
 import Navbar from "../src/components/Navbar";
 import Footer from "../src/components/Footer";
+import ToastContainer from "../src/components/ToastContainer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,9 +28,12 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          <ToastProvider>
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+            <ToastContainer />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

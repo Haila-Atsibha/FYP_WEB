@@ -24,11 +24,13 @@ import Button from "../../../../src/components/Button";
 import Modal from "../../../../src/components/Modal";
 import AdminDataTable from "../../../../src/components/AdminDataTable";
 import api from "../../../../src/services/api";
+import { useToast } from "../../../../src/context/ToastContext";
 
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { showToast } = useToast();
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -56,8 +58,9 @@ export default function UserManagement() {
         try {
             await api.patch(`/api/admin/users/${userId}/status`, { status: newStatus });
             fetchUsers();
+            showToast(`User status updated to ${newStatus}`, "success");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to update status");
+            showToast(err.response?.data?.message || "Failed to update status", "error");
         }
     };
 
@@ -66,8 +69,9 @@ export default function UserManagement() {
         try {
             await api.delete(`/api/admin/users/${userId}`);
             fetchUsers();
+            showToast("User deleted successfully", "success");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to delete user");
+            showToast(err.response?.data?.message || "Failed to delete user", "error");
         }
     };
 

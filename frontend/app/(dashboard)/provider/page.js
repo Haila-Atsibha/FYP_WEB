@@ -29,6 +29,7 @@ import Input from "../../../src/components/Input";
 import Modal from "../../../src/components/Modal";
 import Skeleton, { CardSkeleton } from "../../../src/components/Skeleton";
 import api from "../../../src/services/api";
+import { useToast } from "../../../src/context/ToastContext";
 import { AuthContext } from "../../../src/context/AuthContext";
 
 export default function ProviderDashboard() {
@@ -39,6 +40,7 @@ export default function ProviderDashboard() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   // Add Service Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,8 +100,9 @@ export default function ProviderDashboard() {
       setServices([res.data.service, ...services]);
       setIsModalOpen(false);
       setNewService({ category_id: "", title: "", description: "", price: "" });
+      showToast("Service created successfully!", "success");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to create service");
+      showToast(err.response?.data?.message || "Failed to create service", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -113,7 +116,7 @@ export default function ProviderDashboard() {
         window.location.href = res.data.checkout_url;
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to initialize payment");
+      showToast(err.response?.data?.message || "Failed to initialize payment", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -127,8 +130,9 @@ export default function ProviderDashboard() {
       // Refresh stats to reflect the change
       const statsRes = await api.get("/api/providers/stats");
       setStats(statsRes.data);
+      showToast(`Booking ${status} successfully`, "success");
     } catch (err) {
-      alert(`Failed to update booking status`);
+      showToast(`Failed to update booking status`, "error");
       console.error("Booking Action Error:", err.response?.data || err.message);
     }
   };
@@ -138,13 +142,13 @@ export default function ProviderDashboard() {
     setIsSubmitting(true);
     try {
       await api.post("/api/complaints", complaintData);
-      alert("Complaint submitted successfully. Our team will review it.");
+      showToast("Complaint submitted successfully. Our team will review it.", "success");
       setComplaintModalOpen(false);
       setComplaintData({ subject: "", description: "", priority: "medium" });
       // Refresh complaints
       api.get("/api/complaints/my").then(res => setMyComplaints(res.data));
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to submit complaint");
+      showToast(err.response?.data?.message || "Failed to submit complaint", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -155,7 +159,7 @@ export default function ProviderDashboard() {
     setIsSubmitting(true);
     try {
       await api.post("/api/ratings/platform", platformRating);
-      alert("Thank you for your feedback!");
+      showToast("Thank you for your feedback!", "success");
       setRatingModalOpen(false);
       setPlatformRating({ rating: 5, feedback: "" });
     } catch (err) {

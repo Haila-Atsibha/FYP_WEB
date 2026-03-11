@@ -61,30 +61,55 @@ exports.sendMessage = async (req, res) => {
     }
 };
 
-exports.getCustomerConversations = async (req, res) => {
+exports.getConversations = async (req, res) => {
     try {
         const userId = req.user.id;
+        const role = req.user.role;
 
-        // Fetch unique "conversations" based on bookings
-        // This query gets the most recent message for each booking the user is involved in
-        const conversations = await pool.query(
-            `SELECT DISTINCT ON (b.id)
-                b.id AS booking_id,
-                b.status AS booking_status,
-                s.title AS service_title,
-                u.name AS partner_name,
-                u.id AS partner_id,
-                m.message AS last_message,
-                m.created_at AS last_message_time
-             FROM bookings b
-             JOIN services s ON b.service_id = s.id
-             JOIN provider_profiles pp ON b.provider_id = pp.id
-             JOIN users u ON pp.user_id = u.id
-             LEFT JOIN messages m ON b.id = m.booking_id
-             WHERE b.customer_id = $1
-             ORDER BY b.id, m.created_at DESC`,
-            [userId]
-        );
+        let query;
+        let params = [userId];
+
+        if (role === 'customer') {
+            query = `
+                SELECT DISTINCT ON (b.id)
+                    b.id AS booking_id,
+                    b.status AS booking_status,
+                    s.title AS service_title,
+                    u.name AS partner_name,
+                    u.id AS partner_id,
+                    m.message AS last_message,
+                    m.created_at AS last_message_time
+                FROM bookings b
+                JOIN services s ON b.service_id = s.id
+                JOIN provider_profiles pp ON b.provider_id = pp.id
+                JOIN users u ON pp.user_id = u.id
+                LEFT JOIN messages m ON b.id = m.booking_id
+                WHERE b.customer_id = $1
+                ORDER BY b.id, m.created_at DESC
+            `;
+        } else if (role === 'provider') {
+            query = `
+                SELECT DISTINCT ON (b.id)
+                    b.id AS booking_id,
+                    b.status AS booking_status,
+                    s.title AS service_title,
+                    u.name AS partner_name,
+                    u.id AS partner_id,
+                    m.message AS last_message,
+                    m.created_at AS last_message_time
+                FROM bookings b
+                JOIN services s ON b.service_id = s.id
+                JOIN users u ON b.customer_id = u.id
+                JOIN provider_profiles pp ON b.provider_id = pp.id
+                LEFT JOIN messages m ON b.id = m.booking_id
+                WHERE pp.user_id = $1
+                ORDER BY b.id, m.created_at DESC
+            `;
+        } else {
+            return res.status(403).json({ message: "Role not supported for conversations" });
+        }
+
+        const conversations = await pool.query(query, params);
 
         // Sort by last message time (descending)
         const sortedConversations = conversations.rows.sort((a, b) => {
@@ -95,7 +120,7 @@ exports.getCustomerConversations = async (req, res) => {
 
         res.json(sortedConversations);
     } catch (error) {
-        console.error("Error in getCustomerConversations:", error);
+        console.error("Error in getConversations:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

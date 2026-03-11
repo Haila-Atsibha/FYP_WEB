@@ -18,11 +18,13 @@ import AdminDataTable from "../../../../src/components/AdminDataTable";
 import Modal from "../../../../src/components/Modal";
 import Input from "../../../../src/components/Input";
 import api from "../../../../src/services/api";
+import { useToast } from "../../../../src/context/ToastContext";
 
 export default function AdminCategories() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { showToast } = useToast();
     const [searchTerm, setSearchTerm] = useState("");
 
     // Modal state
@@ -71,7 +73,7 @@ export default function AdminCategories() {
             fetchCategories();
         } catch (err) {
             console.error("Delete failed:", err);
-            alert(err.response?.data?.message || "Failed to delete category");
+            showToast(err.response?.data?.message || "Failed to delete category", "error");
         }
     };
 

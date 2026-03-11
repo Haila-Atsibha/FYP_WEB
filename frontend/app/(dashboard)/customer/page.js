@@ -30,6 +30,7 @@ import Skeleton, { CardSkeleton, CategorySkeleton, ProviderSkeleton } from "../.
 import CategoryCard from "../../../src/components/CategoryCard";
 import ProviderMiniCard from "../../../src/components/ProviderMiniCard";
 import api from "../../../src/services/api";
+import { useToast } from "../../../src/context/ToastContext";
 
 export default function CustomerDashboard() {
   const { user, loading: authLoading } = useContext(AuthContext);
@@ -40,6 +41,7 @@ export default function CustomerDashboard() {
     topProviders: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   // Complaint & Rating Modal States
   const [complaintModalOpen, setComplaintModalOpen] = useState(false);
@@ -94,7 +96,7 @@ export default function CustomerDashboard() {
     setIsSubmitting(true);
     try {
       await api.post("/api/complaints", complaintData);
-      alert("Complaint submitted successfully. Our team will review it.");
+      showToast("Complaint submitted successfully. Our team will review it.", "success");
       setComplaintModalOpen(false);
       setComplaintData({ subject: "", description: "", priority: "medium" });
 
@@ -102,7 +104,7 @@ export default function CustomerDashboard() {
       const res = await api.get("/api/complaints/my");
       setMyComplaints(res.data);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to submit complaint");
+      showToast(err.response?.data?.message || "Failed to submit complaint", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -113,7 +115,7 @@ export default function CustomerDashboard() {
     setIsSubmitting(true);
     try {
       await api.post("/api/ratings/platform", platformRating);
-      alert("Thank you for your feedback!");
+      showToast("Thank you for your feedback!", "success");
       setRatingModalOpen(false);
       setPlatformRating({ rating: 5, feedback: "" });
     } catch (err) {
