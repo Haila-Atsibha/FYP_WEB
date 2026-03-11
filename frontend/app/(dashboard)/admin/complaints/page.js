@@ -17,6 +17,7 @@ import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
 import AdminDataTable from "../../../../src/components/AdminDataTable";
 import api from "../../../../src/services/api";
+import Modal from "../../../../src/components/Modal";
 
 export default function AdminComplaints() {
     const [complaints, setComplaints] = useState([]);
@@ -24,6 +25,10 @@ export default function AdminComplaints() {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [selectedComplaint, setSelectedComplaint] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [replyText, setReplyText] = useState("");
+    const [submittingReply, setSubmittingReply] = useState(false);
 
     useEffect(() => {
         const fetchComplaints = async () => {
@@ -41,12 +46,44 @@ export default function AdminComplaints() {
 
         fetchComplaints();
     }, []);
+    
+    const fetchComplaints = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get("/api/admin/complaints");
+            setComplaints(res.data);
+        } catch (err) {
+            console.error("Failed to fetch complaints:", err);
+            setError("Failed to load complaints. Please try again later.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleReply = async (complaintId) => {
+        if (!replyText.trim()) return;
+        
+        setSubmittingReply(true);
+        try {
+            await api.post(`/api/complaints/${complaintId}/reply`, { reply: replyText });
+            // Refresh local data
+            await fetchComplaints();
+            setIsModalOpen(false);
+            setReplyText("");
+            setSelectedComplaint(null);
+        } catch (err) {
+            console.error("Failed to submit reply:", err);
+            alert("Failed to submit reply. Please try again.");
+        } finally {
+            setSubmittingReply(false);
+        }
+    };
 
     const filteredComplaints = complaints.filter(complaint => {
         const matchesSearch =
-            complaint.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            complaint.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             complaint.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            complaint.message?.toLowerCase().includes(searchTerm.toLowerCase());
+            complaint.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === "all" || complaint.status.toLowerCase() === statusFilter.toLowerCase();
 
@@ -54,14 +91,14 @@ export default function AdminComplaints() {
     });
 
     const columns = [
-        { header: "User", accessor: "userName", render: (row) => <span className="font-bold">{row.userName}</span> },
+        { header: "User", accessor: "user_name", render: (row) => <span className="font-bold">{row.user_name}</span> },
         { header: "Subject", accessor: "subject" },
         {
             header: "Message",
-            accessor: "message",
+            accessor: "description",
             render: (row) => (
-                <p className="max-w-xs truncate text-text-muted text-sm" title={row.message}>
-                    {row.message}
+                <p className="max-w-xs truncate text-text-muted text-sm" title={row.description}>
+                    {row.description}
                 </p>
             )
         },
@@ -163,7 +200,10 @@ export default function AdminComplaints() {
                                 loading={loading}
                                 columns={columns}
                                 data={filteredComplaints}
-                                onRowClick={(row) => console.log("Complaint clicked:", row)}
+                                onRowClick={(row) => {
+                                    setSelectedComplaint(row);
+                                    setIsModalOpen(true);
+                                }}
                             />
                         )}
 
@@ -174,6 +214,98 @@ export default function AdminComplaints() {
                             </div>
                         )}
                     </div>
+
+                    {/* Complaint Detail Modal */}
+                    <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                        {selectedComplaint && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xl font-bold flex items-center gap-2">
+                                        <MessageSquare className="text-primary w-5 h-5" />
+                                        Complaint Detail
+                                    </h2>
+                                    <Badge variant={selectedComplaint.priority === 'high' ? 'danger' : 'warning'}>
+                                        {selectedComplaint.priority} Priority
+                                    </Badge>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-background rounded-2xl border border-border">
+                                        <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">From User</p>
+                                        <div className="flex items-center justify-between">
+                                            <p className="font-bold text-lg">{selectedComplaint.user_name}</p>
+                                            <p className="text-sm text-text-muted">{selectedComplaint.user_email}</p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Subject</p>
+                                        <p className="text-foreground font-semibold">{selectedComplaint.subject}</p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Message</p>
+                                        <div className="bg-background/50 p-4 rounded-xl border border-border/50 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                                            {selectedComplaint.description}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                                        <div className="flex items-center gap-2 text-text-muted text-sm">
+                                            <Calendar className="w-4 h-4" />
+                                            {new Date(selectedComplaint.created_at).toLocaleString()}
+                                        </div>
+                                        <Badge variant={selectedComplaint.status === 'open' ? 'info' : 'success'}>
+                                            Status: {selectedComplaint.status}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                {selectedComplaint.status === 'open' ? (
+                                    <div className="space-y-3 pt-4 border-t border-border">
+                                        <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Official Reply</p>
+                                        <textarea
+                                            className="w-full bg-background border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px] text-sm"
+                                            placeholder="Type your official response here to resolve this complaint..."
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                        />
+                                    </div>
+                                ) : (
+                                    selectedComplaint.admin_reply && (
+                                        <div className="space-y-3 pt-4 border-t border-border">
+                                            <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Our Response</p>
+                                            <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 text-sm italic text-foreground leading-relaxed">
+                                                "{selectedComplaint.admin_reply}"
+                                            </div>
+                                        </div>
+                                    )
+                                )}
+
+                                <div className="flex gap-3 pt-4">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => {
+                                            setIsModalOpen(false);
+                                            setReplyText("");
+                                        }}
+                                    >
+                                        Close
+                                    </Button>
+                                    {selectedComplaint.status === 'open' && (
+                                        <Button
+                                            className="flex-1"
+                                            disabled={!replyText.trim() || submittingReply}
+                                            onClick={() => handleReply(selectedComplaint.id)}
+                                        >
+                                            {submittingReply ? "Submitting..." : "Send Reply & Resolve"}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </Modal>
                 </div>
             </DashboardLayout>
         </ProtectedRoute>

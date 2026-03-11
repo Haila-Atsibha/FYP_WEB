@@ -102,7 +102,7 @@ export default function BookingsPage() {
             });
             setIsReviewModalOpen(false);
             // Mark as reviewed in local state
-            setReviewing(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, is_reviewed: true } : b));
+            setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, is_reviewed: true } : b));
             showToast("Thank you for your review!", "success");
         } catch (err) {
             console.error("Error submitting review:", err);
