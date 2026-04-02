@@ -73,16 +73,28 @@ exports.updateMyProfile = async (req, res) => {
         const userId = req.user.id;
         const { bio, name, phone } = req.body;
 
+        let profileImageUrl;
+        if (req.file) {
+            const { uploadFile } = require('../utils/supabaseHelper');
+            profileImageUrl = await uploadFile(req.file.buffer, req.file.mimetype, 'profiles');
+        }
+
         // Start a transaction
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
-            // Update users table (name and phone)
-            await client.query(
-                "UPDATE users SET name = $1, phone = $2 WHERE id = $3",
-                [name, phone, userId]
-            );
+            if (profileImageUrl) {
+                await client.query(
+                    "UPDATE users SET name = $1, phone = $2, profile_image_url = $3 WHERE id = $4",
+                    [name, phone, profileImageUrl, userId]
+                );
+            } else {
+                await client.query(
+                    "UPDATE users SET name = $1, phone = $2 WHERE id = $3",
+                    [name, phone, userId]
+                );
+            }
 
             // Upsert provider_profiles table (bio)
             const updatedProfile = await client.query(

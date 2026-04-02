@@ -322,7 +322,6 @@ export default function ProviderDashboard() {
               <div className="flex-shrink-0">
                 <Button
                   onClick={handleSubscribe}
-                  className={`${stats?.subscriptionStatus === 'active' ? 'bg-surface border-border text-foreground hover:bg-surface-hover shadow-none' : ''}`}
                   disabled={isSubmitting}
                 >
                   {stats?.subscriptionStatus === 'active' ? 'Renew Early' : 'Subscribe Now – 200 ETB'}

@@ -13,6 +13,7 @@ export default function LoginPage() {
     password: ""
   });
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
     try {
       await login(formData.email, formData.password);
       // Reset form after success
@@ -33,6 +35,8 @@ export default function LoginPage() {
       });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to login");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,8 +78,8 @@ export default function LoginPage() {
             required
           />
           <div className="pt-4">
-            <Button type="submit" className="w-full py-4 text-lg">
-              Login
+            <Button type="submit" className="w-full py-4 text-lg" loading={loading}>
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </div>
         </form>

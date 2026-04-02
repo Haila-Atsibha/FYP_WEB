@@ -64,16 +64,6 @@ export default function UserManagement() {
         }
     };
 
-    const handleDeleteUser = async (userId) => {
-        if (!window.confirm("CRITICAL: Are you sure you want to PERMANENTLY delete this user? This action cannot be undone.")) return;
-        try {
-            await api.delete(`/api/admin/users/${userId}`);
-            fetchUsers();
-            showToast("User deleted successfully", "success");
-        } catch (err) {
-            showToast(err.response?.data?.message || "Failed to delete user", "error");
-        }
-    };
 
     const filteredUsers = users.filter(user => {
         const matchesSearch =
@@ -160,13 +150,7 @@ export default function UserManagement() {
                     >
                         <FileText size={16} />
                     </button>
-                    <button
-                        onClick={() => handleDeleteUser(row.id)}
-                        className="p-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-                        title="Delete User"
-                    >
-                        <Trash2 size={16} />
-                    </button>
+
                 </div>
             )
         }
@@ -278,11 +262,28 @@ export default function UserManagement() {
                                         url={viewingFiles.profile_image_url}
                                         icon={<User size={16} />}
                                     />
-                                    <FileCard
-                                        title="National ID"
-                                        url={viewingFiles.national_id_url}
-                                        icon={<Shield size={16} />}
-                                    />
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-muted flex items-center gap-2 uppercase tracking-wider">
+                                            <Shield size={16} /> National ID
+                                        </label>
+                                        <div className={`grid gap-2 ${viewingFiles.national_id_url && viewingFiles.national_id_url.split(',').length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                            {viewingFiles.national_id_url ? viewingFiles.national_id_url.split(',').map((url, idx) => (
+                                                <div key={idx} className="relative group overflow-hidden rounded-2xl border border-border aspect-[4/3] bg-background flex flex-col items-center justify-center">
+                                                    <img src={url} className="w-full h-full object-contain" alt={`ID ${idx === 0 ? 'Front' : 'Back'}`} />
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                                        <a href={url} target="_blank" className="bg-white/10 hover:bg-white/20 p-3 rounded-full backdrop-blur-md text-white transition-all transform hover:scale-110">
+                                                            <ExternalLink size={20} />
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            )) : (
+                                                <div className="relative overflow-hidden rounded-2xl border border-border aspect-[4/3] bg-background flex flex-col items-center justify-center text-red-500/50 gap-2">
+                                                    <AlertCircle size={32} />
+                                                    <span className="text-xs font-bold uppercase tracking-widest">Missing Document</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
                                     <FileCard

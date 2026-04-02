@@ -191,7 +191,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                     <Activity className="w-5 h-5 text-primary" />
-                    Live Activity
+                    Recent Activities
                   </h3>
                   <Badge variant="info" className="animate-pulse">Live</Badge>
                 </div>

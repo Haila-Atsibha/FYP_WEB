@@ -81,7 +81,7 @@ export default function AdminComplaints() {
 
     const filteredComplaints = complaints.filter(complaint => {
         const matchesSearch =
-            complaint.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            complaint.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             complaint.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             complaint.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -91,7 +91,7 @@ export default function AdminComplaints() {
     });
 
     const columns = [
-        { header: "User", accessor: "user_name", render: (row) => <span className="font-bold">{row.user_name}</span> },
+        { header: "User", accessor: "userName", render: (row) => <span className="font-bold">{row.userName}</span> },
         { header: "Subject", accessor: "subject" },
         {
             header: "Message",
@@ -132,7 +132,7 @@ export default function AdminComplaints() {
     const stats = {
         total: complaints.length,
         open: complaints.filter(c => c.status === "open").length,
-        closed: complaints.filter(c => c.status === "closed").length,
+        resolved: complaints.filter(c => c.status === "resolved").length,
         highPriority: complaints.filter(c => c.priority === "high").length,
     };
 
@@ -157,7 +157,7 @@ export default function AdminComplaints() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatMiniCard title="Total Complaints" value={stats.total} icon={<MessageSquare />} color="text-primary bg-primary/10" />
                         <StatMiniCard title="Open" value={stats.open} icon={<Clock />} color="text-blue-500 bg-blue-500/10" />
-                        <StatMiniCard title="Resolved" value={stats.closed} icon={<CheckCircle />} color="text-green-500 bg-green-500/10" />
+                        <StatMiniCard title="Resolved" value={stats.resolved} icon={<CheckCircle />} color="text-green-500 bg-green-500/10" />
                         <StatMiniCard title="High Priority" value={stats.highPriority} icon={<AlertCircle />} color="text-red-500 bg-red-500/10" />
                     </div>
 
@@ -182,7 +182,7 @@ export default function AdminComplaints() {
                             >
                                 <option value="all">All Statuses</option>
                                 <option value="open">Open</option>
-                                <option value="closed">Closed</option>
+                                <option value="resolved">Resolved</option>
                             </select>
                         </div>
                     </div>
@@ -233,7 +233,7 @@ export default function AdminComplaints() {
                                     <div className="p-4 bg-background rounded-2xl border border-border">
                                         <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">From User</p>
                                         <div className="flex items-center justify-between">
-                                            <p className="font-bold text-lg">{selectedComplaint.user_name}</p>
+                                            <p className="font-bold text-lg">{selectedComplaint.userName}</p>
                                             <p className="text-sm text-text-muted">{selectedComplaint.user_email}</p>
                                         </div>
                                     </div>

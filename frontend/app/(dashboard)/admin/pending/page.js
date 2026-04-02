@@ -200,20 +200,22 @@ export default function PendingUsers() {
                   <label className="text-sm font-bold text-text-muted flex items-center gap-2">
                     <FileText size={14} /> National ID Card
                   </label>
-                  <div className="relative group overflow-hidden rounded-2xl border border-border aspect-video bg-background flex items-center justify-center">
+                  <div className={`grid gap-4 ${reviewing.national_id_url && reviewing.national_id_url.split(',').length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     {reviewing.national_id_url ? (
-                      <>
-                        <img src={reviewing.national_id_url} className="w-full h-full object-contain" />
-                        <a
-                          href={reviewing.national_id_url}
-                          target="_blank"
-                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold"
-                        >
-                          <ExternalLink size={20} /> View Full Size
-                        </a>
-                      </>
+                      reviewing.national_id_url.split(',').map((url, idx) => (
+                        <div key={idx} className="relative group overflow-hidden rounded-2xl border border-border aspect-[4/3] bg-background flex items-center justify-center">
+                          <img src={url} className="w-full h-full object-contain" />
+                          <a
+                            href={url}
+                            target="_blank"
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold"
+                          >
+                            <ExternalLink size={20} /> View Full Size
+                          </a>
+                        </div>
+                      ))
                     ) : (
-                      <div className="text-red-500 flex flex-col items-center gap-2">
+                      <div className="relative overflow-hidden rounded-2xl border border-border aspect-[4/3] bg-background flex flex-col items-center justify-center text-red-500 gap-2">
                         <AlertCircle size={24} />
                         <span className="text-xs font-bold">Document Missing</span>
                       </div>

@@ -65,9 +65,9 @@ export default function AdminBookings() {
             header: "Status",
             render: (row) => (
                 <Badge variant={
-                    row.status === 'Completed' ? 'success' :
-                        row.status === 'Active' ? 'primary' :
-                            row.status === 'Cancelled' ? 'danger' : 'warning'
+                    row.status === 'completed' ? 'success' :
+                        row.status === 'accepted' ? 'primary' :
+                            row.status === 'cancelled' ? 'danger' : 'warning'
                 }>
                     {row.status}
                 </Badge>
@@ -90,9 +90,9 @@ export default function AdminBookings() {
 
     const stats = {
         total: bookings.length,
-        active: bookings.filter(b => b.status === "Active").length,
-        completed: bookings.filter(b => b.status === "Completed").length,
-        cancelled: bookings.filter(b => b.status === "Cancelled").length,
+        active: bookings.filter(b => b.status === "accepted").length,
+        completed: bookings.filter(b => b.status === "completed").length,
+        cancelled: bookings.filter(b => b.status === "cancelled").length,
     };
 
     return (

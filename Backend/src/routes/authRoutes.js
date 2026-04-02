@@ -10,7 +10,8 @@ router.post(
     '/register',
     upload.fields([
         { name: 'profileImage', maxCount: 1 },
-        { name: 'nationalId', maxCount: 1 },
+        { name: 'nationalId', maxCount: 2 },
+        { name: 'nationalId[]', maxCount: 2 },
         { name: 'verificationSelfie', maxCount: 1 },
         { name: 'educationalDocuments', maxCount: 10 },
         { name: 'educationalDocuments[]', maxCount: 10 }

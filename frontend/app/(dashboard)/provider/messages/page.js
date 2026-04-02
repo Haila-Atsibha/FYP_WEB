@@ -143,13 +143,20 @@ export default function ProviderMessages() {
                                     conversations.map((conv) => (
                                         <button
                                             key={conv.booking_id}
-                                            onClick={() => setSelectedBookingId(conv.booking_id)}
+                                            onClick={() => {
+                                                setSelectedBookingId(conv.booking_id);
+                                                if (Number(conv.unread_count) > 0) {
+                                                    api.put(`/api/messages/booking/${conv.booking_id}/read`).catch(console.error);
+                                                    setConversations(conversations.map(c => c.booking_id === conv.booking_id ? { ...c, unread_count: 0 } : c));
+                                                }
+                                            }}
                                             className={`w-full p-5 text-left flex gap-4 items-center transition-all hover:bg-primary/5 text-foreground ${selectedBookingId === conv.booking_id ? "bg-primary/10 border-r-4 border-primary" : ""
                                                 }`}
                                         >
                                             <div className="w-12 h-12 rounded-2xl bg-surface-hover border border-border flex items-center justify-center text-primary relative flex-shrink-0 group-hover:scale-105 transition-transform">
                                                 <User size={24} />
                                                 {conv.booking_status === 'pending' && <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full border-2 border-surface"></span>}
+                                                {Number(conv.unread_count) > 0 && <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-surface shadow-md">{conv.unread_count}</span>}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-baseline mb-0.5">
@@ -239,7 +246,7 @@ export default function ProviderMessages() {
                                                                     }`}
                                                             >
                                                                 {msg.content}
-                                                                <div className={`mt-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap justify-end ${isMe ? 'text-white/60' : 'text-text-muted'}`}>
+                                                                <div className={`mt-1 flex items-center gap-1 opacity-80 whitespace-nowrap justify-end ${isMe ? 'text-white/80' : 'text-text-muted'}`}>
                                                                     {isMe && <Clock size={10} />}
                                                                     <span className="text-[9px] font-bold uppercase tracking-tighter">
                                                                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

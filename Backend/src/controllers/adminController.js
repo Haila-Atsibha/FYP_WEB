@@ -8,23 +8,26 @@ exports.getPendingUsers = async (req, res) => {
         );
         const { getSignedUrl } = require('../utils/supabaseHelper');
 
-        const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
-            // Fetch educational documents
-            const docsResult = await pool.query(
-                "SELECT document_url, document_name FROM provider_documents WHERE provider_id = $1",
-                [user.id]
-            );
+        const allDocsResult = await pool.query("SELECT provider_id, document_url, document_name FROM provider_documents");
+        const docsByProvider = {};
+        allDocsResult.rows.forEach(doc => {
+            if (!docsByProvider[doc.provider_id]) docsByProvider[doc.provider_id] = [];
+            docsByProvider[doc.provider_id].push(doc);
+        });
 
-            const educational_documents = await Promise.all(docsResult.rows.map(async (doc) => ({
+        const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
+            const userDocs = docsByProvider[user.id] || [];
+
+            const educational_documents = await Promise.all(userDocs.map(async (doc) => ({
                 name: doc.document_name,
-                url: await getSignedUrl(doc.document_url)
+                url: doc.document_url ? await getSignedUrl(doc.document_url) : null
             })));
 
             return {
                 ...user,
-                profile_image_url: await getSignedUrl(user.profile_image_url),
-                national_id_url: await getSignedUrl(user.national_id_url),
-                verification_selfie_url: await getSignedUrl(user.verification_selfie_url),
+                profile_image_url: user.profile_image_url ? await getSignedUrl(user.profile_image_url) : null,
+                national_id_url: user.national_id_url ? await getSignedUrl(user.national_id_url) : null,
+                verification_selfie_url: user.verification_selfie_url ? await getSignedUrl(user.verification_selfie_url) : null,
                 educational_documents
             };
         }));
@@ -295,26 +298,28 @@ exports.getUsers = async (req, res) => {
 
         const { getSignedUrl } = require('../utils/supabaseHelper');
 
+        const allDocsResult = await pool.query("SELECT provider_id, document_url, document_name FROM provider_documents");
+        const docsByProvider = {};
+        allDocsResult.rows.forEach(doc => {
+            if (!docsByProvider[doc.provider_id]) docsByProvider[doc.provider_id] = [];
+            docsByProvider[doc.provider_id].push(doc);
+        });
+
         const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
-            // Fetch educational documents if user is a provider
             let educational_documents = [];
             if (user.role === 'provider') {
-                const docsResult = await pool.query(
-                    "SELECT document_url, document_name FROM provider_documents WHERE provider_id = $1",
-                    [user.id]
-                );
-
-                educational_documents = await Promise.all(docsResult.rows.map(async (doc) => ({
+                const userDocs = docsByProvider[user.id] || [];
+                educational_documents = await Promise.all(userDocs.map(async (doc) => ({
                     name: doc.document_name,
-                    url: await getSignedUrl(doc.document_url)
+                    url: doc.document_url ? await getSignedUrl(doc.document_url) : null
                 })));
             }
 
             return {
                 ...user,
-                profile_image_url: await getSignedUrl(user.profile_image_url),
-                national_id_url: await getSignedUrl(user.national_id_url),
-                verification_selfie_url: await getSignedUrl(user.verification_selfie_url),
+                profile_image_url: user.profile_image_url ? await getSignedUrl(user.profile_image_url) : null,
+                national_id_url: user.national_id_url ? await getSignedUrl(user.national_id_url) : null,
+                verification_selfie_url: user.verification_selfie_url ? await getSignedUrl(user.verification_selfie_url) : null,
                 educational_documents
             };
         }));
@@ -336,7 +341,7 @@ exports.updateUserStatus = async (req, res) => {
         }
 
         const result = await pool.query(
-            "UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, status",
+            "UPDATE users SET status = $1 WHERE id = $2 RETURNING id, name, status",
             [status, id]
         );
 

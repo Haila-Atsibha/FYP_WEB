@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   CheckCircle,
@@ -37,11 +38,21 @@ export default function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     stats: { active: 0, completed: 0, cancelled: 0, unread: 0 },
-    categories: [],
-    topProviders: []
+    categories: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/services?q=${encodeURIComponent(searchQuery)}`);
+    } else {
+      router.push('/services');
+    }
+  };
 
   // Complaint & Rating Modal States
   const [complaintModalOpen, setComplaintModalOpen] = useState(false);
@@ -58,16 +69,14 @@ export default function CustomerDashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [statsRes, categoriesRes, topRes] = await Promise.all([
+        const [statsRes, categoriesRes] = await Promise.all([
           api.get("/api/customer/stats"),
-          api.get("/api/categories").catch(() => ({ data: mockCategories })),
-          api.get("/api/providers/top").catch(() => ({ data: mockTopProviders }))
+          api.get("/api/categories").catch(() => ({ data: mockCategories }))
         ]);
 
         setData({
           stats: statsRes.data,
-          categories: categoriesRes.data.slice(0, 6),
-          topProviders: topRes.data.slice(0, 6)
+          categories: categoriesRes.data.slice(0, 6)
         });
       } catch (err) {
         console.error("Marketplace Dashboard error:", err);
@@ -134,8 +143,8 @@ export default function CustomerDashboard() {
           <section className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Marketplace</h1>
-                <p className="text-text-muted mt-1 text-sm font-medium">Find the best professionals for your needs.</p>
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Customer'}!</h1>
+                <p className="text-text-muted mt-1 text-sm font-medium">Find the best professionals for your needs in the Marketplace.</p>
               </div>
               <div className="flex items-center gap-3 bg-surface p-2 rounded-2xl border border-border shadow-sm">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center text-primary font-bold border border-primary/20">
@@ -151,6 +160,24 @@ export default function CustomerDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Functional Search Bar */}
+            <form onSubmit={handleSearch} className="relative w-full max-w-2xl mt-4">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-70" />
+              <input
+                type="text"
+                placeholder="What service do you need today?"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-surface border-2 border-border focus:border-primary/50 text-foreground rounded-full pl-14 pr-6 py-4 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-lg"
+              />
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white hover:bg-primary-hover px-6 py-2.5 rounded-full font-bold transition-colors shadow-md text-sm"
+              >
+                Search
+              </button>
+            </form>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {loading ? (
@@ -193,21 +220,7 @@ export default function CustomerDashboard() {
             </div>
           </section>
 
-          {/* 3. Top Rated Providers */}
-          <section className="space-y-8 bg-surface/50 p-8 sm:p-12 rounded-[2.5rem] border border-border/50 shadow-inner">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <h2 className="text-2xl font-black text-foreground sm:text-3xl">Top Rated Professionals</h2>
-              <p className="text-text-muted text-sm leading-relaxed font-medium italic">Verified experts with the highest ratings and job completion rates on the platform.</p>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12">
-              {loading ? (
-                [...Array(6)].map((_, i) => <div key={i} className="animate-pulse bg-surface-hover h-64 rounded-3xl border border-border"></div>)
-              ) : data.topProviders.map(p => (
-                <ProviderMiniCard key={p.id} provider={p} variant="vertical" />
-              ))}
-            </div>
-          </section>
 
           {/* New Section: Support & Feedback */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -240,19 +253,6 @@ export default function CustomerDashboard() {
             </div>
           </section>
 
-          {/* New Marketplace CTA */}
-          <section className="bg-primary rounded-[3rem] p-10 sm:p-16 relative overflow-hidden group shadow-2xl shadow-primary/20">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-1000"></div>
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-              <div className="space-y-4 text-center md:text-left">
-                <h2 className="text-3xl font-black text-white sm:text-4xl leading-tight">Can't find what you're looking for?</h2>
-                <p className="text-white/80 font-bold max-w-md">Our network of thousands of verified professionals is ready to help. Try a custom search or browse all categories.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                <Button variant="secondary" className="bg-white text-primary border-none hover:bg-white/90 px-8 py-4 rounded-2xl font-black text-lg h-auto shadow-lg shadow-black/10 transition-all active:scale-95">Search Marketplace</Button>
-              </div>
-            </div>
-          </section>
 
         </div>
 

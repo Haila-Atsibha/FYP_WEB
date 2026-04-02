@@ -11,11 +11,12 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("customer");
   const [categories, setCategories] = useState([]);
   const [selectedCats, setSelectedCats] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
-  const [nationalId, setNationalId] = useState(null);
+  const [nationalId, setNationalId] = useState([]);
   const [verificationSelfie, setSelfie] = useState(null);
   const [educationalDocuments, setEducationalDocuments] = useState([]);
   const [message, setMessage] = useState(null);
@@ -61,10 +62,11 @@ export default function RegisterPage() {
     setName("");
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setRole("customer");
     setSelectedCats([]);
     setProfileImage(null);
-    setNationalId(null);
+    setNationalId([]);
     setSelfie(null);
     setEducationalDocuments([]);
     if (educationalDocsInputRef.current) educationalDocsInputRef.current.value = "";
@@ -75,13 +77,21 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     setMessage(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
     formData.append("password", password);
     formData.append("role", role);
     if (profileImage) formData.append("profileImage", profileImage);
-    if (nationalId) formData.append("nationalId", nationalId);
+    if (nationalId && nationalId.length > 0) {
+      nationalId.forEach(file => formData.append("nationalId[]", file));
+    }
     if (verificationSelfie) formData.append("verificationSelfie", verificationSelfie);
     if (role === "provider") {
       selectedCats.forEach((c) => formData.append("categories[]", c));
@@ -157,17 +167,29 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <div className="mb-5">
-              <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">Role</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-              >
-                <option value="customer">Customer</option>
-                <option value="provider">Provider</option>
-              </select>
-            </div>
+            <Input
+              label="Confirm Password"
+              type="password"
+              name="confirmPassword"
+              id="confirmPassword"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-5">
+            <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            >
+              <option value="customer">Customer</option>
+              <option value="provider">Provider</option>
+            </select>
           </div>
 
           <div className="border-t border-border pt-8 mt-8">
@@ -185,13 +207,19 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">National ID</label>
+                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">National ID (Front & Back)</label>
                 <input
                   type="file"
+                  multiple
                   accept="image/*,application/pdf"
-                  onChange={(e) => setNationalId(e.target.files[0])}
+                  onChange={(e) => setNationalId(Array.from(e.target.files))}
                   className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
                 />
+                {nationalId.length > 0 && (
+                  <div className="mt-2 text-xs text-text-muted ml-1">
+                    Selected items: {nationalId.length}
+                  </div>
+                )}
               </div>
             </div>
 

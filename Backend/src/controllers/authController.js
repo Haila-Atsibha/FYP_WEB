@@ -12,14 +12,16 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
+        let natIdFiles = req.files.nationalId || req.files['nationalId[]'];
+
         // make sure uploaded files exist
         if (
             !req.files ||
             !req.files.profileImage ||
-            !req.files.nationalId ||
+            !natIdFiles || natIdFiles.length === 0 ||
             !req.files.verificationSelfie
         ) {
-            return res.status(400).json({ message: "All verification files are required" });
+            return res.status(400).json({ message: "All verification files are required (including National ID)" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -32,11 +34,18 @@ exports.registerUser = async (req, res) => {
             req.files.profileImage[0].mimetype,
             'profile-images'
         );
-        const nationalIdUrl = await upload(
-            req.files.nationalId[0].buffer,
-            req.files.nationalId[0].mimetype,
-            'national-ids'
-        );
+        
+        let natIdUrls = [];
+        for (const file of natIdFiles) {
+            const url = await upload(
+                file.buffer,
+                file.mimetype,
+                'national-ids'
+            );
+            natIdUrls.push(url);
+        }
+        const nationalIdUrl = natIdUrls.join(',');
+
         const verificationSelfieUrl = await upload(
             req.files.verificationSelfie[0].buffer,
             req.files.verificationSelfie[0].mimetype,

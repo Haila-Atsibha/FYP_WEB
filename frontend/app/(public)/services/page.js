@@ -99,6 +99,20 @@ function ServicesContent() {
         </div>
       )}
 
+      <section className="mb-12">
+        <h2 className="text-xl font-bold mb-6">Available Services</h2>
+        {!loading && services.length === 0 && (
+          <div className="text-center py-20 bg-surface border border-border rounded-3xl">
+            <p className="text-text-muted">No services found matching your criteria.</p>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((s) => (
+            <ServiceCard key={s.id} service={s} user={user} />
+          ))}
+        </div>
+      </section>
+
       {!loading && providers.length > 0 && (
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -124,18 +138,6 @@ function ServicesContent() {
           </div>
         </section>
       )}
-
-      <h2 className="text-xl font-bold mb-6">Available Services</h2>
-      {!loading && services.length === 0 && (
-        <div className="text-center py-20 bg-surface border border-border rounded-3xl">
-          <p className="text-text-muted">No services found matching your criteria.</p>
-        </div>
-      )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((s) => (
-          <ServiceCard key={s.id} service={s} user={user} />
-        ))}
-      </div>
     </div>
   );
 }

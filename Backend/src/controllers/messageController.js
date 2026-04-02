@@ -78,7 +78,8 @@ exports.getConversations = async (req, res) => {
                     u.name AS partner_name,
                     u.id AS partner_id,
                     m.message AS last_message,
-                    m.created_at AS last_message_time
+                    m.created_at AS last_message_time,
+                    (SELECT COUNT(*) FROM messages m2 WHERE m2.booking_id = b.id AND m2.sender_id != $1 AND m2.is_read = false) AS unread_count
                 FROM bookings b
                 JOIN services s ON b.service_id = s.id
                 JOIN provider_profiles pp ON b.provider_id = pp.id
@@ -96,7 +97,8 @@ exports.getConversations = async (req, res) => {
                     u.name AS partner_name,
                     u.id AS partner_id,
                     m.message AS last_message,
-                    m.created_at AS last_message_time
+                    m.created_at AS last_message_time,
+                    (SELECT COUNT(*) FROM messages m2 WHERE m2.booking_id = b.id AND m2.sender_id != $1 AND m2.is_read = false) AS unread_count
                 FROM bookings b
                 JOIN services s ON b.service_id = s.id
                 JOIN users u ON b.customer_id = u.id
@@ -166,6 +168,27 @@ exports.getMessagesByBooking = async (req, res) => {
         res.json(messages.rows);
     } catch (error) {
         console.error("GetMessagesByBooking Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+exports.markMessagesAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { booking_id } = req.params;
+
+        if (!booking_id) {
+            return res.status(400).json({ message: "booking_id is required" });
+        }
+
+        await pool.query(
+            `UPDATE messages SET is_read = true WHERE booking_id = $1 AND sender_id != $2 AND is_read = false`,
+            [booking_id, userId]
+        );
+
+        res.json({ message: "Marked as read" });
+    } catch (error) {
+        console.error("markMessagesAsRead Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

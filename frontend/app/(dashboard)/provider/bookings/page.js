@@ -229,13 +229,13 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                                     <Check size={18} />
                                     Accept
                                 </Button>
-                                <Button
+                                <button
                                     onClick={() => onUpdateStatus(booking.id, "rejected")}
-                                    className="flex-1 bg-surface border border-border text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm shadow-none"
+                                    className="flex-1 bg-surface border border-border text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm shadow-none transition-colors"
                                 >
                                     <X size={18} />
                                     Reject
-                                </Button>
+                                </button>
                             </div>
                         )}
                         {isAccepted && (

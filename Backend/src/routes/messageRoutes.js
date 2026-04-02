@@ -4,7 +4,8 @@ const protect = require('../middlewares/authMiddleware');
 const {
     sendMessage,
     getMessagesByBooking,
-    getConversations
+    getConversations,
+    markMessagesAsRead
 } = require('../controllers/messageController');
 
 // All message routes require authentication
@@ -18,5 +19,8 @@ router.get('/booking/:booking_id', getMessagesByBooking);
 
 // Send a message
 router.post('/', sendMessage);
+
+// Mark as read
+router.put('/booking/:booking_id/read', markMessagesAsRead);
 
 module.exports = router;
