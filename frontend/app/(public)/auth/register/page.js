@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, UtensilsCrossed } from "lucide-react";
 import api from "../../../../src/services/api";
 import Input from "../../../../src/components/Input";
 import Button from "../../../../src/components/Button";
+import { motion } from "framer-motion";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -70,7 +71,6 @@ export default function RegisterPage() {
     setSelfie(null);
     setEducationalDocuments([]);
     if (educationalDocsInputRef.current) educationalDocsInputRef.current.value = "";
-    // Reset file inputs manually if needed using refs, but clearing state is the primary goal
   };
 
   const handleSubmit = async (e) => {
@@ -112,35 +112,46 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background transition-colors duration-300 py-12 px-6">
-      <div className="w-full max-w-2xl bg-surface border border-border p-10 rounded-3xl shadow-xl transition-all">
-        <div className="mb-10 text-center">
+    <div className="flex items-center justify-center min-h-[90vh] py-12 px-6 relative w-full overflow-hidden z-10">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-2xl glass-card p-10 rounded-3xl transition-all relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="mb-10 text-center relative z-10 flex flex-col items-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white mb-6 shadow-lg shadow-primary/20">
+            <UtensilsCrossed size={28} />
+          </div>
           <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
-          <p className="text-text-muted">Join QuickServe and start your journey</p>
+          <p className="text-text-muted">Join QuickServe and start your premium experience</p>
         </div>
 
         {message && (
-          <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-4 rounded-xl mb-6 text-sm text-center font-medium">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl mb-6 text-sm text-center font-medium">
             {message}
-          </div>
+          </motion.div>
         )}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl mb-6 text-sm text-center font-medium">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm text-center font-medium">
             {error}
-          </div>
+          </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
+        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Full Name"
               name="name"
               id="name"
               autoComplete="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
             />
             <Input
               label="Email Address"
@@ -148,10 +159,11 @@ export default function RegisterPage() {
               name="email"
               id="email"
               autoComplete="email"
-              placeholder="john@example.com"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
             />
           </div>
 
@@ -166,6 +178,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
             />
             <Input
               label="Confirm Password"
@@ -177,22 +190,23 @@ export default function RegisterPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
             />
           </div>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">Role</label>
+            <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">Account Type</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+              className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
             >
               <option value="customer">Customer</option>
-              <option value="provider">Provider</option>
+              <option value="provider">Food Provider / Restaurant</option>
             </select>
           </div>
 
-          <div className="border-t border-border pt-8 mt-8">
+          <div className="border-t border-white/10 pt-8 mt-8">
             <h3 className="text-lg font-bold text-foreground mb-6">Verification Details</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -202,7 +216,7 @@ export default function RegisterPage() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => setProfileImage(e.target.files[0])}
-                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
+                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
                 />
               </div>
 
@@ -213,7 +227,7 @@ export default function RegisterPage() {
                   multiple
                   accept="image/*,application/pdf"
                   onChange={(e) => setNationalId(Array.from(e.target.files))}
-                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
+                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
                 />
                 {nationalId.length > 0 && (
                   <div className="mt-2 text-xs text-text-muted ml-1">
@@ -224,18 +238,18 @@ export default function RegisterPage() {
             </div>
 
             {role === "provider" && (
-              <div className="mt-8 bg-background/50 p-6 rounded-3xl border border-dashed border-border">
+              <div className="mt-8 bg-surface/30 p-6 rounded-3xl border border-dashed border-white/20">
                 <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                   <FileText size={16} className="text-primary" />
-                  Educational Documents
+                  Health/Food Safety Documents
                 </h4>
-                <p className="text-text-muted text-xs mb-4">Upload certifications, degrees, or other relevant files (Multiple allowed)</p>
+                <p className="text-text-muted text-xs mb-4">Upload certifications, food licenses, or other relevant files (Multiple allowed)</p>
                 <input
                   type="file"
                   multiple
                   ref={educationalDocsInputRef}
                   onChange={(e) => setEducationalDocuments(Array.from(e.target.files))}
-                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
+                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
                 />
                 {educationalDocuments.length > 0 && (
                   <div className="mt-3 text-xs text-text-muted">
@@ -247,31 +261,31 @@ export default function RegisterPage() {
 
             <div className="mt-8">
               <label className="block mb-4 font-semibold text-foreground/80 text-sm ml-1">Selfie Verification</label>
-              <div className="bg-background rounded-3xl p-6 border border-border overflow-hidden">
+              <div className="bg-surface/30 rounded-3xl p-6 border border-white/10 overflow-hidden">
                 <div className="flex space-x-3 mb-4">
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="flex-1 bg-primary/10 text-primary hover:bg-primary/20 px-4 py-3 rounded-xl font-bold transition-all text-sm"
+                    className="flex-1 bg-primary/20 text-primary hover:bg-primary/30 px-4 py-3 rounded-xl font-bold transition-all text-sm"
                   >
                     Start Camera
                   </button>
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    className="flex-1 bg-primary text-white hover:bg-primary-hover px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-md"
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-md"
                   >
                     Capture Photo
                   </button>
                 </div>
                 <video
                   ref={videoRef}
-                  className="w-full rounded-2xl bg-black/5 aspect-video object-cover"
+                  className="w-full rounded-2xl bg-black/20 aspect-video object-cover"
                   autoPlay
                   playsInline
                 />
                 {verificationSelfie && (
-                  <div className="mt-4 flex items-center justify-center text-sm text-green-500 font-bold bg-green-500/10 py-2 rounded-lg">
+                  <div className="mt-4 flex items-center justify-center text-sm text-green-400 font-bold bg-green-500/10 py-2 rounded-lg">
                     ✓ Selfie captured successfully
                   </div>
                 )}
@@ -280,12 +294,12 @@ export default function RegisterPage() {
           </div>
 
           {role === "provider" && (
-            <div className="border-t border-border pt-8 mt-8">
-              <h3 className="text-lg font-bold text-foreground mb-4">Service Categories</h3>
-              <p className="text-text-muted text-sm mb-6">Select the services you offer</p>
+            <div className="border-t border-white/10 pt-8 mt-8">
+              <h3 className="text-lg font-bold text-foreground mb-4">Cuisine / Food Categories</h3>
+              <p className="text-text-muted text-sm mb-6">Select the types of food you offer</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-auto p-2">
                 {categories.map((c) => (
-                  <label key={c.id} className="flex items-center p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group">
+                  <label key={c.id} className="flex items-center p-3 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/10 transition-all cursor-pointer group">
                     <input
                       type="checkbox"
                       value={c.id}
@@ -301,21 +315,22 @@ export default function RegisterPage() {
           )}
 
           <div className="pt-8">
-            <Button type="submit" className="w-full py-4 text-lg" loading={loading}>
+            <Button type="submit" className="w-full py-4 text-lg bg-gradient-to-r from-primary to-secondary hover:from-primary-hover hover:to-primary border-0 shadow-lg shadow-primary/20 transition-all font-semibold" loading={loading}>
               {loading ? "Registering..." : "Complete Registration"}
             </Button>
           </div>
         </form>
 
-        <div className="mt-10 text-center text-sm border-t border-border pt-8">
+        <div className="mt-10 text-center text-sm border-t border-white/10 pt-8 relative z-10">
           <p className="text-text-muted">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-primary font-bold hover:underline underline-offset-4">
+            <Link href="/auth/login" className="text-primary font-bold hover:text-secondary group transition-all">
               Login here
+              <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary mt-0.5" />
             </Link>
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

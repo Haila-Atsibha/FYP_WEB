@@ -5,6 +5,7 @@ import { AuthContext } from "../../../../src/context/AuthContext";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import api from "../../../../src/services/api";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 import {
     User,
     Mail,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 
 export default function CustomerProfile() {
+    const { t } = useTranslation();
     const { user, loading: authLoading } = useContext(AuthContext);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ export default function CustomerProfile() {
             });
         } catch (err) {
             console.error("Error fetching profile:", err);
-            setMessage({ type: "error", text: "Failed to load profile information." });
+            setMessage({ type: "error", text: t("msg_load_profile_error") });
         } finally {
             setLoading(false);
         }
@@ -83,11 +85,11 @@ export default function CustomerProfile() {
             });
             // Update profile with returned data so avatar updates instantly if not page reloaded
             setProfile(response.data.profile);
-            setMessage({ type: "success", text: "Profile updated successfully!" });
+            setMessage({ type: "success", text: t("msg_update_profile_success") });
             setTimeout(() => setMessage({ type: "", text: "" }), 3000);
         } catch (err) {
             console.error("Error updating profile:", err);
-            setMessage({ type: "error", text: "Failed to update profile. Please try again." });
+            setMessage({ type: "error", text: t("msg_update_profile_error") });
         } finally {
             setSaving(false);
         }
@@ -99,8 +101,8 @@ export default function CustomerProfile() {
                 <div className="max-w-4xl mx-auto pb-20 space-y-8">
                     {/* Header */}
                     <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">Manage Account</h1>
-                        <p className="text-text-muted font-medium mt-1">Update your personal details and contact information</p>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">{t("manage_account_title")}</h1>
+                        <p className="text-text-muted font-medium mt-1">{t("manage_account_subtitle")}</p>
                     </div>
 
                     {loading ? (
@@ -125,13 +127,13 @@ export default function CustomerProfile() {
                                                 )}
                                             </div>
                                             <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-300 backdrop-blur-sm">
-                                                <span className="text-xs font-black text-white uppercase text-center drop-shadow-md">Change<br/>Photo</span>
+                                                <span className="text-xs font-black text-white uppercase text-center drop-shadow-md">{t("change_photo")}</span>
                                             </div>
                                             <input type="file" id="profileImageUpload" className="hidden" accept="image/*" onChange={handleImageChange} />
                                         </div>
                                         <h2 className="text-2xl font-black truncate w-full">{formData.name || user?.name}</h2>
                                         <div className="mt-2 bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/20">
-                                            <span className="text-xs font-black tracking-widest uppercase">Customer</span>
+                                            <span className="text-xs font-black tracking-widest uppercase">{t("role_customer")}</span>
                                         </div>
                                     </div>
                                     <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
@@ -151,7 +153,7 @@ export default function CustomerProfile() {
 
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black uppercase text-text-muted tracking-widest ml-1">Full Name</label>
+                                            <label className="text-xs font-black uppercase text-text-muted tracking-widest ml-1">{t("label_full_name")}</label>
                                             <div className="relative group">
                                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                                 <input
@@ -159,14 +161,14 @@ export default function CustomerProfile() {
                                                     value={formData.name}
                                                     onChange={handleChange}
                                                     className="w-full bg-surface-hover border border-border hover:border-text-muted focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all font-bold text-foreground"
-                                                    placeholder="Your full name"
+                                                    placeholder={t("placeholder_full_name")}
                                                     required
                                                 />
                                             </div>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black uppercase text-text-muted tracking-widest ml-1">Phone Number</label>
+                                            <label className="text-xs font-black uppercase text-text-muted tracking-widest ml-1">{t("label_phone_number")}</label>
                                             <div className="relative group">
                                                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                                 <input
@@ -183,10 +185,10 @@ export default function CustomerProfile() {
 
                                     <div className="space-y-2 bg-surface-hover/50 p-6 rounded-2xl border border-dashed border-border mt-6">
                                         <label className="text-xs font-black uppercase text-text-muted tracking-widest flex items-center gap-2">
-                                            <Mail size={14} className="text-primary" /> Registered Email
+                                            <Mail size={14} className="text-primary" /> {t("label_registered_email")}
                                         </label>
                                         <p className="text-foreground font-black ml-0.5 mt-2">{profile?.email || user?.email}</p>
-                                        <p className="text-[10px] font-bold text-text-muted uppercase mt-1">Email cannot be changed for security reasons.</p>
+                                        <p className="text-[10px] font-bold text-text-muted uppercase mt-1">{t("desc_email_locked")}</p>
                                     </div>
 
                                     <button
@@ -195,7 +197,7 @@ export default function CustomerProfile() {
                                         className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center gap-3 mt-8"
                                     >
                                         {saving ? <Loader2 className="animate-spin" size={24} /> : <Save size={24} />}
-                                        {saving ? "SAVING CHANGES..." : "SAVE PROFILE SETTINGS"}
+                                        {saving ? t("btn_saving_changes") : t("btn_save_profile")}
                                     </button>
                                 </form>
                             </div>

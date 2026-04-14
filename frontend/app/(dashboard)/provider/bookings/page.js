@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../../../src/context/AuthContext";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import api from "../../../../src/services/api";
@@ -26,6 +27,7 @@ import Badge from "../../../../src/components/Badge";
 import Skeleton from "../../../../src/components/Skeleton";
 
 export default function ProviderBookings() {
+    const { t } = useTranslation();
     const { user, loading: authLoading } = useContext(AuthContext);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -66,10 +68,10 @@ export default function ProviderBookings() {
             setBookings(prev => prev.map(b =>
                 b.id === bookingId ? { ...b, status } : b
             ));
-            showToast(`Booking ${status} successfully`, "success");
+            showToast(t("msg_success_status"), "success");
         } catch (err) {
             console.error(`Error updating booking to ${status}:`, err);
-            showToast(`Failed to ${status} booking. Please try again.`, "error");
+            showToast(t("msg_error_status"), "error");
         }
     };
 
@@ -84,8 +86,8 @@ export default function ProviderBookings() {
                 <div className="max-w-6xl mx-auto space-y-8 pb-20">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-4xl font-black text-foreground tracking-tight">Manage Bookings</h1>
-                            <p className="text-text-muted font-medium mt-1">Review and update your service requests</p>
+                            <h1 className="text-4xl font-black text-foreground tracking-tight">{t("manage_bookings_title")}</h1>
+                            <p className="text-text-muted font-medium mt-1">{t("manage_bookings_desc")}</p>
                         </div>
 
                         <div className="bg-surface p-1.5 rounded-2xl flex gap-1 border border-border shadow-sm shadow-primary/5">
@@ -97,7 +99,7 @@ export default function ProviderBookings() {
                                     }`}
                             >
                                 <Clock size={18} />
-                                Active Requests
+                                {t("tab_active")}
                                 {activeBookings.length > 0 && (
                                     <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${activeTab === 'active' ? 'bg-white text-primary' : 'bg-primary/10 text-primary'}`}>
                                         {activeBookings.length}
@@ -112,7 +114,7 @@ export default function ProviderBookings() {
                                     }`}
                             >
                                 <History size={18} />
-                                History
+                                {t("tab_history")}
                             </button>
                         </div>
                     </div>
@@ -127,11 +129,11 @@ export default function ProviderBookings() {
                                 <div className="w-20 h-20 bg-primary/5 rounded-[2rem] flex items-center justify-center text-primary/40 mx-auto mb-6">
                                     {activeTab === 'active' ? <Calendar size={40} /> : <History size={40} />}
                                 </div>
-                                <h3 className="text-2xl font-black text-foreground">No bookings found</h3>
+                                <h3 className="text-2xl font-black text-foreground">{t("no_bookings")}</h3>
                                 <p className="text-text-muted mt-2 max-w-xs mx-auto font-medium">
                                     {activeTab === "active"
-                                        ? "You don't have any active booking requests at the moment."
-                                        : "Your booking history is currently empty."}
+                                        ? t("no_active_bookings_desc")
+                                        : t("no_history_bookings_desc")}
                                 </p>
                             </div>
                         ) : (
@@ -140,6 +142,7 @@ export default function ProviderBookings() {
                                     key={booking.id}
                                     booking={booking}
                                     onUpdateStatus={handleUpdateStatus}
+                                    t={t}
                                 />
                             ))
                         )}
@@ -150,17 +153,17 @@ export default function ProviderBookings() {
     );
 }
 
-const BookingCard = ({ booking, onUpdateStatus }) => {
+const BookingCard = ({ booking, onUpdateStatus, t }) => {
     const isPending = booking.status === "pending";
     const isAccepted = booking.status === "accepted";
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case "pending": return <Badge variant="warning" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">Pending Request</Badge>;
-            case "accepted": return <Badge variant="info" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">In Progress</Badge>;
-            case "completed": return <Badge variant="success" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">Completed</Badge>;
-            case "rejected": return <Badge variant="danger" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">Rejected</Badge>;
-            case "cancelled": return <Badge variant="danger" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">Cancelled by User</Badge>;
+            case "pending": return <Badge variant="warning" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">{t("status_pending")}</Badge>;
+            case "accepted": return <Badge variant="info" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">{t("status_in_progress")}</Badge>;
+            case "completed": return <Badge variant="success" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">{t("status_completed")}</Badge>;
+            case "rejected": return <Badge variant="danger" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">{t("status_rejected")}</Badge>;
+            case "cancelled": return <Badge variant="danger" className="text-[10px] uppercase font-black tracking-widest px-3 py-1">{t("status_cancelled")}</Badge>;
             default: return <Badge variant="outline">{status}</Badge>;
         }
     };
@@ -204,10 +207,10 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                     <div className="p-4 bg-surface-hover border border-border rounded-2xl">
                         <p className="text-xs font-black text-text-muted uppercase tracking-widest mb-2 flex items-center gap-2">
                             <ChevronRight size={14} className="text-primary" />
-                            Job Description
+                            {t("job_description")}
                         </p>
                         <p className="text-sm text-foreground line-clamp-3">
-                            {booking.description || "No description provided."}
+                            {booking.description || t("no_desc")}
                         </p>
                     </div>
                 </div>
@@ -215,7 +218,7 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                 {/* Pricing and Actions */}
                 <div className="lg:w-64 flex flex-col justify-between items-end gap-6 border-t lg:border-t-0 lg:border-l border-border pt-6 lg:pt-0 lg:pl-10">
                     <div className="text-right w-full">
-                        <p className="text-xs font-black text-text-muted uppercase tracking-widest mb-1">Total Amount</p>
+                        <p className="text-xs font-black text-text-muted uppercase tracking-widest mb-1">{t("total_amount")}</p>
                         <p className="text-3xl font-black text-foreground tracking-tighter">${booking.total_price}</p>
                     </div>
 
@@ -227,14 +230,14 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                                     className="flex-1 bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
                                 >
                                     <Check size={18} />
-                                    Accept
+                                    {t("btn_accept")}
                                 </Button>
                                 <button
                                     onClick={() => onUpdateStatus(booking.id, "rejected")}
                                     className="flex-1 bg-surface border border-border text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm shadow-none transition-colors"
                                 >
                                     <X size={18} />
-                                    Reject
+                                    {t("btn_reject")}
                                 </button>
                             </div>
                         )}
@@ -245,7 +248,7 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                                         className="w-full bg-secondary text-white hover:bg-secondary-dark shadow-lg shadow-secondary/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm mb-2"
                                     >
                                         <MessageSquare size={18} />
-                                        Open Chat
+                                        {t("btn_open_chat")}
                                     </Button>
                                 </Link>
                                 <Button
@@ -253,7 +256,7 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                                     className="w-full bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
                                 >
                                     <CheckCircle size={18} />
-                                    Mark Completed
+                                    {t("btn_mark_completed")}
                                 </Button>
                             </>
                         )}
@@ -262,7 +265,7 @@ const BookingCard = ({ booking, onUpdateStatus }) => {
                                 variant="outline"
                                 className="w-full rounded-2xl border-border text-text-muted font-bold cursor-default hover:bg-transparent"
                             >
-                                Booking Finalized
+                                {t("btn_finalized")}
                             </Button>
                         )}
                     </div>

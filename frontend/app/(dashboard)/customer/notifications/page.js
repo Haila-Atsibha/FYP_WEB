@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "../../../../src/context/AuthContext";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import Badge from "../../../../src/components/Badge";
@@ -22,6 +23,7 @@ import Skeleton, { CardSkeleton } from "../../../../src/components/Skeleton";
 import api from "../../../../src/services/api";
 
 export default function NotificationsPage() {
+    const { t } = useTranslation();
     const { user, loading: authLoading } = useContext(AuthContext);
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -74,13 +76,13 @@ export default function NotificationsPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
                         <div>
                             <Link href="/customer" className="text-primary text-sm font-bold flex items-center gap-1 mb-2 hover:underline">
-                                <ArrowLeft size={16} /> Back to Dashboard
+                                <ArrowLeft size={16} /> {t("btn_back_to_dashboard")}
                             </Link>
                             <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-3">
-                                Notifications
-                                {unreadCount > 0 && <Badge variant="primary" className="text-lg py-1 px-3">{unreadCount} New</Badge>}
+                                {t("notifications_title")}
+                                {unreadCount > 0 && <Badge variant="primary" className="text-lg py-1 px-3">{unreadCount} {t("new_notifications")}</Badge>}
                             </h1>
-                            <p className="text-text-muted mt-1 text-sm font-medium">Stay updated with your service requests and system alerts.</p>
+                            <p className="text-text-muted mt-1 text-sm font-medium">{t("notifications_subtitle")}</p>
                         </div>
                         {unreadCount > 0 && (
                             <Button
@@ -88,7 +90,7 @@ export default function NotificationsPage() {
                                 className="bg-surface text-foreground border border-border hover:bg-surface-hover flex items-center gap-2 py-2 px-4 h-auto shadow-none"
                             >
                                 <CheckCheck size={18} />
-                                Mark all as read
+                                {t("mark_all_read")}
                             </Button>
                         )}
                     </div>
@@ -102,8 +104,8 @@ export default function NotificationsPage() {
                                 <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Bell size={32} />
                                 </div>
-                                <h3 className="text-xl font-bold text-foreground">All caught up!</h3>
-                                <p className="text-text-muted mt-2 max-w-xs mx-auto">You don't have any notifications at the moment.</p>
+                                <h3 className="text-xl font-bold text-foreground">{t("all_caught_up")}</h3>
+                                <p className="text-text-muted mt-2 max-w-xs mx-auto">{t("no_notifications_desc")}</p>
                             </div>
                         ) : (
                             notifications.map((notification) => (
@@ -111,6 +113,7 @@ export default function NotificationsPage() {
                                     key={notification.id}
                                     notification={notification}
                                     onRead={() => !notification.is_read && handleMarkAsRead(notification.id)}
+                                    t={t}
                                 />
                             ))
                         )}
@@ -121,7 +124,7 @@ export default function NotificationsPage() {
     );
 }
 
-const NotificationCard = ({ notification, onRead }) => {
+const NotificationCard = ({ notification, onRead, t }) => {
     const getIcon = (type) => {
         switch (type) {
             case 'booking': return <Calendar className="w-5 h-5" />;
@@ -145,11 +148,11 @@ const NotificationCard = ({ notification, onRead }) => {
         const now = new Date();
         const seconds = Math.floor((now - date) / 1000);
 
-        if (seconds < 60) return "Just now";
+        if (seconds < 60) return t("time_just_now");
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}m ago`;
+        if (minutes < 60) return `${minutes} ${t("time_m_ago")}`;
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}h ago`;
+        if (hours < 24) return `${hours} ${t("time_h_ago")}`;
         return date.toLocaleDateString();
     };
 
@@ -184,7 +187,7 @@ const NotificationCard = ({ notification, onRead }) => {
 
                     {notification.link && (
                         <div className="pt-2 flex items-center gap-1 text-primary text-xs font-bold group-hover:gap-2 transition-all">
-                            View details <ChevronRight size={12} />
+                            {t("view_details")} <ChevronRight size={12} />
                         </div>
                     )}
                 </div>
