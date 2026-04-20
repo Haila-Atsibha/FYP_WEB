@@ -1,9 +1,12 @@
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { ensureVerificationColumns, verifyRegistrationFaces } = require('../utils/faceVerification');
 
 exports.registerUser = async (req, res) => {
     try {
+        await ensureVerificationColumns();
+
         // multer stores files in memory, accessible via req.files
         const { name, email, password, role, categories } = req.body;
 
@@ -22,6 +25,12 @@ exports.registerUser = async (req, res) => {
             !req.files.verificationSelfie
         ) {
             return res.status(400).json({ message: "All verification files are required (including National ID)" });
+        }
+
+        // We need an image for face matching, so PDFs are not accepted for national ID.
+        const hasNonImageIdFile = natIdFiles.some((file) => !file.mimetype?.startsWith('image/'));
+        if (hasNonImageIdFile) {
+            return res.status(400).json({ message: "National ID must be uploaded as image files." });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -52,20 +61,35 @@ exports.registerUser = async (req, res) => {
             'selfies'
         );
 
+        const aiVerification = await verifyRegistrationFaces({
+            nationalIdUrl,
+            verificationSelfieUrl
+        });
+
+        const shouldAutoApprove = aiVerification.status === 'matched';
+
         const newUser = await pool.query(
             `INSERT INTO users 
-                (name, email, password, role, status, profile_image_url, national_id_url, verification_selfie_url) 
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8) 
-             RETURNING id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url`,
+                (
+                    name, email, password, role, status, profile_image_url, national_id_url, verification_selfie_url,
+                    ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at
+                ) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW()) 
+             RETURNING id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url,
+                       ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at`,
             [
                 name,
                 email,
                 hashedPassword,
                 role,
-                'pending',
+                shouldAutoApprove ? 'approved' : 'pending',
                 profileImageUrl,
                 nationalIdUrl,
-                verificationSelfieUrl
+                verificationSelfieUrl,
+                aiVerification.status,
+                aiVerification.score,
+                aiVerification.message,
+                aiVerification.provider
             ]
         );
 
@@ -146,7 +170,9 @@ exports.registerUser = async (req, res) => {
         }
 
         res.status(201).json({
-            message: "User registered successfully",
+            message: shouldAutoApprove
+                ? "User registered and automatically approved by AI verification"
+                : "User registered successfully and is pending manual review",
             user
         });
 
@@ -161,6 +187,8 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
     try {
+        await ensureVerificationColumns();
+
         const { email, password } = req.body;
 
         const userResult = await pool.query(
@@ -174,10 +202,17 @@ exports.loginUser = async (req, res) => {
 
         const user = userResult.rows[0];
 
-        // disallow login if account not yet approved by admin
+        // Give a specific reason when AI check explicitly failed.
+        if (user.ai_verification_status === 'not_matched') {
+            return res.status(403).json({
+                message: "Login denied: AI identity verification failed. Please contact support."
+            });
+        }
+
+        // disallow login if account not yet approved
         if (user.status === 'pending') {
             return res.status(403).json({
-                message: "Account pending admin approval"
+                message: "Account pending verification approval"
             });
         }
 

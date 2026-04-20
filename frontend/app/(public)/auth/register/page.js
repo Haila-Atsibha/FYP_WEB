@@ -102,7 +102,7 @@ export default function RegisterPage() {
       const res = await api.post("/api/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMessage("Your account is pending admin verification.");
+      setMessage(res.data?.message || "Registration submitted successfully.");
       resetForm();
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
@@ -225,7 +225,7 @@ export default function RegisterPage() {
                 <input
                   type="file"
                   multiple
-                  accept="image/*,application/pdf"
+                  accept="image/*"
                   onChange={(e) => setNationalId(Array.from(e.target.files))}
                   className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
                 />

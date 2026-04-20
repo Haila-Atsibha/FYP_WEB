@@ -104,13 +104,21 @@ export default function UserManagement() {
         {
             header: "Status",
             render: (row) => (
-                <Badge variant={
-                    row.status === 'approved' ? 'success' :
-                        row.status === 'pending' ? 'warning' :
-                            row.status === 'suspended' ? 'danger' : 'secondary'
-                }>
-                    {row.status}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                    <Badge variant={
+                        row.status === 'approved' ? 'success' :
+                            row.status === 'pending' ? 'warning' :
+                                row.status === 'suspended' ? 'danger' : 'secondary'
+                    }>
+                        {row.status}
+                    </Badge>
+                    <Badge variant={
+                        row.ai_verification_status === 'matched' ? 'success' :
+                            row.ai_verification_status === 'not_matched' ? 'danger' : 'warning'
+                    } className="capitalize">
+                        AI: {row.ai_verification_status || 'manual_review'}
+                    </Badge>
+                </div>
             )
         },
         {
@@ -255,6 +263,19 @@ export default function UserManagement() {
                             title={`Documents: ${viewingFiles.name}`}
                         >
                             <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                                <div className="rounded-2xl border border-border bg-background p-4">
+                                    <p className="text-sm font-bold text-foreground mb-1">AI Verification Result</p>
+                                    <p className="text-xs text-text-muted capitalize">
+                                        Status: {viewingFiles.ai_verification_status || 'manual_review'}
+                                        {viewingFiles.ai_verification_score !== null && viewingFiles.ai_verification_score !== undefined
+                                            ? ` (${Number(viewingFiles.ai_verification_score).toFixed(2)}%)`
+                                            : ""}
+                                    </p>
+                                    <p className="text-xs text-text-muted mt-1">
+                                        {viewingFiles.ai_verification_message || 'No AI verification message available.'}
+                                    </p>
+                                </div>
+
                                 {/* Identity Documents */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FileCard
