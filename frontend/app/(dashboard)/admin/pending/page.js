@@ -146,6 +146,14 @@ export default function PendingUsers() {
                         <span className="w-1 h-1 bg-border rounded-full"></span>
                         <Badge variant="primary" className="capitalize text-[10px] py-0 px-2">{u.role}</Badge>
                       </div>
+                      <div className="mt-2 text-xs">
+                        <Badge
+                          variant={u.ai_verification_status === "matched" ? "success" : u.ai_verification_status === "not_matched" ? "danger" : "warning"}
+                          className="capitalize"
+                        >
+                          AI: {u.ai_verification_status || "manual_review"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
 
@@ -196,6 +204,19 @@ export default function PendingUsers() {
               </div>
 
               <div className="grid grid-cols-1 gap-4">
+                <div className="rounded-2xl border border-border bg-background p-4">
+                  <p className="text-sm font-bold text-foreground mb-1">AI Verification Result</p>
+                  <p className="text-xs text-text-muted capitalize">
+                    Status: {reviewing.ai_verification_status || "manual_review"}
+                    {reviewing.ai_verification_score !== null && reviewing.ai_verification_score !== undefined
+                      ? ` (${Number(reviewing.ai_verification_score).toFixed(2)}%)`
+                      : ""}
+                  </p>
+                  <p className="text-xs text-text-muted mt-1">
+                    {reviewing.ai_verification_message || "No AI verification message available."}
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-muted flex items-center gap-2">
                     <FileText size={14} /> National ID Card

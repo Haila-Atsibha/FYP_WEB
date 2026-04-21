@@ -3,8 +3,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function CategoryCard({ category }) {
+    const { t } = useTranslation();
     return (
         <div className="bg-surface border border-border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
@@ -12,16 +14,16 @@ export default function CategoryCard({ category }) {
                     {/* Dynamic icon logic could go here */}
                     <span className="text-xl">✨</span>
                 </div>
-                <Badge variant="info" className="text-[10px]">{category.providerCount || 0} Providers</Badge>
+                <Badge variant="info" className="text-[10px]">{category.providerCount || 0} {t("Providers")}</Badge>
             </div>
-            <h3 className="font-bold text-lg text-foreground mb-2 group-hover:text-primary transition-colors">{category.name}</h3>
-            <p className="text-xs text-text-muted leading-relaxed mb-6 flex-1">{category.description || "Browse top-rated professionals in this category."}</p>
+            <h3 className="font-bold text-lg text-foreground mb-2 group-hover:text-primary transition-colors">{t(category.name)}</h3>
+            <p className="text-xs text-text-muted leading-relaxed mb-6 flex-1">{t(category.description) || t("Browse top-rated professionals in this category.")}</p>
 
             <Link
                 href={`/services?category=${category.id}`}
                 className="text-sm font-bold text-primary flex items-center gap-2 group-hover:gap-3 transition-all"
             >
-                View All Providers <ArrowRight size={14} />
+                {t("View All Providers")} <ArrowRight size={14} />
             </Link>
         </div>
     );

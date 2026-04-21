@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../../../../src/context/AuthContext";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import api from "../../../../src/services/api";
 import { Send, User, MessageCircle, ArrowLeft, Clock } from "lucide-react";
@@ -11,6 +12,7 @@ import Input from "../../../../src/components/Input";
 import Badge from "../../../../src/components/Badge";
 
 export default function CustomerMessages() {
+    const { t } = useTranslation();
     const { user, loading: authLoading } = useContext(AuthContext);
     const [conversations, setConversations] = useState([]);
     const [selectedBookingId, setSelectedBookingId] = useState(null);
@@ -103,8 +105,8 @@ export default function CustomerMessages() {
             <DashboardLayout>
                 <div className="max-w-7xl mx-auto h-[calc(100vh-180px)] min-h-[600px] flex flex-col">
                     <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-3xl font-black text-foreground tracking-tight">Messages</h1>
-                        <p className="text-text-muted font-medium text-sm">Chat with your service providers</p>
+                        <h1 className="text-3xl font-black text-foreground tracking-tight">{t("messages_title")}</h1>
+                        <p className="text-text-muted font-medium text-sm">{t("messages_subtitle")}</p>
                     </div>
 
                     <div className="flex-1 bg-surface border border-border rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col md:flex-row shadow-primary/5">
@@ -117,7 +119,7 @@ export default function CustomerMessages() {
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="Search chats..."
+                                        placeholder={t("search_chats_placeholder")}
                                         className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm"
                                     />
                                 </div>
@@ -139,8 +141,8 @@ export default function CustomerMessages() {
                                         <div className="w-16 h-16 bg-primary/5 rounded-3xl flex items-center justify-center text-primary mx-auto mb-4">
                                             <MessageCircle size={32} />
                                         </div>
-                                        <p className="text-text-muted font-bold text-sm">No conversations found</p>
-                                        <p className="text-[11px] text-text-muted/60 mt-1 italic">Vist the marketplace to find providers.</p>
+                                        <p className="text-text-muted font-bold text-sm">{t("no_conversations")}</p>
+                                        <p className="text-[11px] text-text-muted/60 mt-1 italic">{t("no_conversations_desc")}</p>
                                     </div>
                                 ) : (
                                     conversations.map((conv) => (
@@ -170,7 +172,7 @@ export default function CustomerMessages() {
                                                 </div>
                                                 <p className="text-[11px] font-black text-primary/80 mb-1 truncate uppercase tracking-widest">{conv.service_title}</p>
                                                 <p className="text-xs text-text-muted truncate leading-tight font-medium">
-                                                    {conv.last_message || <span className="italic opacity-60">No messages yet</span>}
+                                                    {conv.last_message || <span className="italic opacity-60">{t("no_messages_yet")}</span>}
                                                 </p>
                                             </div>
                                         </button>
@@ -187,8 +189,8 @@ export default function CustomerMessages() {
                                         <MessageCircle size={48} className="opacity-40" />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-foreground tracking-tight">Your Messages</h2>
-                                        <p className="text-text-muted mt-2 font-medium">Select a conversation to start chatting with your service provider.</p>
+                                        <h2 className="text-2xl font-black text-foreground tracking-tight">{t("your_messages")}</h2>
+                                        <p className="text-text-muted mt-2 font-medium">{t("select_conversation_desc")}</p>
                                     </div>
                                 </div>
                             ) : (
@@ -222,7 +224,7 @@ export default function CustomerMessages() {
                                             <div className="flex justify-center items-center h-full">
                                                 <div className="animate-pulse flex flex-col items-center gap-2">
                                                     <MessageCircle size={24} className="text-primary/40" />
-                                                    <p className="text-xs text-text-muted font-bold">Loading chat...</p>
+                                                    <p className="text-xs text-text-muted font-bold">{t("loading_chat")}</p>
                                                 </div>
                                             </div>
                                         ) : messages.length === 0 ? (
@@ -231,8 +233,8 @@ export default function CustomerMessages() {
                                                     <Clock size={32} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-sm text-foreground">No history yet</p>
-                                                    <p className="text-[11px] max-w-[200px] mt-1 italic">Be the first to say hello! Your provider is waiting.</p>
+                                                    <p className="font-bold text-sm text-foreground">{t("no_history_yet")}</p>
+                                                    <p className="text-[11px] max-w-[200px] mt-1 italic">{t("be_first_to_say_hello")}</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -272,7 +274,7 @@ export default function CustomerMessages() {
                                                     type="text"
                                                     value={newMessage}
                                                     onChange={(e) => setNewMessage(e.target.value)}
-                                                    placeholder="Type your message here..."
+                                                    placeholder={t("type_message_placeholder")}
                                                     className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl px-6 py-4 pr-12 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
                                                 />
                                             </div>
@@ -280,7 +282,7 @@ export default function CustomerMessages() {
                                                 <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                             </Button>
                                         </form>
-                                        <p className="text-[9px] text-center mt-4 text-text-muted font-bold uppercase tracking-[0.2em] opacity-40">Secure end-to-end messaging</p>
+                                        <p className="text-[9px] text-center mt-4 text-text-muted font-bold uppercase tracking-[0.2em] opacity-40">{t("secure_messaging")}</p>
                                     </div>
                                 </>
                             )}

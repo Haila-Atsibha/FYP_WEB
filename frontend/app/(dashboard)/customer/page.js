@@ -21,6 +21,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { AuthContext } from "../../../src/context/AuthContext";
+import { useTranslation } from "../../../src/hooks/useTranslation";
 import ProtectedRoute from "../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../src/components/DashboardLayout";
 import Badge from "../../../src/components/Badge";
@@ -34,6 +35,7 @@ import api from "../../../src/services/api";
 import { useToast } from "../../../src/context/ToastContext";
 
 export default function CustomerDashboard() {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
@@ -105,7 +107,7 @@ export default function CustomerDashboard() {
     setIsSubmitting(true);
     try {
       await api.post("/api/complaints", complaintData);
-      showToast("Complaint submitted successfully. Our team will review it.", "success");
+      showToast(t("toast_complaint_success"), "success");
       setComplaintModalOpen(false);
       setComplaintData({ subject: "", description: "", priority: "medium" });
 
@@ -113,7 +115,7 @@ export default function CustomerDashboard() {
       const res = await api.get("/api/complaints/my");
       setMyComplaints(res.data);
     } catch (err) {
-      showToast(err.response?.data?.message || "Failed to submit complaint", "error");
+      showToast(err.response?.data?.message || t("toast_complaint_error"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -124,7 +126,7 @@ export default function CustomerDashboard() {
     setIsSubmitting(true);
     try {
       await api.post("/api/ratings/platform", platformRating);
-      showToast("Thank you for your feedback!", "success");
+      showToast(t("toast_feedback_success"), "success");
       setRatingModalOpen(false);
       setPlatformRating({ rating: 5, feedback: "" });
     } catch (err) {
@@ -143,8 +145,8 @@ export default function CustomerDashboard() {
           <section className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Customer'}!</h1>
-                <p className="text-text-muted mt-1 text-sm font-medium">Find the best professionals for your needs in the Marketplace.</p>
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{t("welcome")}{user?.name?.split(' ')[0] || 'Customer'}!</h1>
+                <p className="text-text-muted mt-1 text-sm font-medium">{t("dashboard_subtitle")}</p>
               </div>
               <div className="flex items-center gap-3 bg-surface p-2 rounded-2xl border border-border shadow-sm">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center text-primary font-bold border border-primary/20">
@@ -156,7 +158,7 @@ export default function CustomerDashboard() {
                 </div>
                 <div className="pr-4">
                   <p className="text-xs font-bold text-foreground leading-tight">{user?.name || 'Customer'}</p>
-                  <p className="text-[10px] text-text-muted">Active Session</p>
+                  <p className="text-[10px] text-text-muted">{t("active_session")}</p>
                 </div>
               </div>
             </div>
@@ -166,7 +168,7 @@ export default function CustomerDashboard() {
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-70" />
               <input
                 type="text"
-                placeholder="What service do you need today?"
+                placeholder={t("search_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-surface border-2 border-border focus:border-primary/50 text-foreground rounded-full pl-14 pr-6 py-4 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-lg"
@@ -175,7 +177,7 @@ export default function CustomerDashboard() {
                 type="submit"
                 className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white hover:bg-primary-hover px-6 py-2.5 rounded-full font-bold transition-colors shadow-md text-sm"
               >
-                Search
+                {t("search_button")}
               </button>
             </form>
 
@@ -184,10 +186,10 @@ export default function CustomerDashboard() {
                 [...Array(4)].map((_, i) => <CardSkeleton key={i} />)
               ) : (
                 <>
-                  <SummaryCard label="In Progress" value={data.stats.active} icon={<Calendar size={18} />} href="/customer/bookings" />
-                  <SummaryCard label="Completed" value={data.stats.completed} icon={<CheckCircle size={18} />} href="/customer/bookings" variant="success" />
-                  <SummaryCard label="Notifications" value={data.stats.unread} icon={<Bell size={18} />} href="/customer/notifications" highlight={data.stats.unread > 0} />
-                  <SummaryCard label="Saved" value={0} icon={<Grid size={18} />} href="/customer/saved" variant="info" />
+                  <SummaryCard label={t("stats_in_progress")} value={data.stats.active} icon={<Calendar size={18} />} href="/customer/bookings" />
+                  <SummaryCard label={t("stats_completed")} value={data.stats.completed} icon={<CheckCircle size={18} />} href="/customer/bookings" variant="success" />
+                  <SummaryCard label={t("stats_notifications")} value={data.stats.unread} icon={<Bell size={18} />} href="/customer/notifications" highlight={data.stats.unread > 0} />
+                  <SummaryCard label={t("stats_saved")} value={0} icon={<Grid size={18} />} href="/customer/saved" variant="info" />
                 </>
               )}
             </div>
@@ -198,10 +200,10 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg text-primary"><Grid size={20} /></div>
-                <h2 className="text-xl font-bold text-foreground">Service Categories</h2>
+                <h2 className="text-xl font-bold text-foreground">{t("service_categories")}</h2>
               </div>
               <Link href="/services" className="text-xs font-extra-bold text-primary flex items-center gap-2 hover:underline tracking-wider uppercase">
-                Explore All <ArrowRight size={14} />
+                {t("explore_all")} <ArrowRight size={14} />
               </Link>
             </div>
 
@@ -210,7 +212,7 @@ export default function CustomerDashboard() {
                 [...Array(6)].map((_, i) => <CategorySkeleton key={i} />)
               ) : data.categories.length === 0 ? (
                 <div className="col-span-full py-12 text-center text-text-muted bg-surface rounded-3xl border border-dashed border-border italic">
-                  No categories available right now.
+                  {t("no_categories")}
                 </div>
               ) : (
                 data.categories.map((cat) => (
@@ -229,11 +231,11 @@ export default function CustomerDashboard() {
                 <AlertCircle className="w-10 h-10" />
               </div>
               <div className="space-y-2 relative z-10">
-                <h3 className="text-2xl font-black text-foreground tracking-tight">Need Help?</h3>
-                <p className="text-sm text-text-muted font-medium max-w-[240px]">Have an issue with a booking or a service? We're here to help.</p>
+                <h3 className="text-2xl font-black text-foreground tracking-tight">{t("need_help")}</h3>
+                <p className="text-sm text-text-muted font-medium max-w-[240px]">{t("need_help_desc")}</p>
               </div>
               <Button onClick={() => setComplaintModalOpen(true)} className="bg-orange-600 border-none hover:bg-orange-700 w-full rounded-2xl py-4 font-bold relative z-10">
-                Report a Complaint
+                {t("report_complaint")}
               </Button>
               <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-orange-500/5 rounded-full"></div>
             </div>
@@ -243,11 +245,11 @@ export default function CustomerDashboard() {
                 <Star className="w-10 h-10" />
               </div>
               <div className="space-y-2 relative z-10">
-                <h3 className="text-2xl font-black text-foreground tracking-tight">Your Feedback</h3>
-                <p className="text-sm text-text-muted font-medium max-w-[240px]">Tell us what you like or what we can improve on QuickServe.</p>
+                <h3 className="text-2xl font-black text-foreground tracking-tight">{t("your_feedback")}</h3>
+                <p className="text-sm text-text-muted font-medium max-w-[240px]">{t("your_feedback_desc")}</p>
               </div>
               <Button onClick={() => setRatingModalOpen(true)} className="w-full rounded-2xl py-4 font-bold relative z-10">
-                Rate the Platform
+                {t("rate_platform")}
               </Button>
               <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-primary/5 rounded-full"></div>
             </div>
@@ -263,37 +265,37 @@ export default function CustomerDashboard() {
               <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-orange-600" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Submit a Complaint</h3>
-              <p className="text-text-muted text-sm mt-1">Provide details and we will investigate the matter.</p>
+              <h3 className="text-2xl font-bold text-foreground">{t("submit_complaint_title")}</h3>
+              <p className="text-text-muted text-sm mt-1">{t("submit_complaint_desc")}</p>
             </div>
 
             <form onSubmit={handleSubmitComplaint} className="space-y-4">
               <Input
-                label="Subject"
-                placeholder="e.g. Booking dispute, Technical issue"
+                label={t("label_subject")}
+                placeholder={t("placeholder_subject")}
                 required
                 value={complaintData.subject}
                 onChange={(e) => setComplaintData({ ...complaintData, subject: e.target.value })}
               />
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground/80 ml-1">Priority</label>
+                <label className="block text-sm font-semibold text-foreground/80 ml-1">{t("label_priority")}</label>
                 <select
                   className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
                   value={complaintData.priority}
                   onChange={(e) => setComplaintData({ ...complaintData, priority: e.target.value })}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="low">{t("priority_low")}</option>
+                  <option value="medium">{t("priority_medium")}</option>
+                  <option value="high">{t("priority_high")}</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground/80 ml-1">Description</label>
+                <label className="block text-sm font-semibold text-foreground/80 ml-1">{t("label_description")}</label>
                 <textarea
                   className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[120px]"
-                  placeholder="Tell us more about the issue..."
+                  placeholder={t("placeholder_description")}
                   required
                   value={complaintData.description}
                   onChange={(e) => setComplaintData({ ...complaintData, description: e.target.value })}
@@ -301,9 +303,9 @@ export default function CustomerDashboard() {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setComplaintModalOpen(false)}>Cancel</Button>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setComplaintModalOpen(false)}>{t("btn_cancel")}</Button>
                 <Button type="submit" className="flex-1 bg-orange-600 border-none hover:bg-orange-700" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Complaint"}
+                  {isSubmitting ? t("btn_submitting") : t("btn_submit_complaint")}
                 </Button>
               </div>
             </form>
@@ -317,13 +319,13 @@ export default function CustomerDashboard() {
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Star className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Rate QuickServe</h3>
-              <p className="text-text-muted text-sm mt-1">Your feedback helps us build a better platform.</p>
+              <h3 className="text-2xl font-bold text-foreground">{t("rate_title")}</h3>
+              <p className="text-text-muted text-sm mt-1">{t("rate_subtitle")}</p>
             </div>
 
             <form onSubmit={handleSubmitRating} className="space-y-6">
               <div className="flex flex-col items-center gap-4">
-                <p className="font-bold text-foreground text-center">How would you rate your experience?</p>
+                <p className="font-bold text-foreground text-center">{t("rate_question")}</p>
                 <div className="flex gap-3">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
@@ -339,19 +341,19 @@ export default function CustomerDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground/80 ml-1">Feedback (Optional)</label>
+                <label className="block text-sm font-semibold text-foreground/80 ml-1">{t("label_feedback_optional")}</label>
                 <textarea
                   className="w-full bg-surface border border-border text-foreground rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px]"
-                  placeholder="Anything we can improve?"
+                  placeholder={t("placeholder_feedback_optional")}
                   value={platformRating.feedback}
                   onChange={(e) => setPlatformRating({ ...platformRating, feedback: e.target.value })}
                 />
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setRatingModalOpen(false)}>Skip</Button>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setRatingModalOpen(false)}>{t("btn_skip")}</Button>
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Submit Feedback"}
+                  {isSubmitting ? t("btn_sending") : t("btn_submit_feedback")}
                 </Button>
               </div>
             </form>
@@ -362,7 +364,7 @@ export default function CustomerDashboard() {
           <div className="mt-12 space-y-6 pb-12 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-foreground flex items-center gap-2">
-                <AlertCircle className="text-primary w-6 h-6" /> My History
+                <AlertCircle className="text-primary w-6 h-6" /> {t("my_history")}
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -386,7 +388,7 @@ export default function CustomerDashboard() {
                   {(complaint.admin_reply && String(complaint.admin_reply).trim() !== "") && (
                     <div className="mt-2 py-2.5 px-3 bg-primary/10 rounded-xl border border-primary/20 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-primary" />
-                      <span className="text-[10px] font-bold text-primary uppercase">Response Available</span>
+                      <span className="text-[10px] font-bold text-primary uppercase">{t("response_available")}</span>
                     </div>
                   )}
                 </div>
@@ -399,17 +401,17 @@ export default function CustomerDashboard() {
           {selectedComplaint && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-black text-foreground">Ticket Review</h3>
+                <h3 className="text-2xl font-black text-foreground">{t("ticket_review")}</h3>
                 <Badge variant={selectedComplaint.status === 'open' ? 'info' : 'success'} className="px-3 py-1 text-sm">{selectedComplaint.status.toUpperCase()}</Badge>
               </div>
 
               <div className="space-y-5">
                 <div className="bg-background/50 border border-border rounded-[2rem] p-6 space-y-4">
                   <div>
-                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest mb-1.5">Your Subject</p>
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest mb-1.5">{t("your_subject")}</p>
                     <p className="font-bold text-xl text-foreground mb-4">{selectedComplaint.subject}</p>
 
-                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest mb-1.5">Your Message</p>
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest mb-1.5">{t("your_message")}</p>
                     <div className="bg-background p-5 rounded-2xl border border-border/50 text-sm leading-relaxed italic text-foreground/80">
                       "{selectedComplaint.description}"
                     </div>
@@ -420,10 +422,10 @@ export default function CustomerDashboard() {
                   <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-6 animate-in zoom-in-95 duration-500">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[10px] text-primary uppercase font-bold tracking-widest flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4" /> Official Response
+                        <ShieldCheck className="w-4 h-4" /> {t("official_response")}
                       </p>
                       <span className="text-[10px] font-medium text-text-muted">
-                        Replied on {selectedComplaint.replied_at ? new Date(selectedComplaint.replied_at).toLocaleDateString() : 'N/A'}
+                        {t("replied_on")} {selectedComplaint.replied_at ? new Date(selectedComplaint.replied_at).toLocaleDateString() : 'N/A'}
                       </span>
                     </div>
                     <div className="text-sm leading-relaxed font-medium text-foreground p-1">
@@ -433,13 +435,13 @@ export default function CustomerDashboard() {
                 ) : (
                   <div className="bg-surface-hover/30 border border-dashed border-border rounded-[2rem] p-10 text-center">
                     <Clock className="w-10 h-10 text-primary/40 mx-auto mb-3 animate-pulse" />
-                    <h5 className="font-bold text-foreground mb-1">Under Review</h5>
-                    <p className="text-xs text-text-muted max-w-[200px] mx-auto">Our specialized team is currently reviewing your ticket. We'll respond shortly.</p>
+                    <h5 className="font-bold text-foreground mb-1">{t("under_review")}</h5>
+                    <p className="text-xs text-text-muted max-w-[200px] mx-auto">{t("under_review_desc")}</p>
                   </div>
                 )}
               </div>
 
-              <Button variant="secondary" className="w-full py-4 !rounded-2xl font-bold" onClick={() => setViewComplaintModalOpen(false)}>Close Review</Button>
+              <Button variant="secondary" className="w-full py-4 !rounded-2xl font-bold" onClick={() => setViewComplaintModalOpen(false)}>{t("btn_close_review")}</Button>
             </div>
           )}
         </Modal>

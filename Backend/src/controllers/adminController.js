@@ -1,9 +1,13 @@
 const pool = require('../db');
+const { ensureVerificationColumns } = require('../utils/faceVerification');
 
 exports.getPendingUsers = async (req, res) => {
     try {
+        await ensureVerificationColumns();
+
         const result = await pool.query(
-            `SELECT id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url
+            `SELECT id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url,
+                    ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at
              FROM users WHERE status='pending'`
         );
         const { getSignedUrl } = require('../utils/supabaseHelper');
@@ -290,8 +294,11 @@ exports.getBookings = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
     try {
+        await ensureVerificationColumns();
+
         const result = await pool.query(`
-            SELECT id, name, email, role, status, created_at, profile_image_url, national_id_url, verification_selfie_url
+            SELECT id, name, email, role, status, created_at, profile_image_url, national_id_url, verification_selfie_url,
+                   ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at
             FROM users
             ORDER BY created_at DESC
         `);
