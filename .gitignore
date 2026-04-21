@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+Backend/node_modules/
+
+# logs
+*.log
+
+# environment files
+.env
+.env.local
+
+# generated outputs
+output_*.txt
