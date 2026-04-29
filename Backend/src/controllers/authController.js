@@ -67,6 +67,13 @@ exports.registerUser = async (req, res) => {
         });
 
         const shouldAutoApprove = aiVerification.status === 'matched';
+        console.log("AI verification result:", {
+            email,
+            status: aiVerification.status,
+            score: aiVerification.score,
+            provider: aiVerification.provider,
+            message: aiVerification.message
+        });
 
         const newUser = await pool.query(
             `INSERT INTO users 
@@ -107,12 +114,17 @@ exports.registerUser = async (req, res) => {
             const { createNotification } = require('./notificationController');
             const admins = await pool.query("SELECT id FROM users WHERE role = 'admin'");
             for (const admin of admins.rows) {
+                const scoreText = aiVerification.score !== null && aiVerification.score !== undefined
+                    ? ` (${Number(aiVerification.score).toFixed(2)}%)`
+                    : '';
+                const aiLine = `AI: ${aiVerification.status || 'manual_review'}${scoreText} • ${aiVerification.provider || 'unknown'}`;
+                const reasonLine = aiVerification.message ? `Reason: ${aiVerification.message}` : '';
                 await createNotification(
                     admin.id,
-                    "New Provider Application",
-                    `${name} has registered as a provider and is waiting for verification.`,
+                    shouldAutoApprove ? "Provider Auto-Approved by AI" : "New Provider Application (Manual Review)",
+                    `${name} registered as provider. ${aiLine}${reasonLine ? ` | ${reasonLine}` : ''}`,
                     'verification',
-                    '/admin/pending'
+                    shouldAutoApprove ? '/admin/ai-approved' : '/admin/pending'
                 );
             }
 
@@ -172,8 +184,14 @@ exports.registerUser = async (req, res) => {
         res.status(201).json({
             message: shouldAutoApprove
                 ? "User registered and automatically approved by AI verification"
-                : "User registered successfully and is pending manual review",
-            user
+                : `User registered successfully and is pending manual review. Reason: ${aiVerification.message || 'AI verification could not auto-approve this account.'}`,
+            user,
+            ai_verification: {
+                status: aiVerification.status,
+                score: aiVerification.score,
+                provider: aiVerification.provider,
+                message: aiVerification.message
+            }
         });
 
     } catch (error) {

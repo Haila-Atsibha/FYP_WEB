@@ -6,9 +6,8 @@ import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import { useTranslation } from "../../../../src/hooks/useTranslation";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import api from "../../../../src/services/api";
-import { Send, User, MessageCircle, ArrowLeft, Clock } from "lucide-react";
+import { Send, User, MessageCircle, ArrowLeft, Clock, ImagePlus, MapPin } from "lucide-react";
 import Button from "../../../../src/components/Button";
-import Input from "../../../../src/components/Input";
 import Badge from "../../../../src/components/Badge";
 
 export default function CustomerMessages() {
@@ -18,9 +17,66 @@ export default function CustomerMessages() {
     const [selectedBookingId, setSelectedBookingId] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
+    const [selectedMedia, setSelectedMedia] = useState(null);
+    const [previewImageUrl, setPreviewImageUrl] = useState(null);
     const [loadingConv, setLoadingConv] = useState(true);
     const [loadingMsgs, setLoadingMsgs] = useState(false);
+    const [isSendingLocation, setIsSendingLocation] = useState(false);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    const normalizeMessage = (msg) => {
+        const raw = msg?.content;
+        if (typeof raw === "string" && raw.startsWith("__QS_PAYLOAD__")) {
+            try {
+                const parsed = JSON.parse(raw.replace("__QS_PAYLOAD__", ""));
+                return {
+                    ...msg,
+                    content: parsed.text || "",
+                    message_type: parsed.media?.kind || (parsed.location ? "location" : "text"),
+                    media_url: parsed.media?.url || null,
+                    location: parsed.location || null
+                };
+            } catch {
+                return msg;
+            }
+        }
+        if (typeof raw === "string" && raw.startsWith("LOCATION:")) {
+            const [lat, lng] = raw.replace("LOCATION:", "").split(",").map(Number);
+            if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                return { ...msg, content: "", message_type: "location", media_url: null, location: { lat, lng, label: t("shared_location") } };
+            }
+        }
+        return {
+            ...msg,
+            message_type: msg.message_type || "text",
+            media_url: msg.media_url || null,
+            location: msg.location || null
+        };
+    };
+
+    const normalizeConversation = (conv) => {
+        const last = conv?.last_message;
+        if (typeof last === "string" && last.startsWith("__QS_PAYLOAD__")) {
+            try {
+                const parsed = JSON.parse(last.replace("__QS_PAYLOAD__", ""));
+                const preview = parsed.media?.kind === "image"
+                    ? "[Photo]"
+                    : parsed.media?.kind === "video"
+                        ? "[Video]"
+                        : parsed.location
+                            ? "[Location]"
+                            : (parsed.text || t("no_messages_yet"));
+                return { ...conv, last_message: preview };
+            } catch {
+                return conv;
+            }
+        }
+        if (typeof last === "string" && last.startsWith("LOCATION:")) {
+            return { ...conv, last_message: "[Location]" };
+        }
+        return conv;
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,7 +113,7 @@ export default function CustomerMessages() {
         setLoadingConv(true);
         try {
             const response = await api.get("/api/messages/conversations");
-            setConversations(response.data);
+            setConversations((response.data || []).map(normalizeConversation));
             if (response.data.length > 0 && !selectedBookingId) {
                 // Option to auto-select first one? Let's leave it for now
             }
@@ -72,7 +128,7 @@ export default function CustomerMessages() {
         if (!silent) setLoadingMsgs(true);
         try {
             const response = await api.get(`/api/messages/booking/${bookingId}`);
-            setMessages(response.data);
+            setMessages((response.data || []).map(normalizeMessage));
         } catch (err) {
             console.error("Error fetching messages:", err);
         } finally {
@@ -82,20 +138,68 @@ export default function CustomerMessages() {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedBookingId) return;
+        if (!selectedBookingId) return;
+        const hasText = !!newMessage.trim();
+        const hasMedia = !!selectedMedia;
+        if (!hasText && !hasMedia) return;
 
         try {
-            const response = await api.post("/api/messages", {
-                booking_id: selectedBookingId,
-                content: newMessage,
-            });
-            setMessages([...messages, { ...response.data.messageObj, sender_name: user.name }]);
+            let response;
+            if (hasMedia) {
+                const formData = new FormData();
+                formData.append("booking_id", String(selectedBookingId));
+                formData.append("media", selectedMedia);
+                if (hasText) formData.append("content", newMessage.trim());
+                response = await api.post("/api/messages", formData);
+            } else {
+                response = await api.post("/api/messages", {
+                    booking_id: selectedBookingId,
+                    content: newMessage.trim(),
+                });
+            }
+            setMessages([...messages, normalizeMessage({ ...response.data.messageObj, sender_name: user.name })]);
             setNewMessage("");
+            setSelectedMedia(null);
             // Refresh conversations to update preview
             fetchConversations();
         } catch (err) {
             console.error("Error sending message:", err);
         }
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setSelectedMedia(file);
+        e.target.value = "";
+    };
+
+    const handleSendLocation = async () => {
+        if (!selectedBookingId || !navigator.geolocation) return;
+        setIsSendingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const formData = new FormData();
+                    formData.append("booking_id", String(selectedBookingId));
+                    formData.append("location_lat", String(position.coords.latitude));
+                    formData.append("location_lng", String(position.coords.longitude));
+                    formData.append("location_label", t("shared_location"));
+                    formData.append("content", "[location]");
+                    const response = await api.post("/api/messages", formData);
+                    setMessages((prev) => [...prev, normalizeMessage({ ...response.data.messageObj, sender_name: user.name })]);
+                    fetchConversations();
+                } catch (err) {
+                    console.error("Error sending location:", err);
+                } finally {
+                    setIsSendingLocation(false);
+                }
+            },
+            (err) => {
+                console.error("Location access denied/error:", err);
+                setIsSendingLocation(false);
+            }
+        );
     };
 
     const selectedConversation = conversations.find(c => c.booking_id === selectedBookingId);
@@ -212,7 +316,17 @@ export default function CustomerMessages() {
                                                 <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">{selectedConversation?.service_title}</span>
                                                 <span className="w-1 h-1 bg-border rounded-full"></span>
                                                 <Badge variant={selectedConversation?.booking_status === 'completed' ? 'success' : 'info'} className="text-[9px] px-1.5 h-auto leading-tight">
-                                                    {selectedConversation?.booking_status}
+                                                    {selectedConversation?.booking_status === "pending"
+                                                        ? t("status_pending")
+                                                        : selectedConversation?.booking_status === "accepted"
+                                                            ? t("status_in_progress")
+                                                            : selectedConversation?.booking_status === "completed"
+                                                                ? t("status_completed")
+                                                                : selectedConversation?.booking_status === "rejected"
+                                                                    ? t("status_rejected")
+                                                                    : selectedConversation?.booking_status === "cancelled"
+                                                                        ? t("status_cancelled")
+                                                                        : selectedConversation?.booking_status}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -239,7 +353,7 @@ export default function CustomerMessages() {
                                             </div>
                                         ) : (
                                             messages.map((msg, i) => {
-                                                const isMe = msg.sender_id === user.id;
+                                                const isMe = user?.id ? msg.sender_id === user.id : false;
                                                 return (
                                                     <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"} group animate-in fade-in duration-300`}>
                                                         <div className="max-w-[80%] flex flex-col gap-1">
@@ -250,7 +364,30 @@ export default function CustomerMessages() {
                                                                     : "bg-surface border border-border text-foreground rounded-tl-none hover:border-primary/30"
                                                                     }`}
                                                             >
-                                                                {msg.content}
+                                                                {msg.message_type === "image" && msg.media_url && (
+                                                                    <img
+                                                                        src={msg.media_url}
+                                                                        alt="chat media"
+                                                                        onClick={() => setPreviewImageUrl(msg.media_url)}
+                                                                        className="mb-2 max-h-64 rounded-xl border border-border object-cover cursor-zoom-in"
+                                                                    />
+                                                                )}
+                                                                {msg.message_type === "video" && msg.media_url && (
+                                                                    <video controls className="mb-2 max-h-72 rounded-xl border border-border">
+                                                                        <source src={msg.media_url} />
+                                                                    </video>
+                                                                )}
+                                                                {msg.message_type === "location" && msg.location && (
+                                                                    <a
+                                                                        href={`https://maps.google.com/?q=${msg.location.lat},${msg.location.lng}`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className={`mb-2 inline-flex items-center gap-1 underline ${isMe ? "text-white" : "text-primary"}`}
+                                                                    >
+                                                                        <MapPin size={14} /> {msg.location.label || "Shared location"}
+                                                                    </a>
+                                                                )}
+                                                                {msg.content && <div>{msg.content}</div>}
                                                                 <div className={`mt-1 flex items-center gap-1 opacity-80 whitespace-nowrap justify-end ${isMe ? 'text-white/80' : 'text-text-muted'}`}>
                                                                     {isMe && <Clock size={10} />}
                                                                     <span className="text-[9px] font-bold uppercase tracking-tighter">
@@ -268,7 +405,31 @@ export default function CustomerMessages() {
 
                                     {/* Message Input */}
                                     <div className="p-6 border-t border-border bg-surface/30 backdrop-blur-sm">
-                                        <form onSubmit={handleSendMessage} className="flex gap-4">
+                                        <form onSubmit={handleSendMessage} className="flex gap-3 items-center">
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*,video/*"
+                                                className="hidden"
+                                                onChange={handleFileChange}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="p-3 rounded-xl border border-border hover:bg-surface-hover text-text-muted"
+                                                title="Attach photo or video"
+                                            >
+                                                <ImagePlus size={18} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleSendLocation}
+                                                disabled={isSendingLocation}
+                                                className="p-3 rounded-xl border border-border hover:bg-surface-hover text-text-muted disabled:opacity-50"
+                                                title="Share location"
+                                            >
+                                                <MapPin size={18} />
+                                            </button>
                                             <div className="flex-1 relative">
                                                 <input
                                                     type="text"
@@ -278,6 +439,15 @@ export default function CustomerMessages() {
                                                     className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl px-6 py-4 pr-12 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
                                                 />
                                             </div>
+                                            {selectedMedia && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedMedia(null)}
+                                                    className="px-3 py-2 text-xs rounded-lg border border-border text-text-muted hover:bg-surface-hover"
+                                                >
+                                                    {selectedMedia.name}
+                                                </button>
+                                            )}
                                             <Button type="submit" className="rounded-2xl h-auto px-6 bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 group translate-y-[-1px] active:translate-y-[0px]">
                                                 <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                             </Button>
@@ -289,6 +459,18 @@ export default function CustomerMessages() {
                         </div>
                     </div>
                 </div>
+                {previewImageUrl && (
+                    <div
+                        className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+                        onClick={() => setPreviewImageUrl(null)}
+                    >
+                        <img
+                            src={previewImageUrl}
+                            alt="Full preview"
+                            className="max-h-[90vh] max-w-[90vw] rounded-2xl shadow-2xl"
+                        />
+                    </div>
+                )}
             </DashboardLayout>
         </ProtectedRoute>
     );

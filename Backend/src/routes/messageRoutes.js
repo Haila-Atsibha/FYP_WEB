@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const protect = require('../middlewares/authMiddleware');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 const {
     sendMessage,
     getMessagesByBooking,
@@ -18,7 +21,7 @@ router.get('/conversations', getConversations);
 router.get('/booking/:booking_id', getMessagesByBooking);
 
 // Send a message
-router.post('/', sendMessage);
+router.post('/', upload.single('media'), sendMessage);
 
 // Mark as read
 router.put('/booking/:booking_id/read', markMessagesAsRead);

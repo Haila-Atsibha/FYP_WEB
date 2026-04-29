@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "QuickServe - Fast, Premium Service",
-  description: "High-end fast food ordering and service platform",
+  description: "Marketplace connecting job seekers with trusted service providers",
 };
 
 export default function RootLayout({ children }) {

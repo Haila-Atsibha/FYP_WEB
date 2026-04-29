@@ -1,14 +1,72 @@
 const pool = require('../db');
+const { uploadFile } = require('../utils/supabaseHelper');
+
+function parseLegacyOrJsonMessage(raw) {
+    if (raw === null || raw === undefined) return null;
+    if (typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+
+    if (trimmed.startsWith("__QS_PAYLOAD__")) {
+        const payloadPart = trimmed.replace("__QS_PAYLOAD__", "");
+        try {
+            const payload = JSON.parse(payloadPart);
+            const media = payload.media || null;
+            return {
+                type: media?.kind || (payload.location ? "location" : "text"),
+                text: payload.text || "",
+                media_url: media?.url || null,
+                location: payload.location || null
+            };
+        } catch {
+            return null;
+        }
+    }
+
+    if (trimmed.startsWith("LOCATION:")) {
+        const coords = trimmed.replace("LOCATION:", "").split(",");
+        const lat = Number(coords[0]);
+        const lng = Number(coords[1]);
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+            return { type: "location", text: "", media_url: null, location: { lat, lng, label: "Shared location" } };
+        }
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === 'object' && (parsed.type || parsed.media_url || parsed.location || parsed.text !== undefined)) {
+            return {
+                type: parsed.type || "text",
+                text: parsed.text || "",
+                media_url: parsed.media_url || null,
+                location: parsed.location || null
+            };
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
 
 // messaging between customer and provider tied to a booking
 
 exports.sendMessage = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { booking_id, content } = req.body;
+        const { booking_id, content, location_lat, location_lng, location_label } = req.body;
+        const mediaFile = req.file;
 
-        if (!booking_id || !content) {
-            return res.status(400).json({ message: "booking_id and content are required" });
+        const hasText = typeof content === "string" && content.trim().length > 0;
+        const hasMedia = !!mediaFile;
+        const hasLocation = location_lat !== undefined && location_lng !== undefined;
+
+        if (!booking_id) {
+            return res.status(400).json({ message: "booking_id is required" });
+        }
+
+        if (!hasText && !hasMedia && !hasLocation) {
+            return res.status(400).json({ message: "Message must include text, media, or location" });
         }
 
         // query booking with provider user_id
@@ -36,11 +94,46 @@ exports.sendMessage = async (req, res) => {
             return res.status(403).json({ message: "Forbidden" });
         }
 
+        let messageType = 'text';
+        let mediaUrl = null;
+        let location = null;
+
+        if (hasLocation) {
+            const lat = Number(location_lat);
+            const lng = Number(location_lng);
+            if (Number.isNaN(lat) || Number.isNaN(lng)) {
+                return res.status(400).json({ message: "Invalid location coordinates" });
+            }
+            messageType = 'location';
+            location = { lat, lng, label: location_label || null };
+        }
+
+        if (hasMedia) {
+            const isImage = mediaFile.mimetype?.startsWith('image/');
+            const isVideo = mediaFile.mimetype?.startsWith('video/');
+            if (!isImage && !isVideo) {
+                return res.status(400).json({ message: "Only image and video files are allowed" });
+            }
+            mediaUrl = await uploadFile(
+                mediaFile.buffer,
+                mediaFile.mimetype,
+                isImage ? 'chat-images' : 'chat-videos'
+            );
+            messageType = isImage ? 'image' : 'video';
+        }
+
+        const payload = {
+            type: messageType,
+            text: hasText ? content.trim() : "",
+            media_url: mediaUrl,
+            location
+        };
+
         const insert = await pool.query(
             `INSERT INTO messages
              (booking_id, sender_id, message)
              VALUES ($1,$2,$3) RETURNING id, booking_id, sender_id, message AS content, created_at`,
-            [booking_id, userId, content]
+            [booking_id, userId, JSON.stringify(payload)]
         );
 
         // Notify receiver
@@ -54,7 +147,23 @@ exports.sendMessage = async (req, res) => {
             `/chat/${booking_id}`
         );
 
-        res.status(201).json({ message: "Message sent", messageObj: insert.rows[0] });
+        const inserted = insert.rows[0];
+        let parsedContent = payload;
+        try {
+            parsedContent = JSON.parse(inserted.content);
+        } catch {
+            // Keep fallback payload if parse fails unexpectedly.
+        }
+        res.status(201).json({
+            message: "Message sent",
+            messageObj: {
+                ...inserted,
+                content: parsedContent.text || "",
+                message_type: parsedContent.type || "text",
+                media_url: parsedContent.media_url || null,
+                location: parsedContent.location || null
+            }
+        });
     } catch (error) {
         console.error("SendMessage Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -120,7 +229,26 @@ exports.getConversations = async (req, res) => {
             return timeB - timeA;
         });
 
-        res.json(sortedConversations);
+        const normalizedConversations = sortedConversations.map((conv) => {
+            let lastMessage = conv.last_message;
+            try {
+                const parsed = parseLegacyOrJsonMessage(conv.last_message) || JSON.parse(conv.last_message);
+                if (parsed?.type === 'image') {
+                    lastMessage = '[Photo]';
+                } else if (parsed?.type === 'video') {
+                    lastMessage = '[Video]';
+                } else if (parsed?.type === 'location') {
+                    lastMessage = '[Location]';
+                } else if (typeof parsed?.text === 'string') {
+                    lastMessage = parsed.text;
+                }
+            } catch {
+                // legacy plain-text message, keep as is
+            }
+            return { ...conv, last_message: lastMessage };
+        });
+
+        res.json(normalizedConversations);
     } catch (error) {
         console.error("Error in getConversations:", error);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -156,7 +284,7 @@ exports.getMessagesByBooking = async (req, res) => {
             return res.status(403).json({ message: "Forbidden" });
         }
 
-        const messages = await pool.query(
+        const messagesRes = await pool.query(
             `SELECT m.id, m.booking_id, m.sender_id, m.message AS content, m.created_at, u.name AS sender_name
              FROM messages m
              LEFT JOIN users u ON m.sender_id = u.id
@@ -164,8 +292,27 @@ exports.getMessagesByBooking = async (req, res) => {
              ORDER BY m.created_at ASC`,
             [booking_id]
         );
+        const normalizedMessages = messagesRes.rows.map((msg) => {
+            const parsed = parseLegacyOrJsonMessage(msg.content);
+            if (!parsed || typeof parsed !== 'object') {
+                return {
+                    ...msg,
+                    content: msg.content,
+                    message_type: 'text',
+                    media_url: null,
+                    location: null
+                };
+            }
+            return {
+                ...msg,
+                content: parsed.text || '',
+                message_type: parsed.type || 'text',
+                media_url: parsed.media_url || null,
+                location: parsed.location || null
+            };
+        });
 
-        res.json(messages.rows);
+        res.json(normalizedMessages);
     } catch (error) {
         console.error("GetMessagesByBooking Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });

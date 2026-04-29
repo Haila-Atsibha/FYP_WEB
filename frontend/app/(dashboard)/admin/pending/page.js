@@ -153,6 +153,12 @@ export default function PendingUsers() {
                         >
                           AI: {u.ai_verification_status || "manual_review"}
                         </Badge>
+                        {u.ai_verification_message && (
+                          <p className="mt-2 text-[11px] text-text-muted max-w-[360px] leading-snug">
+                            <span className="font-black uppercase tracking-wider text-[10px] text-text-muted/70">Reason:</span>{" "}
+                            {u.ai_verification_message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

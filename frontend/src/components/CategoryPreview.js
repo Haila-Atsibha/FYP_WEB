@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { useTranslation } from "../hooks/useTranslation";
 
 export default function CategoryPreview({ categories }) {
+  const { t } = useTranslation();
+
   // If no categories or empty, don't render to keep clean.
   if (!categories || categories.length === 0) return null;
 
@@ -18,8 +21,8 @@ export default function CategoryPreview({ categories }) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Explore Our Menu</h2>
-            <p className="text-text-muted mt-4 max-w-xl text-lg">Find exactly what you crave with our curated list of premium fast food, tailored just for you for a seamless experience.</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">{t("explore_services_title")}</h2>
+            <p className="text-text-muted mt-4 max-w-xl text-lg">{t("explore_services_subtitle")}</p>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -28,7 +31,7 @@ export default function CategoryPreview({ categories }) {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Link href="/services" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-primary/20 text-primary font-semibold hover:bg-primary hover:text-white transition-all group shadow-sm bg-surface">
-              View Full Menu
+              {t("view_all_services")}
               <ArrowUpRight className="w-5 h-5 group-hover:rotate-45 transition-transform" />
             </Link>
           </motion.div>
@@ -58,7 +61,7 @@ export default function CategoryPreview({ categories }) {
                   </span>
                 </h3>
                 <p className="relative z-10 text-text-muted text-sm line-clamp-3 leading-relaxed mt-2">
-                  {cat.description || "Get premium quality meals and fast food combos right in this specific category for a fair price."}
+                  {cat.description || t("category_default_desc")}
                 </p>
               </Link>
             </motion.div>

@@ -201,14 +201,22 @@ exports.updateBookingStatus = async (req, res) => {
                 if (current !== 'accepted') {
                     return res.status(400).json({ message: "Can only complete accepted bookings" });
                 }
-                await createNotification(
-                    booking.customer_id,
-                    "Booking Completed",
-                    `Your service for "${booking.title}" has been marked as completed.`,
-                    'booking',
-                    '/customer/bookings'
-                );
-                return persist('completed');
+                
+                await pool.query("UPDATE bookings SET provider_completed = true WHERE id = $1", [id]);
+
+                if (booking.customer_completed) {
+                    await createNotification(
+                        booking.customer_id,
+                        "Booking Completed",
+                        `Your service for "${booking.title}" has been marked as completed by both parties.`,
+                        'booking',
+                        '/customer/bookings'
+                    );
+                    return persist('completed');
+                } else {
+                    const upd = await pool.query("SELECT * FROM bookings WHERE id = $1", [id]);
+                    return res.json({ message: "Status updated (waiting for customer)", booking: upd.rows[0] });
+                }
             }
 
             return res.status(400).json({ message: "Invalid status transition for provider" });
@@ -217,6 +225,29 @@ exports.updateBookingStatus = async (req, res) => {
         if (req.user.role === 'customer') {
             if (booking.customer_id !== userId) {
                 return res.status(403).json({ message: "Forbidden" });
+            }
+            if (status === 'completed') {
+                if (current !== 'accepted') {
+                    return res.status(400).json({ message: "Can only complete accepted bookings" });
+                }
+                
+                await pool.query("UPDATE bookings SET customer_completed = true WHERE id = $1", [id]);
+                
+                if (booking.provider_completed) {
+                    const provUserRes = await pool.query("SELECT user_id FROM provider_profiles WHERE id = $1", [booking.provider_id]);
+                    const providerUserId = provUserRes.rows[0].user_id;
+                    await createNotification(
+                        providerUserId,
+                        "Booking Completed",
+                        `The customer marked "${booking.title}" as completed. The booking is now fully completed.`,
+                        'booking',
+                        '/provider/bookings'
+                    );
+                    return persist('completed');
+                } else {
+                    const upd = await pool.query("SELECT * FROM bookings WHERE id = $1", [id]);
+                    return res.json({ message: "Status updated (waiting for provider)", booking: upd.rows[0] });
+                }
             }
             if (status === 'cancelled') {
                 if (current !== 'pending') {

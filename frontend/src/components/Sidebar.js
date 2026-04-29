@@ -29,6 +29,7 @@ const menuByRole = {
     { id: "User Management", key: "sidebar_users", href: "/admin/users" },
     { id: "Subscriptions", key: "sidebar_subscriptions", href: "/admin/subscriptions" },
     { id: "Verification", key: "sidebar_verification", href: "/admin/pending" },
+    { id: "AI Approved", key: "sidebar_ai_approved", href: "/admin/ai-approved" },
   ],
 };
 

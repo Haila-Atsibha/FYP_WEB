@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { FileText, UtensilsCrossed } from "lucide-react";
+import { BriefcaseBusiness, FileText } from "lucide-react";
 import api from "../../../../src/services/api";
 import Input from "../../../../src/components/Input";
 import Button from "../../../../src/components/Button";
 import { motion } from "framer-motion";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,8 +24,10 @@ export default function RegisterPage() {
   const [educationalDocuments, setEducationalDocuments] = useState([]);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [cameraError, setCameraError] = useState(null);
   const [loading, setLoading] = useState(false);
   const videoRef = useRef();
+  const streamRef = useRef(null);
   const educationalDocsInputRef = useRef();
 
   useEffect(() => {
@@ -32,6 +36,14 @@ export default function RegisterPage() {
     }
   }, [role]);
 
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   const handleCatToggle = (id) => {
     setSelectedCats((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -39,16 +51,37 @@ export default function RegisterPage() {
   };
 
   const startCamera = async () => {
+    setCameraError(null);
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError(t("auth_camera_not_supported"));
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (e) {
+      const name = e?.name;
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        setCameraError(t("auth_camera_permission_denied"));
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        setCameraError(t("auth_camera_not_found"));
+      } else if (name === "NotReadableError" || name === "TrackStartError") {
+        setCameraError(t("auth_camera_in_use"));
+      } else if (name === "SecurityError") {
+        setCameraError(t("auth_camera_security_error"));
+      } else {
+        setCameraError(t("auth_camera_start_failed"));
+      }
       console.error(e);
     }
   };
 
   const capturePhoto = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !videoRef.current.srcObject) {
+      setCameraError(t("auth_camera_start_first"));
+      return;
+    }
     const canvas = document.createElement("canvas");
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
@@ -79,7 +112,7 @@ export default function RegisterPage() {
     setMessage(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("auth_passwords_mismatch"));
       return;
     }
 
@@ -102,10 +135,10 @@ export default function RegisterPage() {
       const res = await api.post("/api/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMessage(res.data?.message || "Registration submitted successfully.");
+      setMessage(res.data?.message || t("auth_register_success"));
       resetForm();
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.message || t("auth_register_failed"));
     } finally {
       setLoading(false);
     }
@@ -123,10 +156,10 @@ export default function RegisterPage() {
 
         <div className="mb-10 text-center relative z-10 flex flex-col items-center">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white mb-6 shadow-lg shadow-primary/20">
-            <UtensilsCrossed size={28} />
+            <BriefcaseBusiness size={28} />
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
-          <p className="text-text-muted">Join QuickServe and start your premium experience</p>
+          <h2 className="text-3xl font-bold text-foreground mb-2">{t("auth_register_title")}</h2>
+          <p className="text-text-muted">{t("auth_register_subtitle")}</p>
         </div>
 
         {message && (
@@ -143,23 +176,23 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Full Name"
+              label={t("auth_full_name")}
               name="name"
               id="name"
               autoComplete="name"
-              placeholder="Your Name"
+              placeholder={t("auth_name_placeholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
               className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
             />
             <Input
-              label="Email Address"
+              label={t("auth_email")}
               type="email"
               name="email"
               id="email"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder={t("auth_email_placeholder_reg")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -169,24 +202,24 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Password"
+              label={t("auth_password")}
               type="password"
               name="password"
               id="password"
               autoComplete="new-password"
-              placeholder="••••••••"
+              placeholder={t("auth_password_placeholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
             />
             <Input
-              label="Confirm Password"
+              label={t("auth_confirm_password")}
               type="password"
               name="confirmPassword"
               id="confirmPassword"
               autoComplete="new-password"
-              placeholder="••••••••"
+              placeholder={t("auth_password_placeholder")}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -195,23 +228,23 @@ export default function RegisterPage() {
           </div>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">Account Type</label>
+            <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">{t("auth_account_type")}</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
               className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
             >
-              <option value="customer">Customer</option>
-              <option value="provider">Food Provider / Restaurant</option>
+              <option value="customer">{t("auth_customer")}</option>
+              <option value="provider">{t("auth_provider")}</option>
             </select>
           </div>
 
           <div className="border-t border-white/10 pt-8 mt-8">
-            <h3 className="text-lg font-bold text-foreground mb-6">Verification Details</h3>
+            <h3 className="text-lg font-bold text-foreground mb-6">{t("auth_verification_details")}</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1">
-                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">Profile Image</label>
+                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">{t("auth_profile_image")}</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -221,7 +254,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">National ID (Front & Back)</label>
+                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">{t("auth_national_id")}</label>
                 <input
                   type="file"
                   multiple
@@ -231,7 +264,7 @@ export default function RegisterPage() {
                 />
                 {nationalId.length > 0 && (
                   <div className="mt-2 text-xs text-text-muted ml-1">
-                    Selected items: {nationalId.length}
+                    {t("auth_selected_items")}{nationalId.length}
                   </div>
                 )}
               </div>
@@ -241,9 +274,9 @@ export default function RegisterPage() {
               <div className="mt-8 bg-surface/30 p-6 rounded-3xl border border-dashed border-white/20">
                 <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                   <FileText size={16} className="text-primary" />
-                  Health/Food Safety Documents
+                  {t("auth_prof_docs")}
                 </h4>
-                <p className="text-text-muted text-xs mb-4">Upload certifications, food licenses, or other relevant files (Multiple allowed)</p>
+                <p className="text-text-muted text-xs mb-4">{t("auth_prof_docs_desc")}</p>
                 <input
                   type="file"
                   multiple
@@ -253,14 +286,14 @@ export default function RegisterPage() {
                 />
                 {educationalDocuments.length > 0 && (
                   <div className="mt-3 text-xs text-text-muted">
-                    Selected: {educationalDocuments.map(d => d.name).join(", ")}
+                    {t("auth_selected")}{educationalDocuments.map(d => d.name).join(", ")}
                   </div>
                 )}
               </div>
             )}
 
             <div className="mt-8">
-              <label className="block mb-4 font-semibold text-foreground/80 text-sm ml-1">Selfie Verification</label>
+              <label className="block mb-4 font-semibold text-foreground/80 text-sm ml-1">{t("auth_selfie_verif")}</label>
               <div className="bg-surface/30 rounded-3xl p-6 border border-white/10 overflow-hidden">
                 <div className="flex space-x-3 mb-4">
                   <button
@@ -268,14 +301,14 @@ export default function RegisterPage() {
                     onClick={startCamera}
                     className="flex-1 bg-primary/20 text-primary hover:bg-primary/30 px-4 py-3 rounded-xl font-bold transition-all text-sm"
                   >
-                    Start Camera
+                    {t("auth_start_camera")}
                   </button>
                   <button
                     type="button"
                     onClick={capturePhoto}
                     className="flex-1 bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-md"
                   >
-                    Capture Photo
+                    {t("auth_capture_photo")}
                   </button>
                 </div>
                 <video
@@ -286,7 +319,12 @@ export default function RegisterPage() {
                 />
                 {verificationSelfie && (
                   <div className="mt-4 flex items-center justify-center text-sm text-green-400 font-bold bg-green-500/10 py-2 rounded-lg">
-                    ✓ Selfie captured successfully
+                    {t("auth_selfie_success")}
+                  </div>
+                )}
+                {cameraError && (
+                  <div className="mt-4 text-sm text-red-400 font-medium bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
+                    {cameraError}
                   </div>
                 )}
               </div>
@@ -295,8 +333,8 @@ export default function RegisterPage() {
 
           {role === "provider" && (
             <div className="border-t border-white/10 pt-8 mt-8">
-              <h3 className="text-lg font-bold text-foreground mb-4">Cuisine / Food Categories</h3>
-              <p className="text-text-muted text-sm mb-6">Select the types of food you offer</p>
+              <h3 className="text-lg font-bold text-foreground mb-4">{t("auth_service_categories")}</h3>
+              <p className="text-text-muted text-sm mb-6">{t("auth_select_services")}</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-auto p-2">
                 {categories.map((c) => (
                   <label key={c.id} className="flex items-center p-3 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/10 transition-all cursor-pointer group">
@@ -316,16 +354,16 @@ export default function RegisterPage() {
 
           <div className="pt-8">
             <Button type="submit" className="w-full py-4 text-lg bg-gradient-to-r from-primary to-secondary hover:from-primary-hover hover:to-primary border-0 shadow-lg shadow-primary/20 transition-all font-semibold" loading={loading}>
-              {loading ? "Registering..." : "Complete Registration"}
+              {loading ? t("auth_registering") : t("auth_complete_register_btn")}
             </Button>
           </div>
         </form>
 
         <div className="mt-10 text-center text-sm border-t border-white/10 pt-8 relative z-10">
           <p className="text-text-muted">
-            Already have an account?{" "}
+            {t("auth_already_account")}{" "}
             <Link href="/auth/login" className="text-primary font-bold hover:text-secondary group transition-all">
-              Login here
+              {t("auth_login_here")}
               <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary mt-0.5" />
             </Link>
           </p>

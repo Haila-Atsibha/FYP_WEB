@@ -43,6 +43,31 @@ exports.getPendingUsers = async (req, res) => {
     }
 };
 
+exports.getAiApprovedUsers = async (req, res) => {
+    try {
+        await ensureVerificationColumns();
+
+        const result = await pool.query(
+            `SELECT id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url,
+                    ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at
+             FROM users
+             WHERE role = 'provider'
+               AND status = 'approved'
+               AND ai_verification_status = 'matched'
+             ORDER BY ai_verification_checked_at DESC NULLS LAST, created_at DESC`
+        );
+        // Important: keep this endpoint fast.
+        // Signing URLs for every user (and fetching all documents) can be very slow and
+        // causes the admin UI to look "stuck loading".
+        // The stored URLs are already public URLs in this project (Supabase public bucket),
+        // so return them directly.
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Get AI Approved Users Error:", error.message);
+        res.status(500).json({ message: 'Server error while fetching AI approved users', error: error.message });
+    }
+};
+
 exports.approveUser = async (req, res) => {
     const { id } = req.params;
     try {

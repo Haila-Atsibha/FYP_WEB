@@ -7,8 +7,10 @@ import Button from "../../../../src/components/Button";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { UtensilsCrossed } from "lucide-react";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "",
@@ -32,7 +34,7 @@ export default function LoginPage() {
       await login(formData.email, formData.password);
       setFormData({ email: "", password: "" });
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to login");
+      setError(err.response?.data?.message || t("auth_failed_login"));
     } finally {
       setLoading(false);
     }
@@ -53,8 +55,8 @@ export default function LoginPage() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white mb-6 shadow-lg shadow-primary/20">
             <UtensilsCrossed size={28} />
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
-          <p className="text-text-muted">Login to pick up where you left off</p>
+          <h2 className="text-3xl font-bold text-foreground mb-2">{t("auth_login_title")}</h2>
+          <p className="text-text-muted">{t("auth_login_subtitle")}</p>
         </div>
 
         {error && (
@@ -69,24 +71,24 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           <Input
-            label="Email Address"
+            label={t("auth_email")}
             type="email"
             name="email"
             id="email"
             autoComplete="email"
-            placeholder="name@example.com"
+            placeholder={t("auth_email_placeholder")}
             value={formData.email}
             onChange={handleChange}
             required
             className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
           />
           <Input
-            label="Password"
+            label={t("auth_password")}
             type="password"
             name="password"
             id="password"
             autoComplete="current-password"
-            placeholder="••••••••"
+            placeholder={t("auth_password_placeholder")}
             value={formData.password}
             onChange={handleChange}
             required
@@ -94,16 +96,16 @@ export default function LoginPage() {
           />
           <div className="pt-6">
             <Button type="submit" className="w-full py-4 text-lg bg-gradient-to-r from-primary to-secondary hover:from-primary-hover hover:to-primary border-0 shadow-lg shadow-primary/20 transition-all font-semibold" loading={loading}>
-              {loading ? "Logging in..." : "Login to QuickServe"}
+              {loading ? t("auth_logging_in") : t("auth_login_btn")}
             </Button>
           </div>
         </form>
 
         <div className="mt-8 text-center text-sm relative z-10">
           <p className="text-text-muted">
-            Don't have an account?{" "}
+            {t("auth_no_account")}{" "}
             <Link href="/auth/register" className="text-primary font-bold hover:text-secondary group transition-all">
-              Create an account
+              {t("auth_create_account_link")}
               <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary mt-0.5" />
             </Link>
           </p>

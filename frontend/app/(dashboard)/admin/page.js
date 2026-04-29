@@ -24,8 +24,10 @@ import Modal from "../../../src/components/Modal";
 import Skeleton, { CardSkeleton, TableSkeleton } from "../../../src/components/Skeleton";
 import api from "../../../src/services/api";
 import { useToast } from "../../../src/context/ToastContext";
+import { useTranslation } from "../../../src/hooks/useTranslation";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
@@ -71,7 +73,7 @@ export default function AdminDashboard() {
         const errorMsg =
           dashboardError.response?.data?.message ||
           dashboardError.response?.data?.error ||
-          "Failed to load dashboard data. Please try again later.";
+          t("admin_error_fetch");
         setError(errorMsg);
       } finally {
         setLoading(false);
@@ -88,9 +90,9 @@ export default function AdminDashboard() {
         <DashboardLayout>
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Error Loading Dashboard</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t("admin_error_loading")}</h2>
             <p className="text-text-muted mb-6">{error}</p>
-            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <Button onClick={() => window.location.reload()}>{t("admin_retry")}</Button>
           </div>
         </DashboardLayout>
       </ProtectedRoute>
@@ -104,8 +106,8 @@ export default function AdminDashboard() {
           {/* Top Section: Header & Quick Actions */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">System Overview</h1>
-              <p className="text-text-muted mt-1">Real-time platform performance and management hub.</p>
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{t("admin_system_overview")}</h1>
+              <p className="text-text-muted mt-1">{t("admin_system_overview_desc")}</p>
             </div>
           </div>
 
@@ -115,14 +117,14 @@ export default function AdminDashboard() {
               [...Array(7)].map((_, i) => <CardSkeleton key={i} />)
             ) : (
               <>
-                <SummaryCard title="Total Users" value={stats?.totalUsers} icon={<Users />} variant="primary" />
-                <SummaryCard title="Total Bookings" value={stats?.totalBookings} icon={<ShoppingBag />} variant="info" />
-                <SummaryCard title="Active Bookings" value={stats?.activeBookings} icon={<Clock />} variant="warning" />
-                <SummaryCard title="Completed" value={stats?.completedBookings} icon={<CheckCircle />} variant="success" />
-                <SummaryCard title="Rejected" value={stats?.rejectedBookings} icon={<XCircle />} variant="danger" />
-                <SummaryCard title="Booking Revenue" value={`$${stats?.totalRevenue}`} icon={<TrendingUp />} variant="success" />
-                <SummaryCard title="Sub Revenue" value={`$${stats?.subscriptionRevenue}`} icon={<CreditCard />} variant="info" />
-                <SummaryCard title="Avg. Platform Rating" value={stats?.avgRating ? `${parseFloat(stats.avgRating).toFixed(1)}/5` : "N/A"} icon={<Star />} variant="warning" />
+                <SummaryCard title={t("admin_total_users")} value={stats?.totalUsers} icon={<Users />} variant="primary" />
+                <SummaryCard title={t("admin_total_bookings")} value={stats?.totalBookings} icon={<ShoppingBag />} variant="info" />
+                <SummaryCard title={t("admin_active_bookings")} value={stats?.activeBookings} icon={<Clock />} variant="warning" />
+                <SummaryCard title={t("admin_completed")} value={stats?.completedBookings} icon={<CheckCircle />} variant="success" />
+                <SummaryCard title={t("admin_rejected")} value={stats?.rejectedBookings} icon={<XCircle />} variant="danger" />
+                <SummaryCard title={t("admin_booking_revenue")} value={`$${stats?.totalRevenue}`} icon={<TrendingUp />} variant="success" />
+                <SummaryCard title={t("admin_sub_revenue")} value={`$${stats?.subscriptionRevenue}`} icon={<CreditCard />} variant="info" />
+                <SummaryCard title={t("admin_avg_rating")} value={stats?.avgRating ? `${parseFloat(stats.avgRating).toFixed(1)}/5` : "N/A"} icon={<Star />} variant="warning" />
               </>
             )}
           </div>
@@ -133,52 +135,52 @@ export default function AdminDashboard() {
             <div className="xl:col-span-2 space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <NavHubCard
-                  title="Bookings"
-                  description="Monitor and manage all service bookings"
+                  title={t("sidebar_bookings")}
+                  description={t("admin_bookings_desc")}
                   icon={<ShoppingBag />}
                   href="/admin/bookings"
-                  stats={`${bookings.length} Total`}
+                  stats={`${bookings.length}${t("admin_total")}`}
                   color="primary"
                 />
                 <NavHubCard
-                  title="User Management"
-                  description="Manage platform accounts and roles"
+                  title={t("admin_user_mgmt")}
+                  description={t("admin_user_mgmt_desc")}
                   icon={<Users />}
                   href="/admin/users"
-                  stats={`${stats?.totalUsers || 0} Members`}
+                  stats={`${stats?.totalUsers || 0}${t("admin_members")}`}
                   color="info"
                 />
                 <NavHubCard
-                  title="Categories"
-                  description="Organize service types and options"
+                  title={t("sidebar_categories")}
+                  description={t("admin_categories_desc")}
                   icon={<ShieldCheck />}
                   href="/admin/categories"
-                  stats={`${categories.length} Active`}
+                  stats={`${categories.length}${t("admin_active")}`}
                   color="warning"
                 />
                 <NavHubCard
-                  title="Verifications"
-                  description="Review pending provider applications"
+                  title={t("admin_verifications")}
+                  description={t("admin_verifications_desc")}
                   icon={<CheckCircle />}
                   href="/admin/pending"
-                  stats={`${stats?.pendingVerifications || 0} Pending`}
+                  stats={`${stats?.pendingVerifications || 0}${t("admin_pending")}`}
                   color="success"
                 />
                 <NavHubCard
-                  title="Complaints"
-                  description="Resolve user disputes and reports"
+                  title={t("sidebar_complaints")}
+                  description={t("admin_complaints_desc")}
                   icon={<AlertCircle />}
                   href="/admin/complaints"
-                  stats={`${stats?.complaintsSummary?.open || 0} Open`}
+                  stats={`${stats?.complaintsSummary?.open || 0}${t("admin_open")}`}
                   color="danger"
                   isUrgent={stats?.complaintsSummary?.highPriority > 0}
                 />
                 <NavHubCard
-                  title="Subscriptions"
-                  description="Track provider premium plans"
+                  title={t("sidebar_subscriptions")}
+                  description={t("admin_subscriptions_desc")}
                   icon={<CreditCard />}
                   href="/admin/subscriptions"
-                  stats={`$${subscriptions?.monthlyRevenue || 0} Monthly`}
+                  stats={`$${subscriptions?.monthlyRevenue || 0}${t("admin_monthly")}`}
                   color="info"
                 />
               </div>
@@ -191,9 +193,9 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                     <Activity className="w-5 h-5 text-primary" />
-                    Recent Activities
+                    {t("admin_recent_activities")}
                   </h3>
-                  <Badge variant="info" className="animate-pulse">Live</Badge>
+                  <Badge variant="info" className="animate-pulse">{t("admin_live")}</Badge>
                 </div>
                 <div className="space-y-6 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
                   {loading ? (
@@ -203,7 +205,7 @@ export default function AdminDashboard() {
                   ))}
                 </div>
                 <div className="mt-6 pt-6 border-t border-border flex justify-center">
-                   <p className="text-xs text-text-muted font-medium italic">Showing latest system events</p>
+                   <p className="text-xs text-text-muted font-medium italic">{t("admin_showing_latest")}</p>
                 </div>
               </div>
             </div>
@@ -263,16 +265,20 @@ const ActivitySkeleton = () => (
   </div>
 );
 
-const NoDataPlaceholder = ({ text }) => (
-  <div className="flex flex-col items-center justify-center h-full text-text-muted italic space-y-2">
-    <div className="p-4 bg-background/50 rounded-full border border-border/50">
-      <TrendingUp className="w-8 h-8 opacity-20" />
+const NoDataPlaceholder = ({ text }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-text-muted italic space-y-2">
+      <div className="p-4 bg-background/50 rounded-full border border-border/50">
+        <TrendingUp className="w-8 h-8 opacity-20" />
+      </div>
+      <p className="text-sm">{text || t("admin_no_data")}</p>
     </div>
-    <p className="text-sm">{text || "No data available yet"}</p>
-  </div>
-);
+  );
+};
 
 const NavHubCard = ({ title, description, icon, href, stats, color, isUrgent }) => {
+  const { t } = useTranslation();
   const colorMap = {
     primary: "text-primary bg-primary/10 border-primary/20 hover:border-primary/40 shadow-primary/5",
     success: "text-green-500 bg-green-500/10 border-green-500/20 hover:border-green-500/40 shadow-green-500/5",
@@ -287,7 +293,7 @@ const NavHubCard = ({ title, description, icon, href, stats, color, isUrgent }) 
         <div className={`p-3 rounded-2xl ${colorMap[color]?.split(' border')[0]}`}>
           {React.cloneElement(icon, { size: 24, className: "group-hover:scale-110 transition-transform" })}
         </div>
-        {isUrgent && <Badge variant="danger" className="animate-bounce">Action Required</Badge>}
+        {isUrgent && <Badge variant="danger" className="animate-bounce">{t("admin_action_required")}</Badge>}
       </div>
       <div>
         <h3 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">

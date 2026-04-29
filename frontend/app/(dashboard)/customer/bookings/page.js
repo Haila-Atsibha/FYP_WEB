@@ -10,8 +10,7 @@ import {
     MessageSquare,
     Star,
     ShoppingBag,
-    ChefHat,
-    Bike
+    Briefcase
 } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "../../../../src/context/AuthContext";
@@ -71,18 +70,34 @@ export default function BookingsPage() {
     };
 
     const handleCancelBooking = async (id) => {
-        if (!confirm("Are you sure you want to cancel this order?")) return;
+        if (!confirm(t("msg_confirm_cancel"))) return;
 
         setCancellingId(id);
         try {
             await api.put(`/api/bookings/${id}/status`, { status: "cancelled" });
             setBookings(prev => prev.map(b => b.id === id ? { ...b, status: "cancelled" } : b));
-            showToast("Order cancelled successfully", "success");
+            showToast(t("msg_cancel_success"), "success");
         } catch (err) {
             console.error("Error cancelling order:", err);
-            showToast(err.response?.data?.message || "Failed to cancel order", "error");
+            showToast(err.response?.data?.message || t("msg_cancel_error"), "error");
         } finally {
             setCancellingId(null);
+        }
+    };
+
+    const handleCompleteBooking = async (id) => {
+        try {
+            const response = await api.put(`/api/bookings/${id}/status`, { status: "completed" });
+            const updatedBooking = response.data.booking;
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updatedBooking } : b));
+            showToast(t("msg_success_status"), "success");
+            
+            if (updatedBooking.status === "completed" && !updatedBooking.is_reviewed) {
+                handleOpenReviewModal(updatedBooking);
+            }
+        } catch (err) {
+            console.error("Error completing booking:", err);
+            showToast(err.response?.data?.message || t("msg_error_status"), "error");
         }
     };
 
@@ -104,10 +119,10 @@ export default function BookingsPage() {
             });
             setIsReviewModalOpen(false);
             setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, is_reviewed: true } : b));
-            showToast("Thank you for your review!", "success");
+            showToast(t("review_submit_success"), "success");
         } catch (err) {
             console.error("Error submitting review:", err);
-            showToast(err.response?.data?.message || "Failed to submit review", "error");
+            showToast(err.response?.data?.message || t("review_submit_error"), "error");
         } finally {
             setIsSubmittingReview(false);
         }
@@ -200,6 +215,7 @@ export default function BookingsPage() {
                                         <OrderCard
                                             booking={booking}
                                             onCancel={() => handleCancelBooking(booking.id)}
+                                            onComplete={() => handleCompleteBooking(booking.id)}
                                             onReview={() => handleOpenReviewModal(booking)}
                                             isCancelling={cancellingId === booking.id}
                                             t={t}
@@ -275,7 +291,7 @@ export default function BookingsPage() {
     );
 }
 
-const OrderCard = ({ booking, onCancel, onReview, isCancelling, t }) => {
+const OrderCard = ({ booking, onCancel, onComplete, onReview, isCancelling, t }) => {
     // Determine progress state (1: Received, 2: Preparing, 3: Delivered/Completed)
     let progressStep = 0;
     if (booking.status === "pending") progressStep = 1;
@@ -284,7 +300,7 @@ const OrderCard = ({ booking, onCancel, onReview, isCancelling, t }) => {
     if (booking.status === "cancelled" || booking.status === "rejected") progressStep = -1;
 
     const formatDate = (dateString) => {
-        if (!dateString) return "N/A";
+        if (!dateString) return t("not_available");
         return new Date(dateString).toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
@@ -312,7 +328,7 @@ const OrderCard = ({ booking, onCancel, onReview, isCancelling, t }) => {
                         <div>
                             <h3 className="text-2xl font-black text-foreground tracking-tight">{booking.title}</h3>
                             <p className="text-text-muted font-medium mt-1">
-                                from <span className="text-foreground font-bold">{booking.provider_name || "Restaurant"}</span>
+                                {t("from")} <span className="text-foreground font-bold">{booking.provider_name || t("auth_provider")}</span>
                             </p>
                         </div>
                     </div>
@@ -321,7 +337,7 @@ const OrderCard = ({ booking, onCancel, onReview, isCancelling, t }) => {
                         <div className="text-3xl font-black text-primary text-gradient">
                             ${parseFloat(booking.total_price).toLocaleString()}
                         </div>
-                        <div className="text-xs text-text-muted mt-1">Ordered at {formatDate(booking.created_at)}</div>
+                        <div className="text-xs text-text-muted mt-1">{t("ordered_at")} {formatDate(booking.created_at)}</div>
                     </div>
                 </div>
 
@@ -343,7 +359,7 @@ const OrderCard = ({ booking, onCancel, onReview, isCancelling, t }) => {
                             {/* Step 2 */}
                             <div className="flex flex-col items-center gap-3 w-1/3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 z-10 bg-surface transition-colors ${progressStep >= 2 ? 'border-blue-500 text-blue-500 ' : 'border-white/10 text-white/20'}`}>
-                                    <ChefHat size={18} />
+                                    <Briefcase size={18} />
                                 </div>
                                 <div className="text-center">
                                     <div className={`text-sm font-bold ${progressStep >= 2 ? 'text-white' : 'text-text-muted'}`}>{t("tracker_preparing")}</div>
@@ -405,11 +421,25 @@ const OrderCard = ({ booking, onCancel, onReview, isCancelling, t }) => {
                         </Badge>
                     )}
                     {booking.status === "accepted" && (
-                        <Link href={`/chat/${booking.id}`}>
-                            <Button className="bg-surface/50 border border-white/10 hover:border-white/30 text-white rounded-xl py-3 px-6 text-sm font-bold backdrop-blur-sm">
-                                <MessageSquare size={16} className="inline mr-2" /> {t("btn_message_restaurant")}
-                            </Button>
-                        </Link>
+                        <>
+                            <Link href={`/chat/${booking.id}`}>
+                                <Button className="bg-surface/50 border border-white/10 hover:border-white/30 text-white rounded-xl py-3 px-6 text-sm font-bold backdrop-blur-sm">
+                                    <MessageSquare size={16} className="inline mr-2" /> {t("btn_message_restaurant")}
+                                </Button>
+                            </Link>
+                            {!booking.customer_completed ? (
+                                <Button
+                                    onClick={onComplete}
+                                    className="bg-green-500 text-white hover:bg-green-600 border-none py-3 px-6 rounded-xl text-sm font-bold shadow-lg shadow-green-500/20"
+                                >
+                                    <CheckCircle size={16} className="inline mr-2" /> {t("btn_mark_completed")}
+                                </Button>
+                            ) : (
+                                <Badge variant="warning" className="py-2.5 px-4 rounded-xl flex items-center gap-1.5 opacity-80 border-0 bg-yellow-500/10 text-yellow-400 font-bold">
+                                    <Clock size={14} /> {t("waiting_provider_completion")}
+                                </Badge>
+                            )}
+                        </>
                     )}
                     {booking.status === "pending" && (
                         <Button

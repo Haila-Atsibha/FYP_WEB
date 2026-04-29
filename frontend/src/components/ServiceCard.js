@@ -14,7 +14,7 @@ export default function ServiceCard({ service, user }) {
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-4">
           <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full shadow-sm">
-            {service.category_name || service.category?.name || service.category || "Menu Item"}
+            {service.category_name || service.category?.name || service.category || "Service"}
           </span>
           <span className="font-bold text-xl text-foreground text-gradient">${price}</span>
         </div>
@@ -29,16 +29,16 @@ export default function ServiceCard({ service, user }) {
           <span className="flex items-center text-yellow-500 font-bold bg-yellow-500/10 px-2 py-1 rounded-md">
             ★ {rating || "4.8"}
           </span>
-          <span className="text-xs text-text-muted font-medium">12+ orders</span>
+          <span className="text-xs text-text-muted font-medium">12+ bookings</span>
         </div>
         {user ? (
           <Link href={`/services/${provider_id}?service=${id}`} className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-white/10 hover:border-primary/50 text-white hover:text-primary py-3 rounded-2xl font-semibold transition-all shadow-md group-hover:bg-primary/10 active:scale-95">
             <Plus size={18} />
-            <span>Order Now</span>
+            <span>Book Now</span>
           </Link>
         ) : (
           <Link href="/auth/login" className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-white/10 hover:border-primary/50 text-text-muted hover:text-white py-3 rounded-2xl font-semibold transition-all shadow-md active:scale-95">
-            Login to Order
+            Login to Book
           </Link>
         )}
       </div>

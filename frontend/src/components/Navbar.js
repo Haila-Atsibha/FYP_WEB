@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { User, LogOut, LayoutDashboard, UtensilsCrossed, Globe } from "lucide-react";
+import { User, LogOut, LayoutDashboard, BriefcaseBusiness, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "../hooks/useTranslation";
 
@@ -21,7 +21,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-all duration-300">
-            <UtensilsCrossed size={20} />
+            <BriefcaseBusiness size={20} />
           </div>
           <span className="text-2xl font-extrabold tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-accent transition-all duration-300">
             QuickServe

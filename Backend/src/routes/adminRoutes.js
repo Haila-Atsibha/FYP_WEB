@@ -4,6 +4,7 @@ const protect = require('../middlewares/authMiddleware');
 const authorizeRoles = require('../middlewares/roleMiddleware');
 const {
     getPendingUsers,
+    getAiApprovedUsers,
     approveUser,
     rejectUser,
     getStats,
@@ -28,6 +29,7 @@ router.get('/activity', getActivity);
 router.get('/subscriptions', getSubscriptions);
 router.get('/categories', getAllCategories);
 router.get('/pending-users', getPendingUsers);
+router.get('/ai-approved-users', getAiApprovedUsers);
 // approval endpoint accepts PUT (existing) and POST for compatibility
 router.put('/approve/:id', approveUser);
 router.post('/approve/:id', approveUser);

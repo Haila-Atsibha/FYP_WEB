@@ -74,8 +74,8 @@ function ServicesContent() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Explore Our Menu</h1>
-        <p className="text-text-muted text-lg max-w-2xl mx-auto">Discover premium fast food options prepared instantly around your location.</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Explore Services</h1>
+        <p className="text-text-muted text-lg max-w-2xl mx-auto">Find trusted providers and book the right service for your needs.</p>
       </motion.div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
@@ -90,7 +90,7 @@ function ServicesContent() {
           </div>
           <input
             type="text"
-            placeholder="Search for burgers, pizza, drinks..."
+            placeholder="Search for cleaning, maintenance, tech support..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-surface/50 border border-white/10 text-white rounded-full pl-12 pr-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-lg backdrop-blur-md"
@@ -110,7 +110,7 @@ function ServicesContent() {
                 : "bg-surface/50 text-text-muted border-white/10 hover:border-primary/50 hover:text-white backdrop-blur-md"
               }`}
           >
-            All Items
+            All Services
           </button>
           {categories.map((c) => (
             <button
@@ -131,7 +131,7 @@ function ServicesContent() {
         <div className="flex justify-center py-20">
           <div className="animate-pulse text-primary font-medium flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            Loading menu...
+            Loading services...
           </div>
         </div>
       )}
@@ -139,7 +139,7 @@ function ServicesContent() {
       <section className="mb-16">
         {!loading && services.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 glass-card rounded-3xl">
-            <p className="text-text-muted text-lg">No menu items found matching your criteria.</p>
+            <p className="text-text-muted text-lg">No services found matching your criteria.</p>
           </motion.div>
         )}
         <motion.div
@@ -172,8 +172,8 @@ function ServicesContent() {
         >
           <h2 className="text-2xl font-bold mb-8 text-foreground">
             {categoryFilter
-              ? `Top Restaurants in ${categories.find(c => c.id == categoryFilter)?.name || "Category"}`
-              : "Featured Restaurants"}
+              ? `Top Providers in ${categories.find(c => c.id == categoryFilter)?.name || "Category"}`
+              : "Featured Providers"}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {providers.slice(0, 6).map((p, idx) => (
@@ -191,7 +191,7 @@ function ServicesContent() {
                     completedJobs: p.completedJobs || "100+",
                     category: categoryFilter
                       ? categories.find(c => c.id == categoryFilter)?.name
-                      : (p.categories?.[0] || "Fast Food")
+                      : (p.categories?.[0] || "General Services")
                   }}
                   variant="vertical"
                 />

@@ -33,7 +33,7 @@ export default function ProviderProfilePage() {
                 setReviews(reviewsRes.data);
             } catch (e) {
                 console.error(e);
-                setError("Failed to load restaurant profile.");
+                setError("Failed to load provider profile.");
             } finally {
                 setLoading(false);
             }
@@ -48,7 +48,7 @@ export default function ProviderProfilePage() {
             return;
         }
         if (!selectedService) {
-            setError("Please select a menu item first.");
+            setError("Please select a service first.");
             return;
         }
 
@@ -65,7 +65,7 @@ export default function ProviderProfilePage() {
             }, 2000);
         } catch (e) {
             console.error(e);
-            setError(e.response?.data?.message || "Order failed. Please try again.");
+            setError(e.response?.data?.message || "Booking failed. Please try again.");
         } finally {
             setBookingLoading(false);
         }
@@ -80,7 +80,7 @@ export default function ProviderProfilePage() {
     }
 
     if (!provider) {
-        return <div className="text-center py-20 text-foreground glass-card rounded-3xl m-6">Restaurant not found.</div>;
+        return <div className="text-center py-20 text-foreground glass-card rounded-3xl m-6">Provider not found.</div>;
     }
 
     return (
@@ -98,7 +98,7 @@ export default function ProviderProfilePage() {
             <div className="relative z-10 max-w-7xl mx-auto px-6 pt-[20vh] md:pt-[30vh]">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-                    {/* Left Column: Restaurant Info */}
+                    {/* Left Column: Provider Info */}
                     <div className="lg:col-span-1 space-y-6">
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
@@ -132,33 +132,33 @@ export default function ProviderProfilePage() {
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
-                                <h3 className="font-bold text-lg mb-2 text-foreground">About the Restaurant</h3>
+                                <h3 className="font-bold text-lg mb-2 text-foreground">About the Provider</h3>
                                 <p className="text-text-muted text-sm leading-relaxed">
-                                    {provider.bio || "Dedicated to providing high-quality, freshly prepared fast food for our valued customers."}
+                                    {provider.bio || "Dedicated to providing high-quality and reliable services for clients."}
                                 </p>
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
                                 <div className="flex items-center gap-3 text-text-muted text-sm">
                                     <Clock size={16} className="text-primary" />
-                                    <span>Average prep time: 10-15 mins</span>
+                                    <span>Average response time: 10-15 mins</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-text-muted text-sm">
                                     <CheckCircle size={16} className="text-primary" />
-                                    <span>{provider.completedJobs || 0}+ successful orders</span>
+                                    <span>{provider.completedJobs || 0}+ completed jobs</span>
                                 </div>
                             </div>
                         </motion.div>
                     </div>
 
-                    {/* Right Column: Menu & Checkout */}
+                    {/* Right Column: Services & Booking */}
                     <div className="lg:col-span-2 space-y-12">
                         <motion.section 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <h2 className="text-3xl font-bold mb-8 text-foreground tracking-tight">Our Menu</h2>
+                            <h2 className="text-3xl font-bold mb-8 text-foreground tracking-tight">Available Services</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {provider.services?.map((svc) => (
                                     <div
@@ -183,7 +183,7 @@ export default function ProviderProfilePage() {
                                 ))}
                                 {(!provider.services || provider.services.length === 0) && (
                                     <div className="col-span-2 py-16 text-center glass-card rounded-[2rem] text-text-muted">
-                                        No menu items listed currently.
+                                        No services listed currently.
                                     </div>
                                 )}
                             </div>
@@ -201,13 +201,13 @@ export default function ProviderProfilePage() {
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white shadow-lg">
                                             <ShoppingBag size={18} />
                                         </div>
-                                        <h2 className="text-2xl font-bold text-foreground">Checkout</h2>
+                                        <h2 className="text-2xl font-bold text-foreground">Confirm Booking</h2>
                                     </div>
                                     
                                     <form onSubmit={handleBooking} className="space-y-6 relative z-10">
                                         <div className="p-6 bg-surface/50 border border-white/10 rounded-2xl flex justify-between items-center backdrop-blur-md">
                                             <div>
-                                                <div className="text-text-muted text-xs font-bold uppercase tracking-wider mb-1">Items Included</div>
+                                                <div className="text-text-muted text-xs font-bold uppercase tracking-wider mb-1">Selected Service</div>
                                                 <div className="text-white font-bold text-lg">{selectedService.title}</div>
                                             </div>
                                             <div className="text-right">
@@ -217,25 +217,25 @@ export default function ProviderProfilePage() {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-foreground mb-3 ml-1">Special Instructions (Optional)</label>
+                                            <label className="block text-sm font-bold text-foreground mb-3 ml-1">Job Details (Optional)</label>
                                             <textarea
                                                 value={description}
                                                 onChange={(e) => setDescription(e.target.value)}
-                                                placeholder="e.g. No pickles, extra sauce..."
+                                                placeholder="e.g. Need this done before 5 PM, bring required tools..."
                                                 rows={3}
                                                 className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
                                             />
                                         </div>
 
                                         {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium">{error}</div>}
-                                        {success && <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm font-medium flex items-center gap-2"><CheckCircle size={16}/> Order placed successfully! Redirecting to tracker...</div>}
+                                        {success && <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm font-medium flex items-center gap-2"><CheckCircle size={16}/> Booking placed successfully! Redirecting...</div>}
 
                                         <Button
                                             type="submit"
                                             className="w-full py-5 text-sm uppercase tracking-widest font-black rounded-2xl bg-gradient-to-r from-primary to-secondary hover:from-primary-hover hover:to-primary border-0 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
                                             disabled={bookingLoading || success}
                                         >
-                                            {bookingLoading ? "PROCESSING ORDER..." : "PLACE ORDER"}
+                                            {bookingLoading ? "PROCESSING BOOKING..." : "BOOK SERVICE"}
                                         </Button>
                                     </form>
                                 </motion.section>
@@ -293,7 +293,7 @@ export default function ProviderProfilePage() {
                                         <div className="w-12 h-12 bg-surface rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/5">
                                             <MessageSquare size={24} className="text-text-muted" />
                                         </div>
-                                        <p className="text-text-muted font-medium">No reviews yet for this restaurant.</p>
+                                        <p className="text-text-muted font-medium">No reviews yet for this provider.</p>
                                     </div>
                                 )}
                             </div>

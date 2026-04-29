@@ -63,10 +63,10 @@ export default function ProviderBookings() {
 
     const handleUpdateStatus = async (bookingId, status) => {
         try {
-            await api.put(`/api/bookings/${bookingId}/status`, { status });
+            const response = await api.put(`/api/bookings/${bookingId}/status`, { status });
             // Update local state to reflect change immediately
             setBookings(prev => prev.map(b =>
-                b.id === bookingId ? { ...b, status } : b
+                b.id === bookingId ? { ...b, ...response.data.booking } : b
             ));
             showToast(t("msg_success_status"), "success");
         } catch (err) {
@@ -251,13 +251,19 @@ const BookingCard = ({ booking, onUpdateStatus, t }) => {
                                         {t("btn_open_chat")}
                                     </Button>
                                 </Link>
-                                <Button
-                                    onClick={() => onUpdateStatus(booking.id, "completed")}
-                                    className="w-full bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
-                                >
-                                    <CheckCircle size={18} />
-                                    {t("btn_mark_completed")}
-                                </Button>
+                                {!booking.provider_completed ? (
+                                    <Button
+                                        onClick={() => onUpdateStatus(booking.id, "completed")}
+                                        className="w-full bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/20 rounded-2xl flex items-center justify-center gap-2 py-3 px-4 font-black text-sm"
+                                    >
+                                        <CheckCircle size={18} />
+                                        {t("btn_mark_completed")}
+                                    </Button>
+                                ) : (
+                                    <Badge variant="warning" className="w-full py-3 px-4 rounded-2xl flex items-center justify-center gap-2 opacity-80 border-0 bg-yellow-500/10 text-yellow-500 font-bold text-xs text-center">
+                                        <Clock size={16} /> {t("waiting_customer_completion")}
+                                    </Badge>
+                                )}
                             </>
                         )}
                         {!isPending && !isAccepted && (
