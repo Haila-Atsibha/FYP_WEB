@@ -1,3 +1,18 @@
+<<<<<<< HEAD
+# dependencies
+node_modules/
+Backend/node_modules/
+
+# logs
+*.log
+
+# environment files
+.env
+.env.local
+
+# generated outputs
+output_*.txt
+=======
 # Dependencies
 node_modules/
 .venv/
@@ -13,3 +28,4 @@ __pycache__/
 # OS generated files
 .DS_Store
 Thumbs.db
+>>>>>>> df6cc57d5a91ae4f3b2ba258ca727f70c36cd422
