@@ -46,6 +46,51 @@ export default function CustomerDashboard() {
   const { showToast } = useToast();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim().length > 1) {
+        setIsSearching(true);
+        try {
+          const sq = searchQuery.toLowerCase();
+          
+          const [resServices, resCats, resProv] = await Promise.all([
+            api.get(`/api/services`, { params: { q: searchQuery } }).catch(() => ({ data: [] })),
+            api.get(`/api/categories`).catch(() => ({ data: [] })),
+            api.get(`/api/providers`).catch(() => ({ data: [] }))
+          ]);
+          
+          const matchedCats = resCats.data
+            .filter(c => c.name.toLowerCase().includes(sq))
+            .map(c => ({ id: `cat_${c.id}`, title: c.name, type: 'Category', originalId: c.id }));
+            
+          const matchedProv = resProv.data
+            .filter(p => p.name.toLowerCase().includes(sq))
+            .map(p => ({ id: `prov_${p.id}`, title: p.name, type: 'Provider', originalId: p.provider_profile_id || p.id }));
+            
+          const matchedServ = resServices.data
+            .map(s => ({ id: `srv_${s.id}`, title: s.title, type: 'Service', categoryName: s.category_name || s.category?.name, providerId: s.provider_id }));
+
+          const combined = [...matchedCats, ...matchedProv, ...matchedServ].slice(0, 8);
+          
+          setSuggestions(combined);
+          setShowSuggestions(true);
+        } catch (err) {
+          console.error("Failed to fetch suggestions:", err);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -164,13 +209,15 @@ export default function CustomerDashboard() {
             </div>
 
             {/* Functional Search Bar */}
-            <form onSubmit={handleSearch} className="relative w-full max-w-2xl mt-4">
+            <form onSubmit={handleSearch} className="relative w-full max-w-2xl mt-4 z-40">
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-70" />
               <input
                 type="text"
                 placeholder={t("search_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 className="w-full bg-surface border-2 border-border focus:border-primary/50 text-foreground rounded-full pl-14 pr-6 py-4 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-lg"
               />
               <button
@@ -179,6 +226,52 @@ export default function CustomerDashboard() {
               >
                 {t("search_button")}
               </button>
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-text-muted text-sm font-medium animate-pulse">{t("loading") || "Loading..."}</div>
+                  ) : suggestions.length > 0 ? (
+                    <ul className="py-2 max-h-80 overflow-y-auto">
+                      {suggestions.map((suggestion) => (
+                        <li key={suggestion.id}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // Prevents the input from losing focus and hiding the dropdown
+                              setShowSuggestions(false);
+                              if (suggestion.type === 'Category') {
+                                router.push(`/services?category=${suggestion.originalId}`);
+                              } else if (suggestion.type === 'Provider') {
+                                router.push(`/services/${suggestion.originalId}`);
+                              } else {
+                                // Navigate to the provider of this specific service
+                                router.push(`/services/${suggestion.providerId}`);
+                              }
+                            }}
+                            className="w-full text-left px-6 py-3 hover:bg-surface-hover text-foreground flex items-center gap-4 transition-colors"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              {suggestion.type === 'Category' ? <Grid className="w-4 h-4 text-primary" /> : 
+                               suggestion.type === 'Provider' ? <Users className="w-4 h-4 text-primary" /> : 
+                               <Search className="w-4 h-4 text-primary" />}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">{suggestion.title}</p>
+                              <p className="text-xs text-text-muted font-medium mt-0.5">
+                                {suggestion.type} {suggestion.categoryName ? `in ${suggestion.categoryName}` : ''}
+                              </p>
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="p-4 text-center text-text-muted text-sm font-medium">No results found</div>
+                  )}
+                </div>
+              )}
             </form>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">

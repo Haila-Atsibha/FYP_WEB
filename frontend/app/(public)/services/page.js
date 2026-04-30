@@ -23,6 +23,11 @@ function ServicesContent() {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setSearch(q);
+    }
+
     const cat = searchParams.get("category");
     if (cat === "null" || cat === "undefined" || !cat) {
       setCategoryFilter(null);
