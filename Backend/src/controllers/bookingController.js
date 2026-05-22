@@ -7,7 +7,7 @@ const { createNotification } = require('./notificationController');
 exports.createBooking = async (req, res) => {
     try {
         const userId = req.user.id; // customer id
-        const { service_id, description } = req.body;
+        const { service_id, description, booking_date, booking_time } = req.body;
 
         if (!service_id) {
             return res.status(400).json({ message: "service_id is required" });
@@ -30,9 +30,9 @@ exports.createBooking = async (req, res) => {
 
         const ins = await pool.query(
             `INSERT INTO bookings
-             (service_id, provider_id, customer_id, total_price, status, description, booking_date)
-             VALUES ($1,$2,$3,$4,'pending',$5, CURRENT_DATE) RETURNING *`,
-            [service_id, providerId, userId, totalPrice, description || "No description provided"]
+             (service_id, provider_id, customer_id, total_price, status, description, booking_date, booking_time)
+             VALUES ($1,$2,$3,$4,'pending',$5, $6, $7) RETURNING *`,
+            [service_id, providerId, userId, totalPrice, description || "No description provided", booking_date || new Date(), booking_time || '00:00:00']
         );
 
         // Get provider's user_id for notification

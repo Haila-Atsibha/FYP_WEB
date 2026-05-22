@@ -12,10 +12,11 @@ import {
     FileText,
     Save,
     ShieldCheck,
-    Star,
     CheckCircle2,
     AlertCircle,
-    Loader2
+    Loader2,
+    CreditCard,
+    Zap
 } from "lucide-react";
 
 export default function ProviderProfile() {
@@ -23,6 +24,7 @@ export default function ProviderProfile() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [subscribing, setSubscribing] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
 
     const [formData, setFormData] = useState({
@@ -99,6 +101,26 @@ export default function ProviderProfile() {
         }
     };
 
+    const handleSubscribe = async () => {
+        setSubscribing(true);
+        try {
+            const response = await api.post("/api/payments/subscribe", {
+                plan: "premium",
+                amount: "500" // example amount
+            });
+            if (response.data?.data?.checkout_url) {
+                window.location.href = response.data.data.checkout_url;
+            } else {
+                setMessage({ type: "error", text: "Failed to initialize payment." });
+            }
+        } catch (err) {
+            console.error("Subscription error:", err);
+            setMessage({ type: "error", text: "Error connecting to payment provider." });
+        } finally {
+            setSubscribing(false);
+        }
+    };
+
     return (
         <ProtectedRoute roles={["provider"]}>
             <DashboardLayout>
@@ -164,6 +186,41 @@ export default function ProviderProfile() {
                                                 <p className="text-[10px] font-bold text-text-muted mt-1 uppercase">Official QuickServe Status</p>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Subscription UI */}
+                                <div className="bg-surface border border-border rounded-[2.5rem] p-8 space-y-6 mt-6 relative overflow-hidden group">
+                                    <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+                                        <Zap size={180} />
+                                    </div>
+                                    <div className="relative z-10 space-y-4">
+                                        <p className="text-xs font-black uppercase text-text-muted tracking-widest flex items-center gap-2">
+                                            <CreditCard size={14} className="text-primary" /> Premium Subscription
+                                        </p>
+                                        <div className="space-y-1">
+                                            <p className="text-lg font-black text-foreground">Boost Your Visibility</p>
+                                            <p className="text-sm font-medium text-text-muted">Get listed at the top of search results and unlock premium features.</p>
+                                        </div>
+                                        
+                                        {profile?.subscription_status === 'active' ? (
+                                            <div className="bg-green-500/10 border border-green-500/20 text-green-500 px-4 py-3 rounded-xl flex items-center gap-3">
+                                                <CheckCircle2 size={20} />
+                                                <div>
+                                                    <p className="text-sm font-bold">Active Premium Plan</p>
+                                                    <p className="text-xs font-medium opacity-80">Valid until {new Date(profile.subscription_end).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={handleSubscribe}
+                                                disabled={subscribing}
+                                                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-black py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                                            >
+                                                {subscribing ? <Loader2 size={20} className="animate-spin" /> : <Zap size={20} />}
+                                                {subscribing ? "INITIALIZING..." : "UPGRADE FOR 500 ETB / MONTH"}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -2,6 +2,7 @@ const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { ensureVerificationColumns, verifyRegistrationFaces } = require('../utils/faceVerification');
+const { sendOTPEmail } = require('../utils/emailService');
 
 exports.registerUser = async (req, res) => {
     try {
@@ -75,13 +76,17 @@ exports.registerUser = async (req, res) => {
             message: aiVerification.message
         });
 
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = new Date(Date.now() + 10 * 60000); // 10 mins
+
         const newUser = await pool.query(
             `INSERT INTO users 
                 (
                     name, email, password, role, status, profile_image_url, national_id_url, verification_selfie_url,
-                    ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at
+                    ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at,
+                    otp, otp_expires
                 ) 
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW()) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,$14) 
              RETURNING id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url,
                        ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at`,
             [
@@ -96,9 +101,16 @@ exports.registerUser = async (req, res) => {
                 aiVerification.status,
                 aiVerification.score,
                 aiVerification.message,
-                aiVerification.provider
+                aiVerification.provider,
+                otp,
+                otpExpires
             ]
         );
+
+        console.log(`\n\n--- OTP FOR NEW REGISTRATION: ${otp} (Email: ${email}) ---\n\n`);
+        
+        // Attempt to send email but don't block registration if it fails
+        sendOTPEmail(email, otp).catch(console.error);
 
         const user = newUser.rows[0];
 
@@ -227,6 +239,13 @@ exports.loginUser = async (req, res) => {
             });
         }
 
+        // Check if user is verified
+        if (user.hasOwnProperty('is_verified') && user.is_verified === false) {
+            return res.status(403).json({
+                message: "EMAIL_NOT_VERIFIED| Please verify your email before logging in."
+            });
+        }
+
         // disallow login if account not yet approved
         if (user.status === 'pending') {
             return res.status(403).json({
@@ -265,6 +284,53 @@ exports.loginUser = async (req, res) => {
             }
         });
 
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.verifyEmail = async (req, res) => {
+    try {
+        await ensureVerificationColumns();
+        const { email, otp } = req.body;
+        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
+
+        const user = result.rows[0];
+        if (user.is_verified) return res.status(400).json({ message: "Email already verified" });
+        if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+        if (new Date(user.otp_expires) < new Date()) return res.status(400).json({ message: "OTP expired" });
+
+        await pool.query("UPDATE users SET is_verified = true, otp = null, otp_expires = null WHERE id = $1", [user.id]);
+        res.json({ message: "Email verified successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.resendOtp = async (req, res) => {
+    try {
+        await ensureVerificationColumns();
+        const { email } = req.body;
+        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
+        
+        const user = result.rows[0];
+        if (user.is_verified) return res.status(400).json({ message: "Email already verified" });
+        
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = new Date(Date.now() + 10 * 60000); // 10 mins
+        
+        await pool.query("UPDATE users SET otp = $1, otp_expires = $2 WHERE id = $3", [otp, expires, user.id]);
+        
+        console.log(`Sending new OTP ${otp} to ${email}`);
+        
+        const emailSent = await sendOTPEmail(email, otp);
+        if (!emailSent) {
+            return res.status(500).json({ message: "Failed to send OTP email. Please check your backend email configuration." });
+        }
+        
+        res.json({ message: "OTP sent to your email address" });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }

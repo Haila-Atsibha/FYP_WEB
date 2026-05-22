@@ -34,7 +34,12 @@ export default function LoginPage() {
       await login(formData.email, formData.password);
       setFormData({ email: "", password: "" });
     } catch (err) {
-      setError(err.response?.data?.message || t("auth_failed_login"));
+      const errorMessage = err.response?.data?.message || t("auth_failed_login");
+      if (errorMessage.includes("EMAIL_NOT_VERIFIED|")) {
+        window.location.href = `/auth/verify-email?email=${encodeURIComponent(formData.email)}`;
+        return;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

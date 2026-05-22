@@ -4,6 +4,9 @@ const nextConfig = {
   turbopack: {
     root: ".",
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
 };
 
 export default nextConfig;

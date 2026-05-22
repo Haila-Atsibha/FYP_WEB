@@ -21,6 +21,8 @@ export default function ProviderProfilePage() {
     const [bookingLoading, setBookingLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const [bookingDate, setBookingDate] = useState("");
+    const [bookingTime, setBookingTime] = useState("");
 
     useEffect(() => {
         const fetchProviderData = async () => {
@@ -57,7 +59,9 @@ export default function ProviderProfilePage() {
         try {
             await api.post("/api/bookings", {
                 service_id: selectedService.id,
-                description: description || "No special instructions."
+                description: description || "No special instructions.",
+                booking_date: bookingDate,
+                booking_time: bookingTime
             });
             setSuccess(true);
             setTimeout(() => {
@@ -217,6 +221,29 @@ export default function ProviderProfilePage() {
                                         </div>
 
                                         <div>
+                                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-bold text-foreground mb-3 ml-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={bookingDate}
+                                                        onChange={(e) => setBookingDate(e.target.value)}
+                                                        required
+                                                        min={new Date().toISOString().split("T")[0]}
+                                                        className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-bold text-foreground mb-3 ml-1">Time</label>
+                                                    <input
+                                                        type="time"
+                                                        value={bookingTime}
+                                                        onChange={(e) => setBookingTime(e.target.value)}
+                                                        required
+                                                        className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
+                                                    />
+                                                </div>
+                                            </div>
                                             <label className="block text-sm font-bold text-foreground mb-3 ml-1">Job Details (Optional)</label>
                                             <textarea
                                                 value={description}

@@ -137,6 +137,11 @@ export default function RegisterPage() {
       });
       setMessage(res.data?.message || t("auth_register_success"));
       resetForm();
+      
+      // Redirect to verification page
+      setTimeout(() => {
+        window.location.href = `/auth/verify-email?email=${encodeURIComponent(email)}`;
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || t("auth_register_failed"));
     } finally {

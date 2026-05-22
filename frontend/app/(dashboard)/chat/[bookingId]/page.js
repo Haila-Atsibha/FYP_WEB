@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useContext, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Send, ArrowLeft, User, Shield, Info, MoreVertical } from "lucide-react";
+import { Send, ArrowLeft, User, Shield, Info, MoreVertical, Paperclip, MapPin, X, Image as ImageIcon } from "lucide-react";
 import api from "../../../../src/services/api";
 import { AuthContext } from "../../../../src/context/AuthContext";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
@@ -18,6 +18,9 @@ export default function ChatPage() {
     const [booking, setBooking] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [location, setLocation] = useState(null);
+    const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
@@ -73,22 +76,44 @@ export default function ChatPage() {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || sending) return;
+        if ((!newMessage.trim() && !selectedFile && !location) || sending) return;
 
         setSending(true);
+        const formData = new FormData();
+        formData.append("booking_id", bookingId);
+        if (newMessage.trim()) formData.append("content", newMessage);
+        if (selectedFile) formData.append("media", selectedFile);
+        if (location) {
+            formData.append("location_lat", location.lat);
+            formData.append("location_lng", location.lng);
+            formData.append("location_label", "Shared Location");
+        }
+
         try {
-            const res = await api.post("/api/messages", {
-                booking_id: bookingId,
-                content: newMessage
+            const res = await api.post("/api/messages", formData, {
+                headers: { "Content-Type": "multipart/form-data" }
             });
             setMessages([...messages, res.data.messageObj]);
             setNewMessage("");
+            setSelectedFile(null);
+            setLocation(null);
         } catch (e) {
             console.error(e);
             setError("Failed to send message.");
         } finally {
             setSending(false);
         }
+    };
+
+    const handleLocationShare = () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => alert("Unable to retrieve your location")
+        );
     };
 
     if (loading) {
@@ -180,6 +205,18 @@ export default function ChatPage() {
                                             ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/20'
                                             : 'bg-surface-hover text-foreground border border-border rounded-tl-none'
                                             }`}>
+                                            {msg.message_type === 'image' && msg.media_url && (
+                                                <img src={msg.media_url} alt="Shared" className="max-w-[200px] rounded-lg mb-2 cursor-pointer" onClick={() => window.open(msg.media_url, '_blank')} />
+                                            )}
+                                            {msg.message_type === 'video' && msg.media_url && (
+                                                <video src={msg.media_url} controls className="max-w-[200px] rounded-lg mb-2" />
+                                            )}
+                                            {msg.message_type === 'location' && msg.location && (
+                                                <div className="mb-2 p-2 bg-black/20 rounded-lg flex items-center gap-2 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${msg.location.lat},${msg.location.lng}`, '_blank')}>
+                                                    <MapPin size={24} className="text-red-400" />
+                                                    <div className="text-xs font-bold underline">View Map Location</div>
+                                                </div>
+                                            )}
                                             {msg.message || msg.content}
                                         </div>
                                         <p className={`text-[10px] mt-1 font-bold text-text-muted uppercase ${isMe ? 'text-right' : 'text-left'}`}>
@@ -193,22 +230,53 @@ export default function ChatPage() {
                 </div>
 
                 {/* Message Input */}
-                <form onSubmit={handleSendMessage} className="bg-surface border border-border rounded-3xl p-4 flex gap-4 shadow-lg shadow-primary/5">
-                    <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type your message here..."
-                        className="flex-1 bg-transparent border-none text-foreground px-4 py-2 focus:outline-none font-medium"
-                    />
-                    <Button
-                        type="submit"
-                        disabled={!newMessage.trim() || sending}
-                        className="rounded-2xl w-12 h-12 flex items-center justify-center p-0 shrink-0"
-                    >
-                        <Send size={20} />
-                    </Button>
-                </form>
+                <div className="flex flex-col gap-2">
+                    {(selectedFile || location) && (
+                        <div className="flex gap-2 px-2">
+                            {selectedFile && (
+                                <div className="bg-primary/20 text-primary px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                                    <ImageIcon size={14} /> {selectedFile.name}
+                                    <button onClick={() => setSelectedFile(null)}><X size={14} className="hover:text-red-500"/></button>
+                                </div>
+                            )}
+                            {location && (
+                                <div className="bg-primary/20 text-primary px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                                    <MapPin size={14} /> Location Ready
+                                    <button onClick={() => setLocation(null)}><X size={14} className="hover:text-red-500"/></button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <form onSubmit={handleSendMessage} className="bg-surface border border-border rounded-3xl p-4 flex items-center gap-4 shadow-lg shadow-primary/5">
+                        <input
+                            type="file"
+                            className="hidden"
+                            ref={fileInputRef}
+                            accept="image/*,video/*"
+                            onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])}
+                        />
+                        <button type="button" onClick={() => fileInputRef.current?.click()} className="text-text-muted hover:text-primary transition-colors p-2">
+                            <Paperclip size={20} />
+                        </button>
+                        <button type="button" onClick={handleLocationShare} className="text-text-muted hover:text-primary transition-colors p-2">
+                            <MapPin size={20} />
+                        </button>
+                        <input
+                            type="text"
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type your message here..."
+                            className="flex-1 bg-transparent border-none text-foreground px-2 py-2 focus:outline-none font-medium"
+                        />
+                        <Button
+                            type="submit"
+                            disabled={(!newMessage.trim() && !selectedFile && !location) || sending}
+                            className="rounded-2xl w-12 h-12 flex items-center justify-center p-0 shrink-0"
+                        >
+                            <Send size={20} />
+                        </Button>
+                    </form>
+                </div>
 
             </div>
         </DashboardLayout>

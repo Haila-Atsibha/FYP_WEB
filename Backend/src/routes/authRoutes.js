@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-const { registerUser, loginUser } = require('../controllers/authController');
+const { registerUser, loginUser, verifyEmail, resendOtp } = require('../controllers/authController');
 
 // registration expects multipart/form-data with three files and optional categories array
 router.post(
@@ -19,5 +19,7 @@ router.post(
     registerUser
 );
 router.post('/login', loginUser);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-otp', resendOtp);
 
 module.exports = router;
