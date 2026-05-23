@@ -13,7 +13,8 @@ import {
   Clock,
   ShieldCheck,
   CreditCard,
-  ArrowRight
+  ArrowRight,
+  UserX
 } from "lucide-react";
 import Link from "next/link";
 import ProtectedRoute from "../../../src/components/ProtectedRoute";
@@ -183,28 +184,36 @@ export default function AdminDashboard() {
                   stats={`$${subscriptions?.monthlyRevenue || 0}${t("admin_monthly")}`}
                   color="info"
                 />
+                <NavHubCard
+                  title={t("admin_inactive_providers_title")}
+                  description={t("admin_inactive_providers_desc")}
+                  icon={<UserX />}
+                  href="/admin/inactive-providers"
+                  stats={`${stats?.inactiveSubscribers || 0}${t("admin_inactive_providers_count")}`}
+                  color="danger"
+                />
               </div>
 
             </div>
 
             {/* 4. Recent Activity Feed */}
             <div className="xl:col-span-1">
-              <div className="bg-surface border border-border rounded-3xl p-6 h-full flex flex-col shadow-sm">
+              <div className="glass-card rounded-3xl p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <h3 className="text-xl font-bold font-heading text-white flex items-center gap-2">
                     <Activity className="w-5 h-5 text-primary" />
                     {t("admin_recent_activities")}
                   </h3>
-                  <Badge variant="info" className="animate-pulse">{t("admin_live")}</Badge>
+                  <Badge variant="info" className="animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.3)]">{t("admin_live")}</Badge>
                 </div>
-                <div className="space-y-6 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                <div className="space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
                   {loading ? (
                     [...Array(5)].map((_, i) => <ActivitySkeleton key={i} />)
                   ) : activity.map((act, i) => (
                     <ActivityItem key={i} {...act} />
                   ))}
                 </div>
-                <div className="mt-6 pt-6 border-t border-border flex justify-center">
+                <div className="mt-6 pt-6 border-t border-white/5 flex justify-center">
                    <p className="text-xs text-text-muted font-medium italic">{t("admin_showing_latest")}</p>
                 </div>
               </div>
@@ -220,35 +229,35 @@ export default function AdminDashboard() {
 // Sub-components for better modularity
 const SummaryCard = ({ title, value, icon, variant }) => {
   const variantMap = {
-    primary: "text-primary bg-primary/10",
-    success: "text-green-500 bg-green-500/10",
-    danger: "text-red-500 bg-red-500/10",
-    warning: "text-yellow-500 bg-yellow-500/10",
-    info: "text-blue-500 bg-blue-500/10"
+    primary: "text-primary bg-primary/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]",
+    success: "text-green-400 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]",
+    danger: "text-red-400 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.15)]",
+    warning: "text-yellow-400 bg-yellow-500/10 shadow-[0_0_15px_rgba(234,179,8,0.15)]",
+    info: "text-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
   };
 
   return (
-    <div className="bg-surface border border-border p-6 rounded-2xl shadow-sm hover:translate-y-[-4px] transition-all duration-300">
-      <div className={`p-3 rounded-xl w-fit mb-4 ${variantMap[variant] || variantMap.primary}`}>
+    <div className="glass-card p-6 rounded-3xl hover:-translate-y-1 transition-all duration-300">
+      <div className={`p-3 rounded-2xl w-fit mb-4 ${variantMap[variant] || variantMap.primary}`}>
         {React.cloneElement(icon, { size: 24 })}
       </div>
       <p className="text-sm font-bold text-text-muted uppercase tracking-wider mb-1">{title}</p>
-      <h3 className="text-3xl font-extrabold text-foreground tracking-tight">{value}</h3>
+      <h3 className="text-3xl font-bold font-heading text-white tracking-tight">{value}</h3>
     </div>
   );
 };
 
 const ActivityItem = ({ userName, action, time }) => (
-  <div className="flex items-start space-x-4 group animate-in slide-in-from-bottom duration-500">
-    <div className="w-10 h-10 rounded-full bg-surface-hover flex-shrink-0 flex items-center justify-center font-bold text-primary border border-border">
+  <div className="flex items-start space-x-4 group animate-in slide-in-from-bottom duration-500 p-3 rounded-2xl hover:bg-white/5 transition-colors">
+    <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex-shrink-0 flex items-center justify-center font-bold text-primary shadow-inner">
       {userName[0]}
     </div>
     <div className="flex-1">
-      <p className="text-sm font-bold text-foreground">
+      <p className="text-sm font-bold text-white">
         {userName} <span className="font-medium text-text-muted">{action}</span>
       </p>
       <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
-        <Clock className="w-3 h-3" />
+        <Clock className="w-3 h-3 text-primary/50" />
         {time}
       </p>
     </div>
@@ -280,29 +289,32 @@ const NoDataPlaceholder = ({ text }) => {
 const NavHubCard = ({ title, description, icon, href, stats, color, isUrgent }) => {
   const { t } = useTranslation();
   const colorMap = {
-    primary: "text-primary bg-primary/10 border-primary/20 hover:border-primary/40 shadow-primary/5",
-    success: "text-green-500 bg-green-500/10 border-green-500/20 hover:border-green-500/40 shadow-green-500/5",
-    warning: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/40 shadow-yellow-500/5",
-    danger: "text-red-500 bg-red-500/10 border-red-500/20 hover:border-red-500/40 shadow-red-500/5",
-    info: "text-blue-500 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 shadow-blue-500/5"
+    primary: "text-primary bg-primary/10 border border-primary/20 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]",
+    success: "text-green-400 bg-green-500/10 border border-green-500/20 hover:border-green-500/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)]",
+    warning: "text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 hover:border-yellow-500/50 hover:shadow-[0_0_30px_rgba(234,179,8,0.15)]",
+    danger: "text-red-400 bg-red-500/10 border border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]",
+    info: "text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)]"
   };
 
   return (
-    <Link href={href} className={`bg-surface border p-6 rounded-3xl transition-all duration-300 hover:translate-y-[-4px] group shadow-sm flex flex-col justify-between h-full ${colorMap[color] || colorMap.primary}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-2xl ${colorMap[color]?.split(' border')[0]}`}>
+    <Link href={href} className={`glass-card p-6 rounded-3xl transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between h-full relative overflow-hidden`}>
+      {/* Decorative gradient overlay matching color map */}
+      <div className={`absolute top-0 right-0 w-32 h-32 blur-[50px] rounded-full opacity-20 pointer-events-none ${colorMap[color]?.split(' border')[0]}`}></div>
+      
+      <div className="flex items-start justify-between mb-4 relative z-10">
+        <div className={`p-3 rounded-2xl ${colorMap[color]}`}>
           {React.cloneElement(icon, { size: 24, className: "group-hover:scale-110 transition-transform" })}
         </div>
-        {isUrgent && <Badge variant="danger" className="animate-bounce">{t("admin_action_required")}</Badge>}
+        {isUrgent && <Badge variant="danger" className="animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]">{t("admin_action_required")}</Badge>}
       </div>
-      <div>
-        <h3 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+      <div className="relative z-10">
+        <h3 className="text-xl font-bold font-heading text-white mb-1 flex items-center gap-2 group-hover:text-primary transition-colors">
           {title}
           <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
         </h3>
         <p className="text-sm text-text-muted mb-4">{description}</p>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-black px-3 py-1 bg-surface rounded-full border border-border shadow-inner truncate max-w-full">
+          <span className="text-sm font-black px-3 py-1 bg-surface/50 rounded-full border border-white/10 shadow-inner truncate max-w-full text-white group-hover:border-primary/30 transition-colors">
             {stats}
           </span>
         </div>

@@ -218,11 +218,11 @@ export default function CustomerDashboard() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="w-full bg-surface border-2 border-border focus:border-primary/50 text-foreground rounded-full pl-14 pr-6 py-4 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-lg"
+                className="w-full glass border border-white/10 focus:border-primary/50 text-white rounded-full pl-14 pr-32 py-4 shadow-[0_4px_30px_rgba(0,0,0,0.1)] focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium text-lg placeholder:text-white/40"
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white hover:bg-primary-hover px-6 py-2.5 rounded-full font-bold transition-colors shadow-md text-sm"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-primary-hover text-white px-6 py-2.5 rounded-full font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:shadow-[0_0_25px_rgba(249,115,22,0.5)] text-sm"
               >
                 {t("search_button")}
               </button>
@@ -319,32 +319,32 @@ export default function CustomerDashboard() {
 
           {/* New Section: Support & Feedback */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-surface border border-border rounded-[2.5rem] p-10 flex flex-col items-center text-center gap-6 hover:shadow-xl transition-all group overflow-hidden relative">
-              <div className="p-5 bg-orange-500/10 text-orange-600 rounded-3xl group-hover:scale-110 transition-transform">
+            <div className="glass-card rounded-[2.5rem] p-10 flex flex-col items-center text-center gap-6 hover:-translate-y-2 transition-all duration-300 group overflow-hidden relative border border-white/5">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+              <div className="p-5 bg-orange-500/10 text-orange-400 rounded-3xl group-hover:scale-110 transition-transform shadow-inner">
                 <AlertCircle className="w-10 h-10" />
               </div>
               <div className="space-y-2 relative z-10">
-                <h3 className="text-2xl font-black text-foreground tracking-tight">{t("need_help")}</h3>
+                <h3 className="text-2xl font-bold font-heading text-white tracking-tight">{t("need_help")}</h3>
                 <p className="text-sm text-text-muted font-medium max-w-[240px]">{t("need_help_desc")}</p>
               </div>
-              <Button onClick={() => setComplaintModalOpen(true)} className="bg-orange-600 border-none hover:bg-orange-700 w-full rounded-2xl py-4 font-bold relative z-10">
+              <Button onClick={() => setComplaintModalOpen(true)} className="bg-orange-500 hover:bg-orange-600 border-none w-full rounded-2xl py-4 font-bold relative z-10 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                 {t("report_complaint")}
               </Button>
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-orange-500/5 rounded-full"></div>
             </div>
 
-            <div className="bg-surface border border-border rounded-[2.5rem] p-10 flex flex-col items-center text-center gap-6 hover:shadow-xl transition-all group overflow-hidden relative">
-              <div className="p-5 bg-primary/10 text-primary rounded-3xl group-hover:scale-110 transition-transform">
+            <div className="glass-card rounded-[2.5rem] p-10 flex flex-col items-center text-center gap-6 hover:-translate-y-2 transition-all duration-300 group overflow-hidden relative border border-white/5">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+              <div className="p-5 bg-cyan-500/10 text-cyan-400 rounded-3xl group-hover:scale-110 transition-transform shadow-inner">
                 <Star className="w-10 h-10" />
               </div>
               <div className="space-y-2 relative z-10">
-                <h3 className="text-2xl font-black text-foreground tracking-tight">{t("your_feedback")}</h3>
+                <h3 className="text-2xl font-bold font-heading text-white tracking-tight">{t("your_feedback")}</h3>
                 <p className="text-sm text-text-muted font-medium max-w-[240px]">{t("your_feedback_desc")}</p>
               </div>
-              <Button onClick={() => setRatingModalOpen(true)} className="w-full rounded-2xl py-4 font-bold relative z-10">
+              <Button onClick={() => setRatingModalOpen(true)} className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 border-none w-full rounded-2xl py-4 font-bold relative z-10 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 {t("rate_platform")}
               </Button>
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-primary/5 rounded-full"></div>
             </div>
           </section>
 
@@ -464,17 +464,17 @@ export default function CustomerDashboard() {
               {myComplaints.map((complaint) => (
                 <div
                   key={complaint.id}
-                  className="p-6 cursor-pointer hover:-translate-y-2 transition-all duration-500 border border-border border-l-4 border-l-primary rounded-[2rem] bg-surface relative overflow-hidden group shadow-sm hover:shadow-lg"
+                  className="p-6 cursor-pointer hover:-translate-y-2 transition-all duration-500 border border-white/5 border-l-4 border-l-primary rounded-[2rem] glass-card relative overflow-hidden group shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.1)]"
                   onClick={() => { setSelectedComplaint(complaint); setViewComplaintModalOpen(true); }}
                 >
                   <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <MessageSquare className="w-12 h-12" />
+                    <MessageSquare className="w-12 h-12 text-white" />
                   </div>
                   <div className="flex justify-between items-start mb-4">
                     <Badge variant={complaint.status === 'open' ? 'info' : 'success'}>{complaint.status}</Badge>
                     <span className="text-[10px] uppercase font-bold text-text-muted">{new Date(complaint.created_at).toLocaleDateString()}</span>
                   </div>
-                  <h4 className="font-bold mb-2 truncate text-foreground">{complaint.subject}</h4>
+                  <h4 className="font-bold mb-2 truncate text-white">{complaint.subject}</h4>
                   <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed italic">
                     "{complaint.description}"
                   </p>
@@ -546,22 +546,22 @@ export default function CustomerDashboard() {
 // Minimal Components
 const SummaryCard = ({ label, value, icon, href, variant = "primary", highlight = false }) => {
   const variants = {
-    primary: "border-primary/20 bg-primary/5 text-primary",
-    success: "border-green-500/20 bg-green-500/5 text-green-500",
-    danger: "border-red-500/20 bg-red-500/5 text-red-500",
-    info: "border-blue-500/20 bg-blue-500/5 text-blue-500",
+    primary: "border-primary/20 bg-primary/10 text-primary shadow-[0_0_15px_rgba(249,115,22,0.1)]",
+    success: "border-green-500/20 bg-green-500/10 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]",
+    danger: "border-red-500/20 bg-red-500/10 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]",
+    info: "border-cyan-500/20 bg-cyan-500/10 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.1)]",
   };
 
   return (
-    <Link href={href} className={`flex items-center gap-5 p-5 rounded-3xl border ${variants[variant]} shadow-sm hover:shadow-md hover:translate-y-[-2px] transition-all group relative overflow-hidden`}>
-      <div className={`p-3 rounded-2xl bg-current/10 text-inherit group-hover:scale-110 transition-transform`}>
+    <Link href={href} className={`flex items-center gap-5 p-5 rounded-3xl border ${variants[variant]} glass hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden`}>
+      <div className={`p-3 rounded-2xl bg-current/20 text-inherit group-hover:scale-110 transition-transform`}>
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-black text-foreground tracking-tight">{value}</p>
+        <p className="text-2xl font-bold font-heading text-white tracking-tight">{value}</p>
         <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{label}</p>
       </div>
-      {highlight && <div className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(var(--color-primary),0.8)]"></div>}
+      {highlight && <div className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>}
     </Link>
   );
 };

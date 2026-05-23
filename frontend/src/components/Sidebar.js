@@ -68,31 +68,41 @@ export default function Sidebar({ role }) {
   };
 
   return (
-    <aside className="w-64 bg-surface border-r border-border min-h-screen transition-colors duration-300 flex flex-col">
+    <aside className="w-64 glass border-r border-white/5 min-h-screen flex flex-col relative z-20 shadow-2xl">
       <div className="p-8 flex-1">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted mb-8">{t("sidebar_menu_header")}</h2>
-        <ul className="space-y-2">
-          {links.map((l) => (
-            <li key={l.href}>
-              <Link
-                href={l.href}
-                className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-medium text-foreground/80 active:scale-95 group"
-              >
-                <span>{t(l.key)}</span>
-                {getBadgeCount(l.id) > 0 && (
-                  <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm group-hover:scale-110 transition-transform">
-                    {getBadgeCount(l.id)}
-                  </span>
-                )}
-              </Link>
-            </li>
-          ))}
+        <Link href="/" className="flex items-center gap-2 mb-10 group">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white shadow-lg shadow-primary/20">
+            <span className="font-bold text-lg">Q</span>
+          </div>
+          <span className="text-xl font-bold font-heading text-white tracking-tight group-hover:text-primary transition-colors">QuickServe</span>
+        </Link>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-6">{t("sidebar_menu_header")}</h2>
+        <ul className="space-y-3">
+          {links.map((l) => {
+             const badgeCount = getBadgeCount(l.id);
+             return (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/5 hover:text-white transition-all font-medium text-text-muted active:scale-95 group relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <span className="relative z-10">{t(l.key)}</span>
+                  {badgeCount > 0 && (
+                    <span className="relative z-10 bg-primary/20 text-primary border border-primary/30 text-[10px] font-black px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-[0_0_10px_rgba(249,115,22,0.3)]">
+                      {badgeCount}
+                    </span>
+                  )}
+                </Link>
+              </li>
+             );
+          })}
         </ul>
       </div>
 
-      <div className="p-8 border-t border-border space-y-4">
-        <div className="flex items-center gap-3 px-4 py-2 bg-surface-hover rounded-2xl border border-border/50">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner">
+      <div className="p-6 border-t border-white/5 space-y-4 bg-surface/30">
+        <div className="flex items-center gap-3 px-4 py-3 bg-surface/50 rounded-2xl border border-white/5 backdrop-blur-md">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center text-primary font-black border border-primary/20 shadow-[0_0_15px_rgba(249,115,22,0.15)] shrink-0">
             {user?.profile_image_url ? (
               <img src={user.profile_image_url} alt={user?.name} className="w-full h-full object-cover" />
             ) : (
@@ -100,13 +110,13 @@ export default function Sidebar({ role }) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-black text-foreground truncate">{user?.name}</p>
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider truncate">{user?.role}</p>
+            <p className="text-sm font-bold text-white truncate">{user?.name}</p>
+            <p className="text-[10px] font-bold text-primary uppercase tracking-wider truncate">{user?.role}</p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-bold active:scale-95 group"
+          className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all font-bold active:scale-95 group"
         >
           <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
           {t("nav_logout")}

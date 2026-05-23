@@ -335,3 +335,105 @@ exports.resendOtp = async (req, res) => {
         res.status(500).json({ message: "Server error", error });
     }
 };
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        await ensureVerificationColumns();
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "User with this email does not exist" });
+        }
+
+        const user = result.rows[0];
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = new Date(Date.now() + 10 * 60000); // 10 mins
+
+        await pool.query("UPDATE users SET otp = $1, otp_expires = $2 WHERE id = $3", [otp, expires, user.id]);
+
+        console.log(`Sending password reset OTP ${otp} to ${email}`);
+
+        const emailSent = await sendOTPEmail(email, otp);
+        if (!emailSent) {
+            return res.status(500).json({ message: "Failed to send OTP email. Please check your backend email configuration." });
+        }
+
+        res.json({ message: "Password reset OTP sent to your email address" });
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: "Email, OTP, and new password are required" });
+        }
+
+        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const user = result.rows[0];
+
+        if (user.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        if (new Date(user.otp_expires) < new Date()) {
+            return res.status(400).json({ message: "OTP expired" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.query(
+            "UPDATE users SET password = $1, otp = null, otp_expires = null WHERE id = $2",
+            [hashedPassword, user.id]
+        );
+
+        res.json({ message: "Password has been reset successfully" });
+    } catch (error) {
+        console.error("Reset Password Error:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.verifyResetOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+
+        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const user = result.rows[0];
+
+        if (user.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        if (new Date(user.otp_expires) < new Date()) {
+            return res.status(400).json({ message: "OTP expired" });
+        }
+
+        res.json({ message: "OTP verified successfully" });
+    } catch (error) {
+        console.error("Verify Reset OTP Error:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};

@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { BriefcaseBusiness, FileText } from "lucide-react";
+import { BriefcaseBusiness, FileText, CheckCircle2, UserPlus, UploadCloud, Camera, ShieldCheck } from "lucide-react";
 import api from "../../../../src/services/api";
 import Input from "../../../../src/components/Input";
 import Button from "../../../../src/components/Button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function RegisterPage() {
@@ -150,230 +150,311 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[90vh] py-12 px-6 relative w-full overflow-hidden z-10">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-2xl glass-card p-10 rounded-3xl transition-all relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background font-sans overflow-hidden">
+      
+      {/* Left Column: Visual/Branding (Hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-2/5 relative flex-col justify-between p-12 bg-surface/50 border-r border-white/5 sticky top-0 h-screen">
+        <div className="absolute inset-0 bg-aurora opacity-70 pointer-events-none"></div>
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"></div>
 
-        <div className="mb-10 text-center relative z-10 flex flex-col items-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white mb-6 shadow-lg shadow-primary/20">
-            <BriefcaseBusiness size={28} />
+        <Link href="/" className="relative z-10 flex items-center gap-3 w-fit">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+            <BriefcaseBusiness size={24} />
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">{t("auth_register_title")}</h2>
-          <p className="text-text-muted">{t("auth_register_subtitle")}</p>
+          <span className="text-3xl font-extrabold tracking-tight text-white">
+            QuickServe
+          </span>
+        </Link>
+
+        <div className="relative z-10 my-auto">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-5xl font-bold font-heading text-foreground mb-6 leading-tight"
+          >
+            {t('auth_hero_register_title_1')} <br />
+            <span className="text-gradient">{t('auth_hero_register_title_2')}</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-lg text-text-muted mb-8"
+          >
+            {t('auth_hero_register_desc')}
+          </motion.p>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="space-y-4"
+          >
+            {[t('auth_feature_ai'), t('auth_feature_access'), t('auth_feature_premium')].map((feature, i) => (
+              <div key={i} className="flex items-center gap-3 text-text-muted">
+                <div className="bg-primary/10 rounded-full p-1 text-primary">
+                  <CheckCircle2 size={18} />
+                </div>
+                <span className="font-medium text-foreground/80">{feature}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
 
-        {message && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl mb-6 text-sm text-center font-medium">
-            {message}
-          </motion.div>
-        )}
-        {error && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm text-center font-medium">
-            {error}
-          </motion.div>
-        )}
+        <div className="relative z-10 text-sm text-text-muted">
+          &copy; {new Date().getFullYear()} QuickServe. All rights reserved.
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label={t("auth_full_name")}
-              name="name"
-              id="name"
-              autoComplete="name"
-              placeholder={t("auth_name_placeholder")}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
-            />
-            <Input
-              label={t("auth_email")}
-              type="email"
-              name="email"
-              id="email"
-              autoComplete="email"
-              placeholder={t("auth_email_placeholder_reg")}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
-            />
+      {/* Right Column: Scrollable Registration Form */}
+      <div className="w-full lg:w-3/5 flex flex-col items-center p-6 lg:p-12 overflow-y-auto">
+        <Link href="/" className="self-start mb-8 lg:hidden flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white shadow-lg shadow-primary/20">
+            <BriefcaseBusiness size={20} />
+          </div>
+          <span className="text-2xl font-bold text-white">QuickServe</span>
+        </Link>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-full max-w-2xl"
+        >
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold font-heading text-foreground mb-2">{t("auth_register_title")}</h2>
+            <p className="text-text-muted">{t("auth_register_subtitle")}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label={t("auth_password")}
-              type="password"
-              name="password"
-              id="password"
-              autoComplete="new-password"
-              placeholder={t("auth_password_placeholder")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
-            />
-            <Input
-              label={t("auth_confirm_password")}
-              type="password"
-              name="confirmPassword"
-              id="confirmPassword"
-              autoComplete="new-password"
-              placeholder={t("auth_password_placeholder")}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="bg-surface/50 border-white/10 text-white focus:border-primary/50"
-            />
-          </div>
+          <AnimatePresence>
+            {message && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
+                <div className="w-1.5 h-full rounded-full bg-green-500"></div>
+                {message}
+              </motion.div>
+            )}
+            {error && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
+                <div className="w-1.5 h-full rounded-full bg-red-500"></div>
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div className="mb-5">
-            <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">{t("auth_account_type")}</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-            >
-              <option value="customer">{t("auth_customer")}</option>
-              <option value="provider">{t("auth_provider")}</option>
-            </select>
-          </div>
-
-          <div className="border-t border-white/10 pt-8 mt-8">
-            <h3 className="text-lg font-bold text-foreground mb-6">{t("auth_verification_details")}</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-1">
-                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">{t("auth_profile_image")}</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setProfileImage(e.target.files[0])}
-                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
-                />
+          <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-8">
+            {/* Basic Info Section */}
+            <div className="bg-surface/30 border border-white/5 p-6 md:p-8 rounded-3xl space-y-5">
+              <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <UserPlus size={20} className="text-primary" /> {t("auth_basic_info")}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_full_name")}</label>
+                  <Input
+                    name="name"
+                    id="name"
+                    autoComplete="name"
+                    placeholder={t("auth_name_placeholder")}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_email")}</label>
+                  <Input
+                    type="email"
+                    name="email"
+                    id="email"
+                    autoComplete="email"
+                    placeholder={t("auth_email_placeholder_reg")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="block mb-2 font-semibold text-foreground/80 text-sm ml-1">{t("auth_national_id")}</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => setNationalId(Array.from(e.target.files))}
-                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
-                />
-                {nationalId.length > 0 && (
-                  <div className="mt-2 text-xs text-text-muted ml-1">
-                    {t("auth_selected_items")}{nationalId.length}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_password")}</label>
+                  <Input
+                    type="password"
+                    name="password"
+                    id="password"
+                    autoComplete="new-password"
+                    placeholder={t("auth_password_placeholder")}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_confirm_password")}</label>
+                  <Input
+                    type="password"
+                    name="confirmPassword"
+                    id="confirmPassword"
+                    autoComplete="new-password"
+                    placeholder={t("auth_password_placeholder")}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_account_type")}</label>
+                <div className="relative">
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white rounded-2xl px-4 py-3 appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all shadow-inner"
+                  >
+                    <option value="customer" className="bg-surface text-white">{t("auth_customer")} - {t("auth_customer_desc")}</option>
+                    <option value="provider" className="bg-surface text-white">{t("auth_provider")} - {t("auth_provider_desc")}</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
-                )}
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Section */}
+            <div className="bg-surface/30 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6">
+              <h3 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+                <ShieldCheck size={20} className="text-primary" /> {t("auth_identity_verification")}
+              </h3>
+              <p className="text-sm text-text-muted mb-6">{t("auth_identity_desc")}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_profile_image")}</label>
+                  <div className="relative flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer bg-surface/30 hover:bg-surface/50 hover:border-primary/50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <UploadCloud className="w-8 h-8 mb-2 text-text-muted" />
+                        <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_click_upload_photo")}</p>
+                        {profileImage && <p className="text-xs text-primary truncate max-w-[150px]">{profileImage.name}</p>}
+                      </div>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => setProfileImage(e.target.files[0])} />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_national_id")}</label>
+                  <div className="relative flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer bg-surface/30 hover:bg-surface/50 hover:border-primary/50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <FileText className="w-8 h-8 mb-2 text-text-muted" />
+                        <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_upload_id_front_back")}</p>
+                        {nationalId.length > 0 && <p className="text-xs text-primary">{nationalId.length} {t("auth_files_selected")}</p>}
+                      </div>
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setNationalId(Array.from(e.target.files))} />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {role === "provider" && (
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_prof_docs")}</label>
+                  <div className="relative flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer bg-surface/30 hover:bg-surface/50 hover:border-primary/50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <p className="text-sm text-text-muted font-medium">{t("auth_upload_certs")}</p>
+                        {educationalDocuments.length > 0 && <p className="text-xs text-primary mt-1">{educationalDocuments.length} {t("auth_files_selected")}</p>}
+                      </div>
+                      <input type="file" multiple ref={educationalDocsInputRef} className="hidden" onChange={(e) => setEducationalDocuments(Array.from(e.target.files))} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2 ml-1">{t("auth_selfie_verif")}</label>
+                <div className="bg-surface/50 rounded-2xl p-4 border border-white/5">
+                  <div className="flex gap-3 mb-4">
+                    <button type="button" onClick={startCamera} className="flex-1 bg-surface border border-white/10 text-white hover:bg-white/5 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
+                      <Camera size={16} /> {t("auth_start_camera")}
+                    </button>
+                    <button type="button" onClick={capturePhoto} className="flex-1 bg-primary text-white hover:bg-primary-hover py-2.5 rounded-xl font-medium transition-all text-sm shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                      {t("auth_capture_photo")}
+                    </button>
+                  </div>
+                  
+                  <div className="relative rounded-xl overflow-hidden bg-black/40 aspect-video border border-white/10 flex items-center justify-center">
+                    <video ref={videoRef} className="w-full h-full object-cover absolute inset-0" autoPlay playsInline muted />
+                    {!streamRef.current && <Camera className="w-12 h-12 text-white/20 relative z-10" />}
+                  </div>
+
+                  {verificationSelfie && (
+                    <div className="mt-3 flex items-center justify-center text-sm text-green-400 font-medium bg-green-500/10 py-2 rounded-lg border border-green-500/20">
+                      <CheckCircle2 size={16} className="mr-2" /> {t("auth_selfie_success")}
+                    </div>
+                  )}
+                  {cameraError && (
+                    <div className="mt-3 text-sm text-red-400 font-medium bg-red-500/10 py-2 px-3 rounded-lg border border-red-500/20">
+                      {cameraError}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {role === "provider" && (
-              <div className="mt-8 bg-surface/30 p-6 rounded-3xl border border-dashed border-white/20">
-                <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                  <FileText size={16} className="text-primary" />
-                  {t("auth_prof_docs")}
-                </h4>
-                <p className="text-text-muted text-xs mb-4">{t("auth_prof_docs_desc")}</p>
-                <input
-                  type="file"
-                  multiple
-                  ref={educationalDocsInputRef}
-                  onChange={(e) => setEducationalDocuments(Array.from(e.target.files))}
-                  className="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all cursor-pointer"
-                />
-                {educationalDocuments.length > 0 && (
-                  <div className="mt-3 text-xs text-text-muted">
-                    {t("auth_selected")}{educationalDocuments.map(d => d.name).join(", ")}
-                  </div>
-                )}
+              <div className="bg-surface/30 border border-white/5 p-6 md:p-8 rounded-3xl">
+                <h3 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+                  <BriefcaseBusiness size={20} className="text-primary" /> {t("auth_service_categories")}
+                </h3>
+                <p className="text-sm text-text-muted mb-4">{t("auth_select_services")}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                  {categories.map((c) => (
+                    <label key={c.id} className="flex items-center p-3 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group bg-surface/50">
+                      <input
+                        type="checkbox"
+                        value={c.id}
+                        checked={selectedCats.includes(c.id)}
+                        onChange={() => handleCatToggle(c.id)}
+                        className="w-4 h-4 rounded text-primary focus:ring-primary focus:ring-offset-surface border-white/20 bg-surface/50 mr-3 transition-all"
+                      />
+                      <span className="text-sm font-medium text-text-muted group-hover:text-white transition-colors">{c.name}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
 
-            <div className="mt-8">
-              <label className="block mb-4 font-semibold text-foreground/80 text-sm ml-1">{t("auth_selfie_verif")}</label>
-              <div className="bg-surface/30 rounded-3xl p-6 border border-white/10 overflow-hidden">
-                <div className="flex space-x-3 mb-4">
-                  <button
-                    type="button"
-                    onClick={startCamera}
-                    className="flex-1 bg-primary/20 text-primary hover:bg-primary/30 px-4 py-3 rounded-xl font-bold transition-all text-sm"
-                  >
-                    {t("auth_start_camera")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={capturePhoto}
-                    className="flex-1 bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-md"
-                  >
-                    {t("auth_capture_photo")}
-                  </button>
-                </div>
-                <video
-                  ref={videoRef}
-                  className="w-full rounded-2xl bg-black/20 aspect-video object-cover"
-                  autoPlay
-                  playsInline
-                />
-                {verificationSelfie && (
-                  <div className="mt-4 flex items-center justify-center text-sm text-green-400 font-bold bg-green-500/10 py-2 rounded-lg">
-                    {t("auth_selfie_success")}
-                  </div>
-                )}
-                {cameraError && (
-                  <div className="mt-4 text-sm text-red-400 font-medium bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
-                    {cameraError}
-                  </div>
-                )}
-              </div>
+            <div className="pt-4">
+              <Button 
+                type="submit" 
+                className="w-full py-4 text-lg bg-gradient-to-r from-primary to-primary-hover border-0 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all duration-300 font-bold rounded-2xl" 
+                loading={loading}
+              >
+                {loading ? t("auth_registering") : t("auth_complete_register_btn")}
+              </Button>
             </div>
+          </form>
+
+          <div className="mt-8 text-center text-sm pt-6 border-t border-white/5">
+            <p className="text-text-muted">
+              {t("auth_already_account")}{" "}
+              <Link href="/auth/login" className="text-primary font-bold hover:text-primary-hover transition-colors">
+                {t("auth_login_here")}
+              </Link>
+            </p>
           </div>
-
-          {role === "provider" && (
-            <div className="border-t border-white/10 pt-8 mt-8">
-              <h3 className="text-lg font-bold text-foreground mb-4">{t("auth_service_categories")}</h3>
-              <p className="text-text-muted text-sm mb-6">{t("auth_select_services")}</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-auto p-2">
-                {categories.map((c) => (
-                  <label key={c.id} className="flex items-center p-3 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/10 transition-all cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      value={c.id}
-                      checked={selectedCats.includes(c.id)}
-                      onChange={() => handleCatToggle(c.id)}
-                      className="w-4 h-4 rounded text-primary focus:ring-primary border-border bg-surface mr-3"
-                    />
-                    <span className="text-sm font-medium text-foreground/80 group-hover:text-primary transition-colors">{c.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="pt-8">
-            <Button type="submit" className="w-full py-4 text-lg bg-gradient-to-r from-primary to-secondary hover:from-primary-hover hover:to-primary border-0 shadow-lg shadow-primary/20 transition-all font-semibold" loading={loading}>
-              {loading ? t("auth_registering") : t("auth_complete_register_btn")}
-            </Button>
-          </div>
-        </form>
-
-        <div className="mt-10 text-center text-sm border-t border-white/10 pt-8 relative z-10">
-          <p className="text-text-muted">
-            {t("auth_already_account")}{" "}
-            <Link href="/auth/login" className="text-primary font-bold hover:text-secondary group transition-all">
-              {t("auth_login_here")}
-              <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary mt-0.5" />
-            </Link>
-          </p>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

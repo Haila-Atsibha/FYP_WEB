@@ -16,7 +16,8 @@ import {
     AlertCircle,
     Loader2,
     CreditCard,
-    Zap
+    Zap,
+    Star
 } from "lucide-react";
 
 export default function ProviderProfile() {

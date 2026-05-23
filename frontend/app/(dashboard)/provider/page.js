@@ -335,32 +335,34 @@ export default function ProviderDashboard() {
 
           {/* New Section: Support & Feedback */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-surface border border-border rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-lg transition-all border-l-4 border-l-orange-500">
-              <div className="flex items-center gap-6 text-center md:text-left">
-                <div className="p-4 bg-orange-500/10 text-orange-600 rounded-2xl">
+            <div className="glass-card rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:-translate-y-1 transition-all duration-300 border-l-4 border-l-orange-500 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+              <div className="flex items-center gap-6 text-center md:text-left relative z-10">
+                <div className="p-4 bg-orange-500/10 text-orange-400 rounded-2xl shadow-inner">
                   <AlertCircle className="w-8 h-8" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-foreground">{t("provider_have_complaint")}</h4>
+                  <h4 className="text-xl font-bold font-heading text-white">{t("provider_have_complaint")}</h4>
                   <p className="text-sm text-text-muted">{t("provider_complaint_prompt")}</p>
                 </div>
               </div>
-              <Button onClick={() => setComplaintModalOpen(true)} variant="outline" className="border-orange-500/20 text-orange-600 hover:bg-orange-500/5 whitespace-nowrap">
+              <Button onClick={() => setComplaintModalOpen(true)} variant="outline" className="border-orange-500/20 text-orange-400 hover:bg-orange-500/10 whitespace-nowrap relative z-10">
                 {t("provider_report_issue")}
               </Button>
             </div>
 
-            <div className="bg-surface border border-border rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-lg transition-all border-l-4 border-l-primary">
-              <div className="flex items-center gap-6 text-center md:text-left">
-                <div className="p-4 bg-primary/10 text-primary rounded-2xl">
+            <div className="glass-card rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:-translate-y-1 transition-all duration-300 border-l-4 border-l-primary relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+              <div className="flex items-center gap-6 text-center md:text-left relative z-10">
+                <div className="p-4 bg-cyan-500/10 text-cyan-400 rounded-2xl shadow-inner">
                   <Star className="w-8 h-8" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-foreground">{t("rate_platform")}</h4>
+                  <h4 className="text-xl font-bold font-heading text-white">{t("rate_platform")}</h4>
                   <p className="text-sm text-text-muted">{t("provider_rate_prompt")}</p>
                 </div>
               </div>
-              <Button onClick={() => setRatingModalOpen(true)} variant="outline" className="border-primary/20 text-primary hover:bg-primary/5 whitespace-nowrap">
+              <Button onClick={() => setRatingModalOpen(true)} variant="outline" className="border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/10 whitespace-nowrap relative z-10">
                 {t("provider_give_feedback")}
               </Button>
             </div>
@@ -430,14 +432,14 @@ export default function ProviderDashboard() {
                   [...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
                 ) : services.length > 0 ? (
                   services.map((service) => (
-                    <div key={service.id} className="bg-surface border border-border p-4 rounded-2xl hover:shadow-lg transition-all group relative overflow-hidden">
-                      <div className="flex justify-between items-start mb-2">
+                    <div key={service.id} className="glass-card border border-white/5 p-4 rounded-2xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
+                      <div className="flex justify-between items-start mb-2 relative z-10">
                         <Badge variant="info" className="text-[10px]">{service.category_name}</Badge>
                         <span className="font-black text-primary">{service.price} <span className="text-[10px]">ETB</span></span>
                       </div>
-                      <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{service.title}</h4>
-                      <p className="text-xs text-text-muted mt-1 line-clamp-1">{service.description}</p>
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 -z-10"></div>
+                      <h4 className="font-bold text-white group-hover:text-primary transition-colors relative z-10">{service.title}</h4>
+                      <p className="text-xs text-text-muted mt-1 line-clamp-1 relative z-10">{service.description}</p>
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-[20px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                     </div>
                   ))
                 ) : (
@@ -724,15 +726,15 @@ export default function ProviderDashboard() {
 // Sub-components
 const StatCard = ({ title, value, unit, icon, variant, onClick }) => {
   const variantStyles = {
-    primary: "bg-primary/10 text-primary border-primary/20",
-    success: "bg-green-500/10 text-green-500 border-green-500/20",
-    warning: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    info: "bg-blue-500/10 text-blue-500 border-blue-500/20 shadow-blue-500/5",
+    primary: "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(249,115,22,0.15)]",
+    success: "bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.15)]",
+    warning: "bg-orange-500/10 text-orange-400 border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.15)]",
+    info: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]",
   };
 
   return (
-    <Card
-      className="p-6 cursor-pointer group hover:-translate-y-1 transition-all duration-300"
+    <div
+      className="glass-card p-6 rounded-3xl cursor-pointer group hover:-translate-y-1 transition-all duration-300 border border-white/5"
       onClick={onClick}
     >
       <div className="flex items-center gap-5">
@@ -742,35 +744,35 @@ const StatCard = ({ title, value, unit, icon, variant, onClick }) => {
         <div>
           <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-1">{title}</p>
           <div className="flex items-baseline gap-1">
-            <h4 className="text-3xl font-black text-foreground">{value}</h4>
+            <h4 className="text-3xl font-bold font-heading text-white">{value}</h4>
             {unit && <span className="text-xs font-bold text-text-muted ml-1">{unit}</span>}
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
 const BookingRequestCard = ({ booking, onAccept, onReject, t }) => (
-  <Card className="p-0 overflow-hidden !rounded-[2rem] group hover:shadow-xl duration-500">
+  <div className="glass-card p-0 overflow-hidden !rounded-[2rem] group hover:-translate-y-1 transition-all duration-300 border border-white/5">
     <div className="p-6 space-y-5">
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-surface-hover flex items-center justify-center font-bold text-primary border border-border">
+          <div className="w-12 h-12 rounded-2xl bg-surface/50 flex items-center justify-center font-bold text-primary border border-white/10 shadow-inner">
             {booking.customer_name?.[0] || booking.customer?.[0] || "C"}
           </div>
           <div>
-            <h4 className="font-bold text-foreground leading-none mb-1">{booking.customer_name || booking.customer}</h4>
+            <h4 className="font-bold text-white leading-none mb-1">{booking.customer_name || booking.customer}</h4>
             <Badge variant="warning" className="text-[10px] py-0 px-2">{t("status_pending")}</Badge>
           </div>
         </div>
-        <button className="p-2 text-text-muted hover:bg-background rounded-xl transition-colors">
+        <button className="p-2 text-text-muted hover:text-white transition-colors">
           <MoreVertical className="w-5 h-5" />
         </button>
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-foreground/80 font-medium">
+        <div className="flex items-center gap-2 text-sm text-white/80 font-medium">
           <Badge variant="info" className="py-0.5">{booking.category_name || booking.category}</Badge>
         </div>
         <p className="text-sm text-text-muted line-clamp-2 leading-relaxed italic">
@@ -779,37 +781,37 @@ const BookingRequestCard = ({ booking, onAccept, onReject, t }) => (
       </div>
 
       <div className="grid grid-cols-2 gap-3 pt-2">
-        <div className="bg-background/80 p-3 rounded-2xl border border-border">
+        <div className="bg-surface/30 p-3 rounded-2xl border border-white/5">
           <p className="text-[10px] uppercase font-bold text-text-muted mb-1">{t("provider_date_time")}</p>
-          <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-            <Calendar className="w-3 h-3 text-primary" /> {new Date(booking.booking_date).toLocaleDateString()}
+          <p className="text-xs font-bold text-white flex items-center gap-1.5">
+            <Calendar className="w-3 h-3 text-primary/70" /> {new Date(booking.booking_date).toLocaleDateString()}
           </p>
           <p className="text-[11px] font-medium text-text-muted ml-5">{booking.booking_time}</p>
         </div>
-        <div className="bg-background/80 p-3 rounded-2xl border border-border flex flex-col justify-center">
+        <div className="bg-surface/30 p-3 rounded-2xl border border-white/5 flex flex-col justify-center">
           <p className="text-[10px] uppercase font-bold text-text-muted mb-1">{t("provider_price")}</p>
-          <p className="text-lg font-black text-primary leading-none">
+          <p className="text-lg font-bold font-heading text-primary leading-none shadow-[0_0_15px_rgba(249,115,22,0.15)] bg-primary/5 w-fit px-2 py-1 rounded-xl border border-primary/20">
             {booking.price} <span className="text-[10px]">ETB</span>
           </p>
         </div>
       </div>
     </div>
 
-    <div className="flex border-t border-border">
+    <div className="flex border-t border-white/5">
       <button
         onClick={onReject}
-        className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-red-500 hover:bg-red-500/5 transition-colors border-r border-border"
+        className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border-r border-white/5"
       >
         <X className="w-4 h-4" /> {t("btn_reject")}
       </button>
       <button
         onClick={onAccept}
-        className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-green-500 hover:bg-green-500/5 transition-colors"
+        className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-green-400 hover:bg-green-500/10 hover:text-green-300 transition-colors"
       >
         <Check className="w-4 h-4" /> {t("btn_accept")}
       </button>
     </div>
-  </Card>
+  </div>
 );
 
 const BookingRequestSkeleton = () => (

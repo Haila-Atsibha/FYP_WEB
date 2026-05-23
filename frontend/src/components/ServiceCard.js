@@ -27,9 +27,9 @@ export default function ServiceCard({ service, user }) {
       <div className="mt-4 flex flex-col space-y-4 relative z-10">
         <div className="flex items-center justify-between text-sm">
           <span className="flex items-center text-yellow-500 font-bold bg-yellow-500/10 px-2 py-1 rounded-md">
-            ★ {rating || "4.8"}
+            ★ {service.average_rating ? Number(service.average_rating).toFixed(1) : "New"}
           </span>
-          <span className="text-xs text-text-muted font-medium">12+ bookings</span>
+          <span className="text-xs text-text-muted font-medium">{service.completedJobs ?? 0} bookings</span>
         </div>
         {user ? (
           <Link href={`/services/${provider_id}?service=${id}`} className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-white/10 hover:border-primary/50 text-white hover:text-primary py-3 rounded-2xl font-semibold transition-all shadow-md group-hover:bg-primary/10 active:scale-95">

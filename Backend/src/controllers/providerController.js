@@ -133,6 +133,7 @@ exports.getPublicProviders = async (req, res) => {
             SELECT 
                 u.id, u.name, u.profile_image_url, 
                 p.bio, p.average_rating, p.id as provider_profile_id,
+                (SELECT COUNT(*) FROM bookings WHERE provider_id = p.id AND status = 'completed') as "completedJobs",
                 ARRAY_AGG(DISTINCT sc.name) as categories
             FROM users u
             JOIN provider_profiles p ON u.id = p.user_id
@@ -184,7 +185,7 @@ exports.getTopProviders = async (req, res) => {
             SELECT 
                 u.id, u.name, u.profile_image_url, 
                 p.bio, p.average_rating, p.id as provider_profile_id,
-                (SELECT COUNT(*) FROM bookings WHERE provider_id = p.id AND status = 'Completed') as "completedJobs",
+                (SELECT COUNT(*) FROM bookings WHERE provider_id = p.id AND status = 'completed') as "completedJobs",
                 (SELECT name FROM service_categories sc 
                  JOIN services s ON sc.id = s.category_id 
                  WHERE s.provider_id = p.id 
@@ -281,28 +282,44 @@ exports.getProviderStats = async (req, res) => {
             [providerProfileId]
         );
 
-        // 5. Average Rating and Total Reviews
-        const reviewStatsRes = await pool.query(
-            `SELECT 
-                COALESCE(average_rating, 0)::numeric as "averageRating",
-                (SELECT COUNT(*)::int FROM reviews WHERE provider_id = $1) as "totalReviews",
-                subscription_status as "subscriptionStatus",
-                subscription_expiry as "subscriptionExpiry"
-             FROM provider_profiles 
-             WHERE id = $1`,
-            [providerProfileId]
-        );
-
-        const stats = {
+        let stats = {
             pendingRequests: pendingRes.rows[0]?.count || 0,
             activeBookings: activeRes.rows[0]?.count || 0,
             completedJobs: completedRes.rows[0]?.count || 0,
             totalEarnings: Number(earningsRes.rows[0]?.total || 0),
-            averageRating: Number(reviewStatsRes.rows[0]?.averageRating || 0),
-            totalReviews: reviewStatsRes.rows[0]?.totalReviews || 0,
-            subscriptionStatus: reviewStatsRes.rows[0]?.subscriptionStatus,
-            subscriptionExpiry: reviewStatsRes.rows[0]?.subscriptionExpiry
+            averageRating: 0,
+            totalReviews: 0,
+            subscriptionStatus: null,
+            subscriptionExpiry: null
         };
+
+        try {
+            // 5. Average Rating and Total Reviews
+            const reviewStatsRes = await pool.query(
+                `SELECT 
+                    COALESCE(average_rating, 0)::numeric as "averageRating",
+                    (SELECT COUNT(*)::int FROM reviews WHERE provider_id = $1) as "totalReviews",
+                    subscription_status as "subscriptionStatus",
+                    subscription_expiry as "subscriptionExpiry"
+                 FROM provider_profiles 
+                 WHERE id = $1`,
+                [providerProfileId]
+            );
+            
+            stats.averageRating = Number(reviewStatsRes.rows[0]?.averageRating || 0);
+            stats.totalReviews = reviewStatsRes.rows[0]?.totalReviews || 0;
+            stats.subscriptionStatus = reviewStatsRes.rows[0]?.subscriptionStatus;
+            stats.subscriptionExpiry = reviewStatsRes.rows[0]?.subscriptionExpiry;
+        } catch (e) {
+            console.warn("Reviews table missing or query failed:", e.message);
+            const fallbackRes = await pool.query(
+                `SELECT average_rating, subscription_status, subscription_expiry FROM provider_profiles WHERE id = $1`, 
+                [providerProfileId]
+            );
+            stats.averageRating = Number(fallbackRes.rows[0]?.average_rating || 0);
+            stats.subscriptionStatus = fallbackRes.rows[0]?.subscription_status;
+            stats.subscriptionExpiry = fallbackRes.rows[0]?.subscription_expiry;
+        }
 
         console.log("DEBUG: getProviderStats SUCCESS", stats);
         res.json(stats);

@@ -64,7 +64,9 @@ exports.getAllServices = async (req, res) => {
     try {
         const { category, q } = req.query;
         let query = `
-            SELECT s.*, c.name AS category_name, u.name AS provider_name
+            SELECT s.*, c.name AS category_name, u.name AS provider_name,
+            pp.average_rating,
+            (SELECT COUNT(*) FROM bookings WHERE provider_id = pp.id AND status = 'completed') as "completedJobs"
             FROM services s
             LEFT JOIN service_categories c ON s.category_id = c.id
             LEFT JOIN provider_profiles pp ON s.provider_id = pp.id

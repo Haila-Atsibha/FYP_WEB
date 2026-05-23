@@ -91,6 +91,33 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      const res = await api.post("/api/auth/forgot-password", { email });
+      return res.data;
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  const resetPassword = async (email, otp, newPassword) => {
+    try {
+      const res = await api.post("/api/auth/reset-password", { email, otp, newPassword });
+      return res.data;
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  const verifyResetOtp = async (email, otp) => {
+    try {
+      const res = await api.post("/api/auth/verify-reset-otp", { email, otp });
+      return res.data;
+    } catch (e) {
+      throw e;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -100,7 +127,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, forgotPassword, resetPassword, verifyResetOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );

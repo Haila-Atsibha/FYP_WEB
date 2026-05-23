@@ -8,6 +8,7 @@ import { AuthContext } from "../../../src/context/AuthContext";
 import ProviderMiniCard from "../../../src/components/ProviderMiniCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
+import { useTranslation } from "../../../src/hooks/useTranslation";
 
 function ServicesContent() {
   const [services, setServices] = useState([]);
@@ -21,6 +22,7 @@ function ServicesContent() {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useContext(AuthContext);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -79,8 +81,8 @@ function ServicesContent() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Explore Services</h1>
-        <p className="text-text-muted text-lg max-w-2xl mx-auto">Find trusted providers and book the right service for your needs.</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{t("services_explore")}</h1>
+        <p className="text-text-muted text-lg max-w-2xl mx-auto">{t("services_explore_desc")}</p>
       </motion.div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
@@ -95,7 +97,7 @@ function ServicesContent() {
           </div>
           <input
             type="text"
-            placeholder="Search for cleaning, maintenance, tech support..."
+            placeholder={t("services_search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-surface/50 border border-white/10 text-white rounded-full pl-12 pr-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-lg backdrop-blur-md"
@@ -115,7 +117,7 @@ function ServicesContent() {
                 : "bg-surface/50 text-text-muted border-white/10 hover:border-primary/50 hover:text-white backdrop-blur-md"
               }`}
           >
-            All Services
+            {t("services_all")}
           </button>
           {categories.map((c) => (
             <button
@@ -136,7 +138,7 @@ function ServicesContent() {
         <div className="flex justify-center py-20">
           <div className="animate-pulse text-primary font-medium flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            Loading services...
+            {t("services_loading")}
           </div>
         </div>
       )}
@@ -144,7 +146,7 @@ function ServicesContent() {
       <section className="mb-16">
         {!loading && services.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 glass-card rounded-3xl">
-            <p className="text-text-muted text-lg">No services found matching your criteria.</p>
+            <p className="text-text-muted text-lg">{t("services_no_found")}</p>
           </motion.div>
         )}
         <motion.div
@@ -177,8 +179,8 @@ function ServicesContent() {
         >
           <h2 className="text-2xl font-bold mb-8 text-foreground">
             {categoryFilter
-              ? `Top Providers in ${categories.find(c => c.id == categoryFilter)?.name || "Category"}`
-              : "Featured Providers"}
+              ? `${t("services_top_providers")}${categories.find(c => c.id == categoryFilter)?.name || t("services_category")}`
+              : t("services_featured_providers")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {providers.slice(0, 6).map((p, idx) => (
@@ -193,7 +195,7 @@ function ServicesContent() {
                   provider={{
                     ...p,
                     rating: p.average_rating || "4.8",
-                    completedJobs: p.completedJobs || "100+",
+                    completedJobs: p.completedJobs ?? 0,
                     category: categoryFilter
                       ? categories.find(c => c.id == categoryFilter)?.name
                       : (p.categories?.[0] || "General Services")

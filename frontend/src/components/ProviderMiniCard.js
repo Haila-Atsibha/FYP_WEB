@@ -28,7 +28,7 @@ export default function ProviderMiniCard({ provider, variant = "horizontal" }) {
                     </div>
                 </Link>
                 <div className="flex items-center justify-between text-[10px] text-text-muted mb-4">
-                    <span className="flex items-center gap-1"><CheckCircle size={10} /> {provider.completedJobs || "10+"} Jobs</span>
+                    <span className="flex items-center gap-1"><CheckCircle size={10} /> {provider.completedJobs ?? 0} Jobs</span>
                     <span className="font-medium text-primary">{provider.category || provider.categories?.[0]}</span>
                 </div>
                 <Link href={`/services/${profileId}`}>
@@ -54,7 +54,7 @@ export default function ProviderMiniCard({ provider, variant = "horizontal" }) {
                         <span className="flex items-center gap-0.5 text-yellow-500 font-bold">
                             <Star size={8} fill="currentColor" /> {provider.rating || provider.average_rating || "4.8"}
                         </span>
-                        <span className="text-text-muted">• {provider.completedJobs || "10+"} jobs</span>
+                        <span className="text-text-muted">• {provider.completedJobs ?? 0} jobs</span>
                     </div>
                 </div>
             </Link>

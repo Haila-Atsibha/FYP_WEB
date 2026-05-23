@@ -14,7 +14,8 @@ const {
     getActivity,
     getSubscriptions,
     updateUserStatus,
-    deleteUser
+    deleteUser,
+    getInactiveProviders
 } = require('../controllers/adminController');
 const { getAllCategories } = require('../controllers/categoriesController');
 
@@ -30,6 +31,7 @@ router.get('/subscriptions', getSubscriptions);
 router.get('/categories', getAllCategories);
 router.get('/pending-users', getPendingUsers);
 router.get('/ai-approved-users', getAiApprovedUsers);
+router.get('/inactive-providers', getInactiveProviders);
 // approval endpoint accepts PUT (existing) and POST for compatibility
 router.put('/approve/:id', approveUser);
 router.post('/approve/:id', approveUser);

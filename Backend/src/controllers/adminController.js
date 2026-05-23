@@ -19,22 +19,19 @@ exports.getPendingUsers = async (req, res) => {
             docsByProvider[doc.provider_id].push(doc);
         });
 
-        const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
+        const usersWithSignedUrls = result.rows.map(user => {
             const userDocs = docsByProvider[user.id] || [];
 
-            const educational_documents = await Promise.all(userDocs.map(async (doc) => ({
+            const educational_documents = userDocs.map(doc => ({
                 name: doc.document_name,
-                url: doc.document_url ? await getSignedUrl(doc.document_url) : null
-            })));
+                url: doc.document_url
+            }));
 
             return {
                 ...user,
-                profile_image_url: user.profile_image_url ? await getSignedUrl(user.profile_image_url) : null,
-                national_id_url: user.national_id_url ? await getSignedUrl(user.national_id_url) : null,
-                verification_selfie_url: user.verification_selfie_url ? await getSignedUrl(user.verification_selfie_url) : null,
                 educational_documents
             };
-        }));
+        });
 
         res.json(usersWithSignedUrls);
     } catch (error) {
@@ -255,12 +252,16 @@ exports.getStats = async (req, res) => {
                 WHERE status = 'success'
             `);
             const activeSubRes = await pool.query("SELECT COUNT(*) FROM provider_profiles WHERE subscription_status = 'active'");
+            const inactiveSubRes = await pool.query("SELECT COUNT(*) FROM provider_profiles WHERE subscription_status != 'active' OR subscription_status IS NULL OR subscription_expiry < CURRENT_DATE");
+
             stats.subscriptionRevenue = parseFloat(subStats.rows[0].total_revenue).toFixed(2);
             stats.activeSubscribers = parseInt(activeSubRes.rows[0].count);
+            stats.inactiveSubscribers = parseInt(inactiveSubRes.rows[0].count);
         } catch (e) {
             console.error("Stats Error (Sub Stats):", e.message);
             stats.subscriptionRevenue = "0.00";
             stats.activeSubscribers = 0;
+            stats.inactiveSubscribers = 0;
         }
 
         // 8. Complaints Summary
@@ -337,24 +338,21 @@ exports.getUsers = async (req, res) => {
             docsByProvider[doc.provider_id].push(doc);
         });
 
-        const usersWithSignedUrls = await Promise.all(result.rows.map(async (user) => {
+        const usersWithSignedUrls = result.rows.map(user => {
             let educational_documents = [];
             if (user.role === 'provider') {
                 const userDocs = docsByProvider[user.id] || [];
-                educational_documents = await Promise.all(userDocs.map(async (doc) => ({
+                educational_documents = userDocs.map(doc => ({
                     name: doc.document_name,
-                    url: doc.document_url ? await getSignedUrl(doc.document_url) : null
-                })));
+                    url: doc.document_url
+                }));
             }
 
             return {
                 ...user,
-                profile_image_url: user.profile_image_url ? await getSignedUrl(user.profile_image_url) : null,
-                national_id_url: user.national_id_url ? await getSignedUrl(user.national_id_url) : null,
-                verification_selfie_url: user.verification_selfie_url ? await getSignedUrl(user.verification_selfie_url) : null,
                 educational_documents
             };
-        }));
+        });
 
         res.json(usersWithSignedUrls);
     } catch (error) {
@@ -462,11 +460,31 @@ exports.getActivity = async (req, res) => {
 exports.getSubscriptions = async (req, res) => {
     try {
         // 1. Get Monthly Revenue
-        const revRes = await pool.query(`
-            SELECT COALESCE(SUM(amount), 0) as total 
-            FROM payments 
-            WHERE created_at >= NOW() - INTERVAL '30 days'
-        `);
+        let revRes = { rows: [{ total: 0 }] };
+        let historyRes = { rows: [] };
+        try {
+            revRes = await pool.query(`
+                SELECT COALESCE(SUM(amount), 0) as total 
+                FROM payments 
+                WHERE created_at >= NOW() - INTERVAL '30 days'
+            `);
+            historyRes = await pool.query(`
+                SELECT 
+                    p.id,
+                    u.name as "providerName",
+                    p.amount,
+                    p.status,
+                    p.created_at as date,
+                    p.tx_ref
+                FROM payments p
+                JOIN provider_profiles pp ON p.provider_id = pp.id
+                JOIN users u ON pp.user_id = u.id
+                ORDER BY p.created_at DESC
+                LIMIT 20
+            `);
+        } catch (e) {
+            console.warn("Payments table missing or query failed:", e.message);
+        }
 
         // 2. Get Active/Expiring Stats
         const profileStats = await pool.query(`
@@ -474,22 +492,6 @@ exports.getSubscriptions = async (req, res) => {
                 COUNT(*) FILTER (WHERE subscription_status = 'active') as active,
                 COUNT(*) FILTER (WHERE subscription_status = 'active' AND subscription_expiry <= NOW() + INTERVAL '7 days') as expiring_soon
             FROM provider_profiles
-        `);
-
-        // 3. Get Recent History
-        const historyRes = await pool.query(`
-            SELECT 
-                p.id,
-                u.name as "providerName",
-                p.amount,
-                p.status,
-                p.created_at as date,
-                p.tx_ref
-            FROM payments p
-            JOIN provider_profiles pp ON p.provider_id = pp.id
-            JOIN users u ON pp.user_id = u.id
-            ORDER BY p.created_at DESC
-            LIMIT 20
         `);
 
         res.json({
@@ -501,5 +503,26 @@ exports.getSubscriptions = async (req, res) => {
     } catch (error) {
         console.error("Get Subscriptions Error:", error.message);
         res.status(500).json({ message: "Server error while fetching subscriptions", error: error.message });
+    }
+};
+
+exports.getInactiveProviders = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                u.id, u.name, u.email, u.role, u.status, u.created_at, u.profile_image_url,
+                p.subscription_status, p.subscription_expiry
+            FROM users u
+            JOIN provider_profiles p ON u.id = p.user_id
+            WHERE p.subscription_status != 'active' 
+               OR p.subscription_status IS NULL 
+               OR p.subscription_expiry < CURRENT_DATE
+            ORDER BY u.created_at DESC
+        `);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Get Inactive Providers Error:", error.message);
+        res.status(500).json({ message: 'Server error while fetching inactive providers', error: error.message });
     }
 };

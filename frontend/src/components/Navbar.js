@@ -32,9 +32,6 @@ export default function Navbar() {
           <Link href="/services" className="text-text-muted hover:text-white transition-colors font-medium">
             {t("nav_menu")}
           </Link>
-          <Link href="/track" className="text-text-muted hover:text-white transition-colors font-medium">
-            {t("nav_track")}
-          </Link>
 
           <button 
             onClick={toggleLanguage} 

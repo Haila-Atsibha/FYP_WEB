@@ -91,34 +91,38 @@ exports.getBadgeStats = async (req, res) => {
             verification: 0
         };
 
-        // 1. Unread Messages for everyone
-        const msgRes = await pool.query(
-            "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'message'",
-            [userId]
-        );
-        stats.messages = parseInt(msgRes.rows[0].count || 0);
-
-        // 2. Unread Bookings for everyone
-        const bookNotifRes = await pool.query(
-            "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'booking'",
-            [userId]
-        );
-        stats.bookings = parseInt(bookNotifRes.rows[0].count || 0);
-
-        if (role === 'provider') {
-            const revRes = await pool.query(
-                "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'review'",
+        try {
+            // 1. Unread Messages for everyone
+            const msgRes = await pool.query(
+                "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'message'",
                 [userId]
             );
-            stats.reviews = parseInt(revRes.rows[0].count || 0);
-        }
+            stats.messages = parseInt(msgRes.rows[0].count || 0);
 
-        if (role === 'admin') {
-            const verNotifRes = await pool.query(
-                "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'verification'",
+            // 2. Unread Bookings for everyone
+            const bookNotifRes = await pool.query(
+                "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'booking'",
                 [userId]
             );
-            stats.verification = parseInt(verNotifRes.rows[0].count || 0);
+            stats.bookings = parseInt(bookNotifRes.rows[0].count || 0);
+
+            if (role === 'provider') {
+                const revRes = await pool.query(
+                    "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'review'",
+                    [userId]
+                );
+                stats.reviews = parseInt(revRes.rows[0].count || 0);
+            }
+
+            if (role === 'admin') {
+                const verNotifRes = await pool.query(
+                    "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'verification'",
+                    [userId]
+                );
+                stats.verification = parseInt(verNotifRes.rows[0].count || 0);
+            }
+        } catch (dbError) {
+            console.warn("Notifications table missing or query failed:", dbError.message);
         }
 
         res.json(stats);
