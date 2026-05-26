@@ -249,7 +249,7 @@ export default function CustomerMessages() {
                                     <input
                                         type="text"
                                         placeholder={t("search_chats_placeholder")}
-                                        className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm"
+                                        className="w-full bg-surface text-foreground placeholder:text-text-muted border border-border rounded-2xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm"
                                     />
                                 </div>
                             </div>
@@ -311,7 +311,7 @@ export default function CustomerMessages() {
                         </div>
 
                         {/* Chat Area */}
-                        <div className={`flex-1 flex flex-col bg-white dark:bg-gray-900/40 relative ${!selectedBookingId ? 'hidden md:flex items-center justify-center' : 'flex'}`}>
+                        <div className={`flex-1 flex flex-col bg-background relative ${!selectedBookingId ? 'hidden md:flex items-center justify-center' : 'flex'}`}>
                             {!selectedBookingId ? (
                                 <div className="text-center p-12 max-w-sm space-y-6">
                                     <div className="w-24 h-24 bg-primary/5 rounded-[2.5rem] flex items-center justify-center text-primary mx-auto shadow-inner">
@@ -328,7 +328,7 @@ export default function CustomerMessages() {
                                     <div className="px-6 py-4 border-b border-border flex items-center gap-4 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
                                         <button
                                             onClick={() => setSelectedBookingId(null)}
-                                            className="md:hidden p-2 hover:bg-surface-hover rounded-xl transition-colors"
+                                            className="md:hidden p-2 hover:bg-surface-hover rounded-xl transition-colors text-foreground"
                                         >
                                             <ArrowLeft size={20} />
                                         </button>
@@ -386,7 +386,7 @@ export default function CustomerMessages() {
                                                             <div
                                                                 className={`px-5 py-3 rounded-2xl text-sm font-medium shadow-sm transition-all relative ${isMe
                                                                     ? "bg-primary text-white rounded-tr-none hover:bg-primary-hover shadow-primary/20"
-                                                                    : "bg-surface border border-border text-foreground rounded-tl-none hover:border-primary/30"
+                                                                    : "bg-surface-hover border border-border text-foreground rounded-tl-none hover:border-primary/30"
                                                                     }`}
                                                             >
                                                                 {msg.message_type === "image" && msg.media_url && (
@@ -472,7 +472,7 @@ export default function CustomerMessages() {
                                                     value={newMessage}
                                                     onChange={(e) => setNewMessage(e.target.value)}
                                                     placeholder={t("type_message_placeholder")}
-                                                    className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl px-6 py-4 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
+                                                    className="w-full bg-surface text-foreground placeholder:text-text-muted border border-border rounded-2xl px-6 py-4 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
                                                 />
                                             </div>
                                             <button type="submit" className="w-14 h-14 shrink-0 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-primary-hover shadow-lg shadow-primary/20 group transition-all translate-y-[-1px] active:translate-y-[0px]">

@@ -200,7 +200,7 @@ export default function AdminDashboard() {
             <div className="xl:col-span-1">
               <div className="glass-card rounded-3xl p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold font-heading text-white flex items-center gap-2">
+                  <h3 className="text-xl font-bold font-heading text-foreground flex items-center gap-2">
                     <Activity className="w-5 h-5 text-primary" />
                     {t("admin_recent_activities")}
                   </h3>
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
                     <ActivityItem key={i} {...act} />
                   ))}
                 </div>
-                <div className="mt-6 pt-6 border-t border-white/5 flex justify-center">
+                <div className="mt-6 pt-6 border-t border-border flex justify-center">
                    <p className="text-xs text-text-muted font-medium italic">{t("admin_showing_latest")}</p>
                 </div>
               </div>
@@ -242,18 +242,18 @@ const SummaryCard = ({ title, value, icon, variant }) => {
         {React.cloneElement(icon, { size: 24 })}
       </div>
       <p className="text-sm font-bold text-text-muted uppercase tracking-wider mb-1">{title}</p>
-      <h3 className="text-3xl font-bold font-heading text-white tracking-tight">{value}</h3>
+      <h3 className="text-3xl font-bold font-heading text-foreground tracking-tight">{value}</h3>
     </div>
   );
 };
 
 const ActivityItem = ({ userName, action, time }) => (
-  <div className="flex items-start space-x-4 group animate-in slide-in-from-bottom duration-500 p-3 rounded-2xl hover:bg-white/5 transition-colors">
-    <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex-shrink-0 flex items-center justify-center font-bold text-primary shadow-inner">
+  <div className="flex items-start space-x-4 group animate-in slide-in-from-bottom duration-500 p-3 rounded-2xl hover:bg-surface-hover transition-colors">
+    <div className="w-10 h-10 rounded-xl bg-surface border border-border flex-shrink-0 flex items-center justify-center font-bold text-primary shadow-inner">
       {userName[0]}
     </div>
     <div className="flex-1">
-      <p className="text-sm font-bold text-white">
+      <p className="text-sm font-bold text-foreground">
         {userName} <span className="font-medium text-text-muted">{action}</span>
       </p>
       <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
@@ -308,13 +308,13 @@ const NavHubCard = ({ title, description, icon, href, stats, color, isUrgent }) 
         {isUrgent && <Badge variant="danger" className="animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]">{t("admin_action_required")}</Badge>}
       </div>
       <div className="relative z-10">
-        <h3 className="text-xl font-bold font-heading text-white mb-1 flex items-center gap-2 group-hover:text-primary transition-colors">
+        <h3 className="text-xl font-bold font-heading text-foreground mb-1 flex items-center gap-2 group-hover:text-primary transition-colors">
           {title}
           <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
         </h3>
         <p className="text-sm text-text-muted mb-4">{description}</p>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-black px-3 py-1 bg-surface/50 rounded-full border border-white/10 shadow-inner truncate max-w-full text-white group-hover:border-primary/30 transition-colors">
+          <span className="text-sm font-black px-3 py-1 bg-surface/50 rounded-full border border-border shadow-inner truncate max-w-full text-foreground group-hover:border-primary/30 transition-colors">
             {stats}
           </span>
         </div>

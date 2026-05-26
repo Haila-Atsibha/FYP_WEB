@@ -72,13 +72,13 @@ export default function Sidebar({ role }) {
   };
 
   return (
-    <aside className="w-64 glass border-r border-white/5 min-h-screen flex flex-col relative z-20 shadow-2xl">
+    <aside className="w-64 glass border-r border-border min-h-screen flex flex-col relative z-20 shadow-2xl">
       <div className="p-8 flex-1">
         <Link href="/" className="flex items-center gap-2 mb-10 group">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <span className="font-bold text-lg">Q</span>
           </div>
-          <span className="text-xl font-bold font-heading text-white tracking-tight group-hover:text-primary transition-colors">QuickServe</span>
+          <span className="text-xl font-bold font-heading text-foreground tracking-tight group-hover:text-primary transition-colors">QuickServe</span>
         </Link>
         <h2 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-6">{t("sidebar_menu_header")}</h2>
         <ul className="space-y-3">
@@ -88,7 +88,7 @@ export default function Sidebar({ role }) {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/5 hover:text-white transition-all font-medium text-text-muted active:scale-95 group relative overflow-hidden"
+                  className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-surface-hover hover:text-foreground transition-all font-medium text-text-muted active:scale-95 group relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <span className="relative z-10">{t(l.key)}</span>
@@ -104,8 +104,8 @@ export default function Sidebar({ role }) {
         </ul>
       </div>
 
-      <div className="p-6 border-t border-white/5 space-y-4 bg-surface/30">
-        <div className="flex items-center gap-3 px-4 py-3 bg-surface/50 rounded-2xl border border-white/5 backdrop-blur-md">
+      <div className="p-6 border-t border-border space-y-4 bg-surface/30">
+        <div className="flex items-center gap-3 px-4 py-3 bg-surface/50 rounded-2xl border border-border backdrop-blur-md">
           <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center text-primary font-black border border-primary/20 shadow-[0_0_15px_rgba(249,115,22,0.15)] shrink-0">
             {user?.profile_image_url ? (
               <img src={user.profile_image_url} alt={user?.name} className="w-full h-full object-cover" />
@@ -114,7 +114,7 @@ export default function Sidebar({ role }) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white truncate">{user?.name}</p>
+            <p className="text-sm font-bold text-foreground truncate">{user?.name}</p>
             <p className="text-[10px] font-bold text-primary uppercase tracking-wider truncate">{user?.role}</p>
           </div>
         </div>

@@ -226,7 +226,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                 />
               </div>
               <div className="pt-4">
@@ -253,7 +253,7 @@ export default function ForgotPasswordPage() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   required
-                  className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all text-center tracking-widest text-lg font-bold"
+                  className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all text-center tracking-widest text-lg font-bold"
                 />
               </div>
               <div className="pt-4">
@@ -291,7 +291,7 @@ export default function ForgotPasswordPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                  className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                 />
               </div>
               <div>
@@ -304,7 +304,7 @@ export default function ForgotPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                 />
               </div>
               <div className="pt-4">
@@ -332,7 +332,7 @@ export default function ForgotPasswordPage() {
 
           {step !== 4 && (
             <div className="mt-8 text-sm">
-              <Link href="/auth/login" className="text-text-muted hover:text-white transition-colors flex items-center gap-2">
+              <Link href="/auth/login" className="text-text-muted hover:text-foreground transition-colors flex items-center gap-2">
                 <ArrowRight size={16} className="rotate-180" /> {t("auth_back_to_login")}
               </Link>
             </div>

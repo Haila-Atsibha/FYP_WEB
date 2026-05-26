@@ -295,7 +295,7 @@ export default function RegisterPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
                 </div>
                 <div>
@@ -309,7 +309,7 @@ export default function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
                 </div>
               </div>
@@ -326,7 +326,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
                 </div>
                 <div>
@@ -340,7 +340,7 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
                 </div>
               </div>
@@ -351,10 +351,10 @@ export default function RegisterPage() {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full bg-surface/50 backdrop-blur-sm border-white/5 text-white rounded-2xl px-4 py-3 appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all shadow-inner"
+                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground rounded-2xl px-4 py-3 appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all shadow-inner"
                   >
-                    <option value="customer" className="bg-surface text-white">{t("auth_customer")} - {t("auth_customer_desc")}</option>
-                    <option value="provider" className="bg-surface text-white">{t("auth_provider")} - {t("auth_provider_desc")}</option>
+                    <option value="customer" className="bg-surface text-foreground">{t("auth_customer")} - {t("auth_customer_desc")}</option>
+                    <option value="provider" className="bg-surface text-foreground">{t("auth_provider")} - {t("auth_provider_desc")}</option>
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -407,7 +407,7 @@ export default function RegisterPage() {
                           </div>
                           <div className="relative z-10 bg-black/40 px-3 py-1.5 rounded-lg flex flex-col items-center gap-1 backdrop-blur-sm">
                             <span className="text-xs text-white font-medium">Change ID Images</span>
-                            <span className="text-[10px] text-white/80">{nationalId.length} {t("auth_files_selected")}</span>
+                            <span className="text-[10px] text-text-muted">{nationalId.length} {t("auth_files_selected")}</span>
                           </div>
                         </>
                       ) : (
@@ -439,11 +439,11 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-sm font-medium text-text-muted mb-2 ml-1">{t("auth_selfie_verif")}</label>
-                <div className="bg-surface/50 rounded-2xl p-4 border border-white/5">
+                <div className="bg-surface/50 rounded-2xl p-4 border border-border">
                   <div className="flex gap-3 mb-4">
                     {!selfiePreviewUrl ? (
                       <>
-                        <button type="button" onClick={startCamera} className="flex-1 bg-surface border border-white/10 text-white hover:bg-white/5 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
+                        <button type="button" onClick={startCamera} className="flex-1 bg-surface border border-border text-foreground hover:bg-surface-hover py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
                           <Camera size={16} /> {t("auth_start_camera")}
                         </button>
                         <button type="button" onClick={capturePhoto} className="flex-1 bg-primary text-white hover:bg-primary-hover py-2.5 rounded-xl font-medium transition-all text-sm shadow-[0_0_15px_rgba(249,115,22,0.3)]">
@@ -451,13 +451,13 @@ export default function RegisterPage() {
                         </button>
                       </>
                     ) : (
-                      <button type="button" onClick={retakePhoto} className="w-full bg-surface border border-white/10 text-white hover:bg-white/5 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
+                      <button type="button" onClick={retakePhoto} className="w-full bg-surface border border-border text-foreground hover:bg-surface-hover py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
                         <Camera size={16} /> Retake Photo
                       </button>
                     )}
                   </div>
                   
-                  <div className="relative rounded-xl overflow-hidden bg-black/40 aspect-video border border-white/10 flex items-center justify-center">
+                  <div className="relative rounded-xl overflow-hidden bg-black/40 aspect-video border border-border flex items-center justify-center">
                     {selfiePreviewUrl ? (
                       <img src={selfiePreviewUrl} alt="Selfie Preview" className="w-full h-full object-cover absolute inset-0" />
                     ) : (
@@ -490,15 +490,15 @@ export default function RegisterPage() {
                 <p className="text-sm text-text-muted mb-4">{t("auth_select_services")}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                   {categories.map((c) => (
-                    <label key={c.id} className="flex items-center p-3 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group bg-surface/50">
+                    <label key={c.id} className="flex items-center p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group bg-surface/50">
                       <input
                         type="checkbox"
                         value={c.id}
                         checked={selectedCats.includes(c.id)}
                         onChange={() => handleCatToggle(c.id)}
-                        className="w-4 h-4 rounded text-primary focus:ring-primary focus:ring-offset-surface border-white/20 bg-surface/50 mr-3 transition-all"
+                        className="w-4 h-4 rounded text-primary focus:ring-primary focus:ring-offset-surface border-border bg-surface/50 mr-3 transition-all"
                       />
-                      <span className="text-sm font-medium text-text-muted group-hover:text-white transition-colors">{c.name}</span>
+                      <span className="text-sm font-medium text-text-muted group-hover:text-foreground transition-colors">{c.name}</span>
                     </label>
                   ))}
                 </div>
@@ -516,7 +516,7 @@ export default function RegisterPage() {
             </div>
           </form>
 
-          <div className="mt-8 text-center text-sm pt-6 border-t border-white/5">
+          <div className="mt-8 text-center text-sm pt-6 border-t border-border">
             <p className="text-text-muted">
               {t("auth_already_account")}{" "}
               <Link href="/auth/login" className="text-primary font-bold hover:text-primary-hover transition-colors">

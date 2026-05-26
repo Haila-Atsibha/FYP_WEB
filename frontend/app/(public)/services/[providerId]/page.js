@@ -178,11 +178,11 @@ export default function ProviderProfilePage() {
                                     >
                                         <div className="flex justify-between items-start mb-3">
                                             <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors pr-4">{svc.title}</h4>
-                                            <span className="text-white font-extrabold text-xl bg-surface/50 px-3 py-1 rounded-xl shadow-inner border border-white/5">${svc.price}</span>
+                                            <span className="text-foreground font-extrabold text-xl bg-surface/50 px-3 py-1 rounded-xl shadow-inner border border-border">${svc.price}</span>
                                         </div>
                                         <p className="text-text-muted text-sm line-clamp-2 leading-relaxed">{svc.description}</p>
                                         <div className="mt-4 flex justify-end">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${selectedService?.id === svc.id ? 'bg-primary text-white scale-110' : 'bg-surface border border-white/10 text-white/50 group-hover:bg-primary/20 group-hover:text-primary'}`}>
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${selectedService?.id === svc.id ? 'bg-primary text-white scale-110' : 'bg-surface border border-border text-text-muted group-hover:bg-primary/20 group-hover:text-primary'}`}>
                                                 {selectedService?.id === svc.id ? <CheckCircle size={16} /> : <Plus size={16} />}
                                             </div>
                                         </div>
@@ -212,10 +212,10 @@ export default function ProviderProfilePage() {
                                     </div>
                                     
                                     <form onSubmit={handleBooking} className="space-y-6 relative z-10">
-                                        <div className="p-6 bg-surface/50 border border-white/10 rounded-2xl flex justify-between items-center backdrop-blur-md">
+                                        <div className="p-6 bg-surface/50 border border-border rounded-2xl flex justify-between items-center backdrop-blur-md">
                                             <div>
                                                 <div className="text-text-muted text-xs font-bold uppercase tracking-wider mb-1">Selected Service</div>
-                                                <div className="text-white font-bold text-lg">{selectedService.title}</div>
+                                                <div className="text-foreground font-bold text-lg">{selectedService.title}</div>
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-text-muted text-xs font-bold uppercase tracking-wider mb-1">Total</div>
@@ -249,7 +249,7 @@ export default function ProviderProfilePage() {
                                                 onChange={(e) => setDescription(e.target.value)}
                                                 placeholder="e.g. Need this done before 5 PM, bring required tools..."
                                                 rows={3}
-                                                className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
+                                                className="w-full bg-surface/50 border border-border text-foreground placeholder:text-text-muted rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
                                             />
 
                                         {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium">{error}</div>}
@@ -288,7 +288,7 @@ export default function ProviderProfilePage() {
                                         <div key={review.id} className="glass-card p-6 rounded-[2rem] space-y-4">
                                             <div className="flex justify-between items-start">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-surface border border-white/10 flex items-center justify-center font-bold text-white">
+                                                    <div className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center font-bold text-foreground">
                                                         {review.customer_name?.[0] || "C"}
                                                     </div>
                                                     <div>
@@ -298,7 +298,7 @@ export default function ProviderProfilePage() {
                                                                 <Star
                                                                     key={i}
                                                                     size={12}
-                                                                    className={`${i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-white/10"}`}
+                                                                    className={`${i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-border"}`}
                                                                 />
                                                             ))}
                                                         </div>

@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { ThemeContext } from "../context/ThemeContext";
-import { User, LogOut, LayoutDashboard, BriefcaseBusiness, Globe, Sun, Moon } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
+import { User, LogOut, BriefcaseBusiness, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "../hooks/useTranslation";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
-  const { theme, toggleTheme } = useContext(ThemeContext);
   const { t, language, toggleLanguage } = useTranslation();
 
   return (
@@ -18,7 +17,7 @@ export default function Navbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="sticky top-0 z-50 glass border-b !border-white/5 shadow-2xl"
+      className="sticky top-0 z-50 glass border-b border-border shadow-2xl"
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 group">
@@ -35,13 +34,7 @@ export default function Navbar() {
             {t("nav_menu")}
           </Link>
 
-          <button 
-            onClick={toggleTheme} 
-            className="flex items-center gap-1 text-text-muted hover:text-foreground transition-colors font-medium"
-            title="Toggle Theme"
-          >
-            {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
+          <ThemeToggle />
 
           <button 
             onClick={toggleLanguage} 
@@ -53,12 +46,12 @@ export default function Navbar() {
           </button>
 
           {user ? (
-            <div className="flex items-center space-x-6 border-l border-white/10 pl-6">
+            <div className="flex items-center space-x-6 border-l border-border pl-6">
               <Link
                 href={`/${user.role}`}
                 className="flex items-center gap-2 text-text-muted hover:text-foreground transition-colors font-medium group"
               >
-                <div className="w-9 h-9 rounded-full bg-surface border border-white/10 overflow-hidden flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-lg">
+                <div className="w-9 h-9 rounded-full bg-surface border border-border overflow-hidden flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-lg">
                   {user?.profile_image_url ? (
                     <img src={user.profile_image_url} alt={user?.name} className="w-full h-full object-cover" />
                   ) : (
@@ -76,7 +69,7 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center space-x-4 border-l border-white/10 pl-6">
+            <div className="flex items-center space-x-4 border-l border-border pl-6">
               <Link
                 href="/auth/login"
                 className="text-text-muted hover:text-foreground transition-colors font-medium"

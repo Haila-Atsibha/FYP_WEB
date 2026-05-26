@@ -342,7 +342,7 @@ export default function ProviderDashboard() {
                   <AlertCircle className="w-8 h-8" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold font-heading text-white">{t("provider_have_complaint")}</h4>
+                  <h4 className="text-xl font-bold font-heading text-foreground">{t("provider_have_complaint")}</h4>
                   <p className="text-sm text-text-muted">{t("provider_complaint_prompt")}</p>
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function ProviderDashboard() {
                   <Star className="w-8 h-8" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold font-heading text-white">{t("rate_platform")}</h4>
+                  <h4 className="text-xl font-bold font-heading text-foreground">{t("rate_platform")}</h4>
                   <p className="text-sm text-text-muted">{t("provider_rate_prompt")}</p>
                 </div>
               </div>
@@ -432,12 +432,12 @@ export default function ProviderDashboard() {
                   [...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
                 ) : services.length > 0 ? (
                   services.map((service) => (
-                    <div key={service.id} className="glass-card border border-white/5 p-4 rounded-2xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
+                    <div key={service.id} className="glass-card border border-border p-4 rounded-2xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
                       <div className="flex justify-between items-start mb-2 relative z-10">
                         <Badge variant="info" className="text-[10px]">{service.category_name}</Badge>
                         <span className="font-black text-primary">{service.price} <span className="text-[10px]">ETB</span></span>
                       </div>
-                      <h4 className="font-bold text-white group-hover:text-primary transition-colors relative z-10">{service.title}</h4>
+                      <h4 className="font-bold text-foreground group-hover:text-primary transition-colors relative z-10">{service.title}</h4>
                       <p className="text-xs text-text-muted mt-1 line-clamp-1 relative z-10">{service.description}</p>
                       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-[20px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                     </div>
@@ -734,7 +734,7 @@ const StatCard = ({ title, value, unit, icon, variant, onClick }) => {
 
   return (
     <div
-      className="glass-card p-6 rounded-3xl cursor-pointer group hover:-translate-y-1 transition-all duration-300 border border-white/5"
+      className="glass-card p-6 rounded-3xl cursor-pointer group hover:-translate-y-1 transition-all duration-300 border border-border"
       onClick={onClick}
     >
       <div className="flex items-center gap-5">
@@ -744,7 +744,7 @@ const StatCard = ({ title, value, unit, icon, variant, onClick }) => {
         <div>
           <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-1">{title}</p>
           <div className="flex items-baseline gap-1">
-            <h4 className="text-3xl font-bold font-heading text-white">{value}</h4>
+            <h4 className="text-3xl font-bold font-heading text-foreground">{value}</h4>
             {unit && <span className="text-xs font-bold text-text-muted ml-1">{unit}</span>}
           </div>
         </div>
@@ -754,25 +754,25 @@ const StatCard = ({ title, value, unit, icon, variant, onClick }) => {
 };
 
 const BookingRequestCard = ({ booking, onAccept, onReject, t }) => (
-  <div className="glass-card p-0 overflow-hidden !rounded-[2rem] group hover:-translate-y-1 transition-all duration-300 border border-white/5">
+  <div className="glass-card p-0 overflow-hidden !rounded-[2rem] group hover:-translate-y-1 transition-all duration-300 border border-border">
     <div className="p-6 space-y-5">
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-surface/50 flex items-center justify-center font-bold text-primary border border-white/10 shadow-inner">
+          <div className="w-12 h-12 rounded-2xl bg-surface/50 flex items-center justify-center font-bold text-primary border border-border shadow-inner">
             {booking.customer_name?.[0] || booking.customer?.[0] || "C"}
           </div>
           <div>
-            <h4 className="font-bold text-white leading-none mb-1">{booking.customer_name || booking.customer}</h4>
+            <h4 className="font-bold text-foreground leading-none mb-1">{booking.customer_name || booking.customer}</h4>
             <Badge variant="warning" className="text-[10px] py-0 px-2">{t("status_pending")}</Badge>
           </div>
         </div>
-        <button className="p-2 text-text-muted hover:text-white transition-colors">
+        <button className="p-2 text-text-muted hover:text-foreground transition-colors">
           <MoreVertical className="w-5 h-5" />
         </button>
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-white/80 font-medium">
+        <div className="flex items-center gap-2 text-sm text-text-muted font-medium">
           <Badge variant="info" className="py-0.5">{booking.category_name || booking.category}</Badge>
         </div>
         <p className="text-sm text-text-muted line-clamp-2 leading-relaxed italic">
@@ -781,14 +781,14 @@ const BookingRequestCard = ({ booking, onAccept, onReject, t }) => (
       </div>
 
       <div className="grid grid-cols-2 gap-3 pt-2">
-        <div className="bg-surface/30 p-3 rounded-2xl border border-white/5">
+        <div className="bg-surface/30 p-3 rounded-2xl border border-border">
           <p className="text-[10px] uppercase font-bold text-text-muted mb-1">{t("provider_date_time")}</p>
-          <p className="text-xs font-bold text-white flex items-center gap-1.5">
+          <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
             <Calendar className="w-3 h-3 text-primary/70" /> {new Date(booking.booking_date).toLocaleDateString()}
           </p>
           <p className="text-[11px] font-medium text-text-muted ml-5">{booking.booking_time}</p>
         </div>
-        <div className="bg-surface/30 p-3 rounded-2xl border border-white/5 flex flex-col justify-center">
+        <div className="bg-surface/30 p-3 rounded-2xl border border-border flex flex-col justify-center">
           <p className="text-[10px] uppercase font-bold text-text-muted mb-1">{t("provider_price")}</p>
           <p className="text-lg font-bold font-heading text-primary leading-none shadow-[0_0_15px_rgba(249,115,22,0.15)] bg-primary/5 w-fit px-2 py-1 rounded-xl border border-primary/20">
             {booking.price} <span className="text-[10px]">ETB</span>
@@ -797,10 +797,10 @@ const BookingRequestCard = ({ booking, onAccept, onReject, t }) => (
       </div>
     </div>
 
-    <div className="flex border-t border-white/5">
+    <div className="flex border-t border-border">
       <button
         onClick={onReject}
-        className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border-r border-white/5"
+        className="flex-1 py-4 flex items-center justify-center gap-2 font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border-r border-border"
       >
         <X className="w-4 h-4" /> {t("btn_reject")}
       </button>

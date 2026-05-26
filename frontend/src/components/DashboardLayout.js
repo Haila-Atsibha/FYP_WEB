@@ -1,8 +1,8 @@
 "use client";
 
 import { useContext } from "react";
-import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import ThemeToggle from "./ThemeToggle";
 import { AuthContext } from "../context/AuthContext";
 
 export default function DashboardLayout({ children }) {
@@ -21,10 +21,13 @@ export default function DashboardLayout({ children }) {
 
       <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         {/* Mobile Header */}
-        <div className="md:hidden glass border-b border-white/5 p-4 flex items-center justify-between sticky top-0 z-50">
-           <span className="text-xl font-bold font-heading text-white tracking-tight">QuickServe</span>
-           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-             {user?.name?.[0] || 'U'}
+        <div className="md:hidden glass border-b border-border p-4 flex items-center justify-between sticky top-0 z-50">
+           <span className="text-xl font-bold font-heading text-foreground tracking-tight">QuickServe</span>
+           <div className="flex items-center gap-3">
+             <ThemeToggle />
+             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+               {user?.name?.[0] || 'U'}
+             </div>
            </div>
         </div>
 

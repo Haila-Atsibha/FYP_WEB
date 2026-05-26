@@ -558,7 +558,7 @@ const SummaryCard = ({ label, value, icon, href, variant = "primary", highlight 
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold font-heading text-white tracking-tight">{value}</p>
+        <p className="text-2xl font-bold font-heading text-foreground tracking-tight">{value}</p>
         <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{label}</p>
       </div>
       {highlight && <div className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>}

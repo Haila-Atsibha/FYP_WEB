@@ -23,9 +23,30 @@ export const metadata = {
   description: "Marketplace connecting job seekers with trusted service providers",
 };
 
+const themeInitScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem("app-theme");
+    var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+    var theme = stored === "light" || stored === "dark" ? stored : (prefersLight ? "light" : "dark");
+    var root = document.documentElement;
+    if (theme === "light") {
+      root.classList.add("light");
+      root.classList.remove("dark");
+    } else {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    }
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
         className={`${inter.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
       >

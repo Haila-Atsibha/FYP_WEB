@@ -120,7 +120,7 @@ function VerifyEmailContent() {
             {otp.map((data, index) => {
               return (
                 <input
-                  className="w-12 h-14 text-center text-xl font-bold bg-surface/50 border border-white/10 text-white rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  className="w-12 h-14 text-center text-xl font-bold bg-surface/50 border border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                   type="text"
                   name="otp"
                   maxLength="1"

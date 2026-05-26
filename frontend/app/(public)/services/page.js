@@ -100,7 +100,7 @@ function ServicesContent() {
             placeholder={t("services_search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-surface/50 border border-white/10 text-white rounded-full pl-12 pr-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-lg backdrop-blur-md"
+            className="w-full bg-surface/50 border border-border text-foreground placeholder:text-text-muted rounded-full pl-12 pr-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-lg backdrop-blur-md"
           />
         </motion.div>
 
@@ -114,7 +114,7 @@ function ServicesContent() {
             onClick={() => handleCategoryChange("")}
             className={`whitespace-nowrap px-6 py-3 rounded-full text-sm font-semibold transition-all border ${!categoryFilter
                 ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                : "bg-surface/50 text-text-muted border-white/10 hover:border-primary/50 hover:text-white backdrop-blur-md"
+                : "bg-surface/50 text-text-muted border-border hover:border-primary/50 hover:text-foreground backdrop-blur-md"
               }`}
           >
             {t("services_all")}
@@ -125,7 +125,7 @@ function ServicesContent() {
               onClick={() => handleCategoryChange(c.id)}
               className={`whitespace-nowrap px-6 py-3 rounded-full text-sm font-semibold transition-all border ${categoryFilter == c.id
                   ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                  : "bg-surface/50 text-text-muted border-white/10 hover:border-primary/50 hover:text-white backdrop-blur-md"
+                  : "bg-surface/50 text-text-muted border-border hover:border-primary/50 hover:text-foreground backdrop-blur-md"
                 }`}
             >
               {c.name}

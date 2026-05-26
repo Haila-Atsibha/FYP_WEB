@@ -19,7 +19,7 @@ export default function ServiceCard({ service, user }) {
           <span className="font-bold text-xl text-foreground text-gradient">${price}</span>
         </div>
         <h3 className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors leading-tight">{title}</h3>
-        <Link href={`/services/${provider_id}`} className="text-sm text-text-muted hover:text-white transition-colors block mb-4 font-medium">
+        <Link href={`/services/${provider_id}`} className="text-sm text-text-muted hover:text-foreground transition-colors block mb-4 font-medium">
           by {provider_name || service.provider?.name || service.provider}
         </Link>
       </div>
@@ -32,12 +32,12 @@ export default function ServiceCard({ service, user }) {
           <span className="text-xs text-text-muted font-medium">{service.completedJobs ?? 0} bookings</span>
         </div>
         {user ? (
-          <Link href={`/services/${provider_id}?service=${id}`} className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-white/10 hover:border-primary/50 text-white hover:text-primary py-3 rounded-2xl font-semibold transition-all shadow-md group-hover:bg-primary/10 active:scale-95">
+          <Link href={`/services/${provider_id}?service=${id}`} className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-border hover:border-primary/50 text-foreground hover:text-primary py-3 rounded-2xl font-semibold transition-all shadow-md group-hover:bg-primary/10 active:scale-95">
             <Plus size={18} />
             <span>Book Now</span>
           </Link>
         ) : (
-          <Link href="/auth/login" className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-white/10 hover:border-primary/50 text-text-muted hover:text-white py-3 rounded-2xl font-semibold transition-all shadow-md active:scale-95">
+          <Link href="/auth/login" className="flex items-center justify-center gap-2 w-full bg-surface/50 border border-border hover:border-primary/50 text-text-muted hover:text-foreground py-3 rounded-2xl font-semibold transition-all shadow-md active:scale-95">
             Login to Book
           </Link>
         )}

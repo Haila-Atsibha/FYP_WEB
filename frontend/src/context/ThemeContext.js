@@ -2,30 +2,43 @@
 
 import React, { createContext, useState, useEffect } from "react";
 
-export const ThemeContext = createContext();
+export const ThemeContext = createContext({
+    theme: "dark",
+    toggleTheme: () => {},
+});
+
+function getStoredTheme() {
+    if (typeof window === "undefined") return null;
+    const stored = localStorage.getItem("app-theme");
+    if (stored === "light" || stored === "dark") return stored;
+    if (window.matchMedia?.("(prefers-color-scheme: light)").matches) return "light";
+    return "dark";
+}
+
+function applyThemeClass(theme) {
+    const root = document.documentElement;
+    if (theme === "light") {
+        root.classList.add("light");
+        root.classList.remove("dark");
+    } else {
+        root.classList.add("dark");
+        root.classList.remove("light");
+    }
+}
 
 export const ThemeProvider = ({ children }) => {
-    const [theme, setTheme] = useState("dark"); // Default to dark mode
+    const [theme, setTheme] = useState(() => getStoredTheme() ?? "dark");
 
-    // Load theme from localStorage on mount
     useEffect(() => {
-        const storedTheme = localStorage.getItem("app-theme");
-        if (storedTheme) {
-            setTheme(storedTheme);
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-            setTheme("light");
-        }
+        const resolved =
+            getStoredTheme() ??
+            (document.documentElement.classList.contains("light") ? "light" : "dark");
+        setTheme(resolved);
+        applyThemeClass(resolved);
     }, []);
 
-    // Apply theme class to <html> whenever theme changes
     useEffect(() => {
-        if (theme === "light") {
-            document.documentElement.classList.add("light");
-            document.documentElement.classList.remove("dark");
-        } else {
-            document.documentElement.classList.add("dark");
-            document.documentElement.classList.remove("light");
-        }
+        applyThemeClass(theme);
         localStorage.setItem("app-theme", theme);
     }, [theme]);
 
