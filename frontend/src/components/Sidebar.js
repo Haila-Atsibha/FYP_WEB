@@ -12,6 +12,7 @@ const menuByRole = {
     { id: "Dashboard", key: "sidebar_dashboard", href: "/customer" },
     { id: "Bookings", key: "sidebar_bookings", href: "/customer/bookings" },
     { id: "Messages", key: "sidebar_messages", href: "/customer/messages" },
+    { id: "Complaints", key: "sidebar_complaints", href: "/customer/complaints" },
     { id: "Profile", key: "sidebar_profile", href: "/customer/profile" },
   ],
   provider: [
@@ -19,6 +20,8 @@ const menuByRole = {
     { id: "Bookings", key: "sidebar_bookings", href: "/provider/bookings" },
     { id: "Messages", key: "sidebar_messages", href: "/provider/messages" },
     { id: "Reviews", key: "sidebar_reviews", href: "/provider/reviews" },
+    { id: "Complaints", key: "sidebar_complaints", href: "/provider/complaints" },
+    { id: "Reports", key: "sidebar_reports", href: "/provider/reports" },
     { id: "Profile", key: "sidebar_profile", href: "/provider/profile" },
   ],
   admin: [
@@ -30,6 +33,7 @@ const menuByRole = {
     { id: "Subscriptions", key: "sidebar_subscriptions", href: "/admin/subscriptions" },
     { id: "Verification", key: "sidebar_verification", href: "/admin/pending" },
     { id: "AI Approved", key: "sidebar_ai_approved", href: "/admin/ai-approved" },
+    { id: "Reports", key: "sidebar_reports", href: "/admin/reports" },
   ],
 };
 

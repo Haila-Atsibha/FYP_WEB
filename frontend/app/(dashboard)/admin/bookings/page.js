@@ -20,8 +20,10 @@ import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
 import AdminDataTable from "../../../../src/components/AdminDataTable";
 import api from "../../../../src/services/api";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function AdminBookings() {
+    const { t } = useTranslation();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -36,7 +38,7 @@ export default function AdminBookings() {
                 setBookings(res.data);
             } catch (err) {
                 console.error("Failed to fetch bookings:", err);
-                setError("Failed to load bookings. Please try again later.");
+                setError(t("admin_bookings_fetch_error"));
             } finally {
                 setLoading(false);
             }
@@ -56,13 +58,48 @@ export default function AdminBookings() {
         return matchesSearch && matchesStatus;
     });
 
+    const handleExportCSV = () => {
+        if (!filteredBookings || filteredBookings.length === 0) return;
+
+        const headers = [
+            t("admin_bookings_col_id"),
+            t("admin_bookings_col_customer"),
+            t("admin_bookings_col_provider"),
+            t("admin_bookings_col_service"),
+            t("admin_bookings_col_status"),
+            t("admin_bookings_col_price"),
+            t("admin_bookings_col_date")
+        ];
+
+        const csvRows = filteredBookings.map(b => [
+            b.id,
+            `"${(b.customer || '').replace(/"/g, '""')}"`,
+            `"${(b.provider || '').replace(/"/g, '""')}"`,
+            `"${(b.service || '').replace(/"/g, '""')}"`,
+            `"${b.status}"`,
+            b.price,
+            `"${new Date(b.booking_date).toLocaleDateString()}"`
+        ]);
+
+        const csvContent = [headers.join(","), ...csvRows.map(e => e.join(","))].join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `bookings_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const columns = [
-        { header: "ID", accessor: "id", render: (row) => <span className="font-mono text-xs font-bold">#{row.id}</span> },
-        { header: "Customer", accessor: "customer" },
-        { header: "Provider", accessor: "provider" },
-        { header: "Service", accessor: "service" },
+        { header: t("admin_bookings_col_id"), accessor: "id", render: (row) => <span className="font-mono text-xs font-bold">#{row.id}</span> },
+        { header: t("admin_bookings_col_customer"), accessor: "customer" },
+        { header: t("admin_bookings_col_provider"), accessor: "provider" },
+        { header: t("admin_bookings_col_service"), accessor: "service" },
         {
-            header: "Status",
+            header: t("admin_bookings_col_status"),
             render: (row) => (
                 <Badge variant={
                     row.status === 'completed' ? 'success' :
@@ -74,11 +111,11 @@ export default function AdminBookings() {
             )
         },
         {
-            header: "Price",
+            header: t("admin_bookings_col_price"),
             render: (row) => <span className="font-bold">${row.price}</span>
         },
         {
-            header: "Booking Date",
+            header: t("admin_bookings_col_date"),
             render: (row) => (
                 <div className="flex items-center gap-2 text-text-muted text-sm">
                     <Calendar className="w-3 h-3" />
@@ -102,21 +139,21 @@ export default function AdminBookings() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Booking Management</h1>
-                            <p className="text-text-muted mt-1">Monitor and manage all service bookings across the platform.</p>
+                            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{t("admin_bookings_title")}</h1>
+                            <p className="text-text-muted mt-1">{t("admin_bookings_desc_long")}</p>
                         </div>
-                        <Button variant="secondary" className="flex items-center gap-2">
+                        <Button variant="secondary" className="flex items-center gap-2" onClick={handleExportCSV}>
                             <Download className="w-4 h-4" />
-                            <span>Export CSV</span>
+                            <span>{t("admin_bookings_export")}</span>
                         </Button>
                     </div>
 
                     {/* Quick Stats */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatMiniCard title="Total" value={stats.total} icon={<ShoppingBag />} color="text-primary bg-primary/10" />
-                        <StatMiniCard title="Active" value={stats.active} icon={<Clock />} color="text-blue-500 bg-blue-500/10" />
-                        <StatMiniCard title="Completed" value={stats.completed} icon={<CheckCircle />} color="text-green-500 bg-green-500/10" />
-                        <StatMiniCard title="Cancelled" value={stats.cancelled} icon={<XCircle />} color="text-red-500 bg-red-500/10" />
+                        <StatMiniCard title={t("admin_bookings_total")} value={stats.total} icon={<ShoppingBag />} color="text-primary bg-primary/10" />
+                        <StatMiniCard title={t("admin_bookings_active")} value={stats.active} icon={<Clock />} color="text-blue-500 bg-blue-500/10" />
+                        <StatMiniCard title={t("admin_bookings_completed")} value={stats.completed} icon={<CheckCircle />} color="text-green-500 bg-green-500/10" />
+                        <StatMiniCard title={t("admin_bookings_cancelled")} value={stats.cancelled} icon={<XCircle />} color="text-red-500 bg-red-500/10" />
                     </div>
 
                     {/* Controls */}
@@ -125,7 +162,7 @@ export default function AdminBookings() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                             <input
                                 type="text"
-                                placeholder="Search bookings by ID, customer or service..."
+                                placeholder={t("admin_bookings_search_placeholder")}
                                 className="w-full pl-12 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -138,11 +175,11 @@ export default function AdminBookings() {
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
-                                <option value="all">All Statuses</option>
-                                <option value="Active">Active</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Cancelled">Cancelled</option>
-                                <option value="Pending">Pending</option>
+                                <option value="all">{t("admin_bookings_all_statuses")}</option>
+                                <option value="Active">{t("admin_bookings_active")}</option>
+                                <option value="Completed">{t("admin_bookings_completed")}</option>
+                                <option value="Cancelled">{t("admin_bookings_cancelled")}</option>
+                                <option value="Pending">{t("admin_bookings_pending")}</option>
                             </select>
                         </div>
                     </div>
@@ -153,7 +190,7 @@ export default function AdminBookings() {
                             <div className="p-20 text-center">
                                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                                 <p className="text-lg font-bold">{error}</p>
-                                <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+                                <Button onClick={() => window.location.reload()} className="mt-4">{t("admin_retry")}</Button>
                             </div>
                         ) : (
                             <AdminDataTable
@@ -167,7 +204,7 @@ export default function AdminBookings() {
                         {!loading && filteredBookings.length === 0 && (
                             <div className="p-20 text-center">
                                 <ShoppingBag className="w-12 h-12 text-text-muted mx-auto mb-4 opacity-20" />
-                                <p className="text-text-muted font-medium">No bookings found matching your criteria.</p>
+                                <p className="text-text-muted font-medium">{t("admin_bookings_no_found")}</p>
                             </div>
                         )}
                     </div>

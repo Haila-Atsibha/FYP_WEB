@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }) {
   const { user } = useContext(AuthContext);
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden relative">
+    <div className="flex-1 flex bg-background text-foreground transition-colors duration-300 overflow-hidden relative w-full h-full">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-aurora opacity-30 pointer-events-none z-0"></div>
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[150px] pointer-events-none z-0"></div>
@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }) {
         <Sidebar role={user?.role} />
       </div>
 
-      <div className="flex-1 flex flex-col relative z-10 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden glass border-b border-white/5 p-4 flex items-center justify-between sticky top-0 z-50">
            <span className="text-xl font-bold font-heading text-white tracking-tight">QuickServe</span>

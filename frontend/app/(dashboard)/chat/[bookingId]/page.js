@@ -7,7 +7,11 @@ import api from "../../../../src/services/api";
 import { AuthContext } from "../../../../src/context/AuthContext";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import Button from "../../../../src/components/Button";
+import Modal from "../../../../src/components/Modal";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const LocationPickerMap = dynamic(() => import("../../../../src/components/LocationPickerMap"), { ssr: false });
 
 export default function ChatPage() {
     const { bookingId } = useParams();
@@ -20,6 +24,9 @@ export default function ChatPage() {
     const [newMessage, setNewMessage] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [location, setLocation] = useState(null);
+    const [isLocationChoiceModalOpen, setIsLocationChoiceModalOpen] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [tempLocation, setTempLocation] = useState(null);
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
@@ -105,15 +112,28 @@ export default function ChatPage() {
         }
     };
 
-    const handleLocationShare = () => {
+    const handleLocationChoice = () => {
+        setIsLocationChoiceModalOpen(true);
+    };
+
+    const handleSendCurrentLocation = () => {
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");
             return;
         }
         navigator.geolocation.getCurrentPosition(
-            (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            (pos) => {
+                setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                setIsLocationChoiceModalOpen(false);
+            },
             () => alert("Unable to retrieve your location")
         );
+    };
+
+    const handleOpenMapPicker = () => {
+        setTempLocation(null);
+        setIsLocationChoiceModalOpen(false);
+        setIsLocationModalOpen(true);
     };
 
     if (loading) {
@@ -147,7 +167,7 @@ export default function ChatPage() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-5xl mx-auto h-[calc(100vh-160px)] flex flex-col gap-6">
+            <div className="max-w-5xl mx-auto h-[calc(100vh-150px)] flex flex-col gap-6">
 
                 {/* Chat Header */}
                 <div className="bg-surface border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
@@ -258,7 +278,7 @@ export default function ChatPage() {
                         <button type="button" onClick={() => fileInputRef.current?.click()} className="text-text-muted hover:text-primary transition-colors p-2">
                             <Paperclip size={20} />
                         </button>
-                        <button type="button" onClick={handleLocationShare} className="text-text-muted hover:text-primary transition-colors p-2">
+                        <button type="button" onClick={handleLocationChoice} className="text-text-muted hover:text-primary transition-colors p-2">
                             <MapPin size={20} />
                         </button>
                         <input
@@ -268,17 +288,64 @@ export default function ChatPage() {
                             placeholder="Type your message here..."
                             className="flex-1 bg-transparent border-none text-foreground px-2 py-2 focus:outline-none font-medium"
                         />
-                        <Button
+                        <button
                             type="submit"
                             disabled={(!newMessage.trim() && !selectedFile && !location) || sending}
-                            className="rounded-2xl w-12 h-12 flex items-center justify-center p-0 shrink-0"
+                            className="w-14 h-14 shrink-0 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-primary-hover shadow-lg shadow-primary/20 group transition-all translate-y-[-1px] active:translate-y-[0px] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Send size={20} />
-                        </Button>
+                            <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        </button>
                     </form>
                 </div>
 
             </div>
+
+            {/* Location Choice Modal */}
+            <Modal isOpen={isLocationChoiceModalOpen} onClose={() => setIsLocationChoiceModalOpen(false)}>
+                <div className="space-y-6 text-center">
+                    <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
+                        <MapPin size={32} />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-foreground mb-2">Share Location</h3>
+                        <p className="text-sm text-text-muted">How would you like to share your location?</p>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        <Button variant="primary" className="w-full" onClick={handleSendCurrentLocation}>
+                            Send Current GPS Location
+                        </Button>
+                        <Button variant="outline" className="w-full" onClick={handleOpenMapPicker}>
+                            Select on Map
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Location Picker Modal */}
+            <Modal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)}>
+                <div className="space-y-4">
+                    <h3 className="text-2xl font-bold text-foreground">Select Location</h3>
+                    <p className="text-sm text-text-muted mb-4">Click anywhere on the map to drop a pin at the location you want to share.</p>
+                    
+                    <LocationPickerMap onLocationSelect={setTempLocation} />
+
+                    <div className="flex gap-4 pt-4 mt-4">
+                        <Button variant="outline" className="flex-1" onClick={() => setIsLocationModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            className="flex-1" 
+                            disabled={!tempLocation}
+                            onClick={() => {
+                                setLocation(tempLocation);
+                                setIsLocationModalOpen(false);
+                            }}
+                        >
+                            Confirm Location
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </DashboardLayout>
     );
 }

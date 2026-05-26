@@ -23,10 +23,12 @@ import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
 import Modal from "../../../../src/components/Modal";
 import AdminDataTable from "../../../../src/components/AdminDataTable";
-import api from "../../../../src/services/api";
 import { useToast } from "../../../../src/context/ToastContext";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
+import api from "../../../../src/services/api";
 
 export default function UserManagement() {
+    const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -43,7 +45,7 @@ export default function UserManagement() {
             setUsers(res.data);
         } catch (err) {
             console.error("Failed to fetch users:", err);
-            setError("Failed to load users list.");
+            setError(t("admin_users_fetch_error"));
         } finally {
             setLoading(false);
         }
@@ -54,13 +56,13 @@ export default function UserManagement() {
     }, []);
 
     const handleStatusUpdate = async (userId, newStatus) => {
-        if (!window.confirm(`Are you sure you want to change this user status to ${newStatus}?`)) return;
+        if (!window.confirm(`${t("admin_users_confirm_status")} ${newStatus}?`)) return;
         try {
             await api.patch(`/api/admin/users/${userId}/status`, { status: newStatus });
             fetchUsers();
-            showToast(`User status updated to ${newStatus}`, "success");
+            showToast(`${t("admin_users_toast_updated")} ${newStatus}`, "success");
         } catch (err) {
-            showToast(err.response?.data?.message || "Failed to update status", "error");
+            showToast(err.response?.data?.message || t("admin_users_update_error"), "error");
         }
     };
 
@@ -78,7 +80,7 @@ export default function UserManagement() {
 
     const columns = [
         {
-            header: "User",
+            header: t("admin_users_col_user"),
             render: (row) => (
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -92,7 +94,7 @@ export default function UserManagement() {
             )
         },
         {
-            header: "Role",
+            header: t("admin_users_col_role"),
             accessor: "role",
             render: (row) => (
                 <div className="flex items-center gap-1.5 capitalize">
@@ -102,7 +104,7 @@ export default function UserManagement() {
             )
         },
         {
-            header: "Status",
+            header: t("admin_users_col_status"),
             render: (row) => (
                 <div className="flex flex-col gap-1">
                     <Badge variant={
@@ -122,7 +124,7 @@ export default function UserManagement() {
             )
         },
         {
-            header: "Joined",
+            header: t("admin_users_col_joined"),
             render: (row) => (
                 <div className="text-xs text-text-muted">
                     {new Date(row.created_at).toLocaleDateString()}
@@ -130,14 +132,14 @@ export default function UserManagement() {
             )
         },
         {
-            header: "Actions",
+            header: t("admin_users_col_actions"),
             render: (row) => (
                 <div className="flex items-center gap-2">
                     {row.status !== 'approved' && (
                         <button
                             onClick={() => handleStatusUpdate(row.id, 'approved')}
                             className="p-2 hover:bg-green-500/10 text-green-500 rounded-lg transition-colors"
-                            title="Approve User"
+                            title={t("admin_users_approve_user")}
                         >
                             <UserCheck size={16} />
                         </button>
@@ -146,7 +148,7 @@ export default function UserManagement() {
                         <button
                             onClick={() => handleStatusUpdate(row.id, 'suspended')}
                             className="p-2 hover:bg-orange-500/10 text-orange-500 rounded-lg transition-colors"
-                            title="Suspend User"
+                            title={t("admin_users_suspend_user")}
                         >
                             <UserMinus size={16} />
                         </button>
@@ -154,7 +156,7 @@ export default function UserManagement() {
                     <button
                         onClick={() => setViewingFiles(row)}
                         className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors"
-                        title="View Documents"
+                        title={t("admin_users_view_docs")}
                     >
                         <FileText size={16} />
                     </button>
@@ -178,17 +180,17 @@ export default function UserManagement() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">User Management</h1>
-                            <p className="text-text-muted mt-1">Oversee all platform accounts, roles, and authorization statuses.</p>
+                            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{t("admin_users_title")}</h1>
+                            <p className="text-text-muted mt-1">{t("admin_users_desc")}</p>
                         </div>
                     </div>
 
                     {/* Mini Stats */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatMiniCard title="Total Users" value={stats.total} icon={<Users />} color="text-primary bg-primary/10" />
-                        <StatMiniCard title="Customers" value={stats.customers} icon={<User />} color="text-blue-500 bg-blue-500/10" />
-                        <StatMiniCard title="Providers" value={stats.providers} icon={<Shield />} color="text-purple-500 bg-purple-500/10" />
-                        <StatMiniCard title="Pending" value={stats.pending} icon={<Clock />} color="text-orange-500 bg-orange-500/10" />
+                        <StatMiniCard title={t("admin_users_total")} value={stats.total} icon={<Users />} color="text-primary bg-primary/10" />
+                        <StatMiniCard title={t("admin_users_customers")} value={stats.customers} icon={<User />} color="text-blue-500 bg-blue-500/10" />
+                        <StatMiniCard title={t("admin_users_providers")} value={stats.providers} icon={<Shield />} color="text-purple-500 bg-purple-500/10" />
+                        <StatMiniCard title={t("admin_users_pending")} value={stats.pending} icon={<Clock />} color="text-orange-500 bg-orange-500/10" />
                     </div>
 
                     {/* Filters */}
@@ -197,7 +199,7 @@ export default function UserManagement() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                             <input
                                 type="text"
-                                placeholder="Search by name or email..."
+                                placeholder={t("admin_users_search")}
                                 className="w-full pl-12 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -212,10 +214,10 @@ export default function UserManagement() {
                                     value={roleFilter}
                                     onChange={(e) => setRoleFilter(e.target.value)}
                                 >
-                                    <option value="all">All Roles</option>
-                                    <option value="customer">Customers</option>
-                                    <option value="provider">Providers</option>
-                                    <option value="admin">Admins</option>
+                                    <option value="all">{t("admin_users_all_roles")}</option>
+                                    <option value="customer">{t("admin_users_customers")}</option>
+                                    <option value="provider">{t("admin_users_providers")}</option>
+                                    <option value="admin">{t("admin_users_admins")}</option>
                                 </select>
                             </div>
 
@@ -224,10 +226,10 @@ export default function UserManagement() {
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
-                                <option value="all">All Statuses</option>
-                                <option value="approved">Approved</option>
-                                <option value="pending">Pending</option>
-                                <option value="suspended">Suspended</option>
+                                <option value="all">{t("admin_users_all_statuses")}</option>
+                                <option value="approved">{t("admin_users_approved")}</option>
+                                <option value="pending">{t("admin_users_pending")}</option>
+                                <option value="suspended">{t("admin_users_suspended")}</option>
                             </select>
                         </div>
                     </div>
@@ -238,7 +240,7 @@ export default function UserManagement() {
                             <div className="p-20 text-center">
                                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                                 <p className="text-lg font-bold">{error}</p>
-                                <Button onClick={fetchUsers} className="mt-4">Retry</Button>
+                                <Button onClick={fetchUsers} className="mt-4">{t("admin_retry")}</Button>
                             </div>
                         ) : (
                             <AdminDataTable
@@ -251,7 +253,7 @@ export default function UserManagement() {
                         {!loading && filteredUsers.length === 0 && (
                             <div className="p-20 text-center">
                                 <Users className="w-12 h-12 text-text-muted mx-auto mb-4 opacity-20" />
-                                <p className="text-text-muted font-medium">No users found matching your filters.</p>
+                                <p className="text-text-muted font-medium">{t("admin_users_no_users")}</p>
                             </div>
                         )}
                     </div>
@@ -260,32 +262,32 @@ export default function UserManagement() {
                         <Modal
                             isOpen={!!viewingFiles}
                             onClose={() => setViewingFiles(null)}
-                            title={`Documents: ${viewingFiles.name}`}
+                            title={`${t("admin_users_docs_title")} ${viewingFiles.name}`}
                         >
                             <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                                 <div className="rounded-2xl border border-border bg-background p-4">
-                                    <p className="text-sm font-bold text-foreground mb-1">AI Verification Result</p>
+                                    <p className="text-sm font-bold text-foreground mb-1">{t("admin_users_ai_result")}</p>
                                     <p className="text-xs text-text-muted capitalize">
-                                        Status: {viewingFiles.ai_verification_status || 'manual_review'}
+                                        {t("admin_users_ai_status")} {viewingFiles.ai_verification_status || 'manual_review'}
                                         {viewingFiles.ai_verification_score !== null && viewingFiles.ai_verification_score !== undefined
                                             ? ` (${Number(viewingFiles.ai_verification_score).toFixed(2)}%)`
                                             : ""}
                                     </p>
                                     <p className="text-xs text-text-muted mt-1">
-                                        {viewingFiles.ai_verification_message || 'No AI verification message available.'}
+                                        {viewingFiles.ai_verification_message || t("admin_users_ai_no_msg")}
                                     </p>
                                 </div>
 
                                 {/* Identity Documents */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FileCard
-                                        title="Profile Image"
+                                        title={t("admin_users_profile_img")}
                                         url={viewingFiles.profile_image_url}
                                         icon={<User size={16} />}
                                     />
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-text-muted flex items-center gap-2 uppercase tracking-wider">
-                                            <Shield size={16} /> National ID
+                                            <Shield size={16} /> {t("admin_users_national_id")}
                                         </label>
                                         <div className={`grid gap-2 ${viewingFiles.national_id_url && viewingFiles.national_id_url.split(',').length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                             {viewingFiles.national_id_url ? viewingFiles.national_id_url.split(',').map((url, idx) => (
@@ -300,7 +302,7 @@ export default function UserManagement() {
                                             )) : (
                                                 <div className="relative overflow-hidden rounded-2xl border border-border aspect-[4/3] bg-background flex flex-col items-center justify-center text-red-500/50 gap-2">
                                                     <AlertCircle size={32} />
-                                                    <span className="text-xs font-bold uppercase tracking-widest">Missing Document</span>
+                                                    <span className="text-xs font-bold uppercase tracking-widest">{t("admin_users_missing_doc")}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -308,7 +310,7 @@ export default function UserManagement() {
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
                                     <FileCard
-                                        title="Verification Selfie"
+                                        title={t("admin_users_selfie")}
                                         url={viewingFiles.verification_selfie_url}
                                         icon={<Clock size={16} />}
                                         wide
@@ -320,7 +322,7 @@ export default function UserManagement() {
                                     <div className="space-y-3">
                                         <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                                             <FileText size={16} className="text-primary" />
-                                            Educational Documents
+                                            {t("admin_users_edu_docs")}
                                         </h4>
                                         <div className="space-y-2">
                                             {viewingFiles.educational_documents.map((doc, idx) => (
@@ -336,7 +338,7 @@ export default function UserManagement() {
                                                             href={doc.url}
                                                             target="_blank"
                                                             className="bg-primary/10 text-primary hover:bg-primary/20 p-2 rounded-lg transition-all"
-                                                            title="View Document"
+                                                            title={t("admin_users_view_doc")}
                                                         >
                                                             <ExternalLink size={16} />
                                                         </a>
@@ -344,7 +346,7 @@ export default function UserManagement() {
                                                             href={doc.url}
                                                             download={doc.name || `doc_${idx + 1}`}
                                                             className="bg-green-500/10 text-green-500 hover:bg-green-500/20 p-2 rounded-lg transition-all"
-                                                            title="Download"
+                                                            title={t("admin_users_download")}
                                                             onClick={(e) => {
                                                                 // Manual download for external URLs if needed
                                                                 // e.preventDefault();
@@ -361,7 +363,7 @@ export default function UserManagement() {
                                 )}
                             </div>
                             <div className="mt-8 flex justify-end">
-                                <Button onClick={() => setViewingFiles(null)} className="w-full md:w-auto">Close</Button>
+                                <Button onClick={() => setViewingFiles(null)} className="w-full md:w-auto">{t("admin_users_close")}</Button>
                             </div>
                         </Modal>
                     )}

@@ -19,8 +19,11 @@ export default function RegisterPage() {
   const [categories, setCategories] = useState([]);
   const [selectedCats, setSelectedCats] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
   const [nationalId, setNationalId] = useState([]);
+  const [nationalIdPreviews, setNationalIdPreviews] = useState([]);
   const [verificationSelfie, setSelfie] = useState(null);
+  const [selfiePreviewUrl, setSelfiePreviewUrl] = useState(null);
   const [educationalDocuments, setEducationalDocuments] = useState([]);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
@@ -43,6 +46,26 @@ export default function RegisterPage() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!profileImage) {
+      setProfileImagePreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(profileImage);
+    setProfileImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [profileImage]);
+
+  useEffect(() => {
+    if (!nationalId || nationalId.length === 0) {
+      setNationalIdPreviews([]);
+      return;
+    }
+    const urls = nationalId.map(file => URL.createObjectURL(file));
+    setNationalIdPreviews(urls);
+    return () => urls.forEach(url => URL.revokeObjectURL(url));
+  }, [nationalId]);
 
   const handleCatToggle = (id) => {
     setSelectedCats((prev) =>
@@ -89,7 +112,18 @@ export default function RegisterPage() {
     ctx.drawImage(videoRef.current, 0, 0);
     canvas.toBlob((blob) => {
       setSelfie(blob);
+      setSelfiePreviewUrl(URL.createObjectURL(blob));
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
     });
+  };
+
+  const retakePhoto = () => {
+    setSelfie(null);
+    setSelfiePreviewUrl(null);
+    startCamera();
   };
 
   const resetForm = () => {
@@ -102,6 +136,7 @@ export default function RegisterPage() {
     setProfileImage(null);
     setNationalId([]);
     setSelfie(null);
+    setSelfiePreviewUrl(null);
     setEducationalDocuments([]);
     if (educationalDocsInputRef.current) educationalDocsInputRef.current.value = "";
   };
@@ -339,12 +374,21 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_profile_image")}</label>
                   <div className="relative flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer bg-surface/30 hover:bg-surface/50 hover:border-primary/50 transition-all">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <UploadCloud className="w-8 h-8 mb-2 text-text-muted" />
-                        <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_click_upload_photo")}</p>
-                        {profileImage && <p className="text-xs text-primary truncate max-w-[150px]">{profileImage.name}</p>}
-                      </div>
+                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer transition-all overflow-hidden relative ${profileImagePreview ? 'border-primary/50' : 'bg-surface/30 hover:bg-surface/50 hover:border-primary/50'}`}>
+                      {profileImagePreview ? (
+                        <>
+                          <img src={profileImagePreview} alt="Profile preview" className="w-full h-full object-cover absolute inset-0 opacity-60" />
+                          <div className="relative z-10 bg-black/40 px-3 py-1.5 rounded-lg flex items-center gap-2 backdrop-blur-sm">
+                            <UploadCloud className="w-4 h-4 text-white" />
+                            <span className="text-xs text-white font-medium">Change Photo</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <UploadCloud className="w-8 h-8 mb-2 text-text-muted" />
+                          <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_click_upload_photo")}</p>
+                        </div>
+                      )}
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => setProfileImage(e.target.files[0])} />
                     </label>
                   </div>
@@ -353,12 +397,25 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_national_id")}</label>
                   <div className="relative flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer bg-surface/30 hover:bg-surface/50 hover:border-primary/50 transition-all">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <FileText className="w-8 h-8 mb-2 text-text-muted" />
-                        <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_upload_id_front_back")}</p>
-                        {nationalId.length > 0 && <p className="text-xs text-primary">{nationalId.length} {t("auth_files_selected")}</p>}
-                      </div>
+                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer transition-all overflow-hidden relative ${nationalIdPreviews.length > 0 ? 'border-primary/50' : 'bg-surface/30 hover:bg-surface/50 hover:border-primary/50'}`}>
+                      {nationalIdPreviews.length > 0 ? (
+                        <>
+                          <div className="absolute inset-0 flex w-full h-full">
+                            {nationalIdPreviews.map((url, idx) => (
+                              <img key={idx} src={url} alt={`ID preview ${idx}`} className={`h-full object-cover opacity-50 ${nationalIdPreviews.length === 1 ? 'w-full' : 'w-1/2'}`} />
+                            ))}
+                          </div>
+                          <div className="relative z-10 bg-black/40 px-3 py-1.5 rounded-lg flex flex-col items-center gap-1 backdrop-blur-sm">
+                            <span className="text-xs text-white font-medium">Change ID Images</span>
+                            <span className="text-[10px] text-white/80">{nationalId.length} {t("auth_files_selected")}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <FileText className="w-8 h-8 mb-2 text-text-muted" />
+                          <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_upload_id_front_back")}</p>
+                        </div>
+                      )}
                       <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setNationalId(Array.from(e.target.files))} />
                     </label>
                   </div>
@@ -384,17 +441,31 @@ export default function RegisterPage() {
                 <label className="block text-sm font-medium text-text-muted mb-2 ml-1">{t("auth_selfie_verif")}</label>
                 <div className="bg-surface/50 rounded-2xl p-4 border border-white/5">
                   <div className="flex gap-3 mb-4">
-                    <button type="button" onClick={startCamera} className="flex-1 bg-surface border border-white/10 text-white hover:bg-white/5 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
-                      <Camera size={16} /> {t("auth_start_camera")}
-                    </button>
-                    <button type="button" onClick={capturePhoto} className="flex-1 bg-primary text-white hover:bg-primary-hover py-2.5 rounded-xl font-medium transition-all text-sm shadow-[0_0_15px_rgba(249,115,22,0.3)]">
-                      {t("auth_capture_photo")}
-                    </button>
+                    {!selfiePreviewUrl ? (
+                      <>
+                        <button type="button" onClick={startCamera} className="flex-1 bg-surface border border-white/10 text-white hover:bg-white/5 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
+                          <Camera size={16} /> {t("auth_start_camera")}
+                        </button>
+                        <button type="button" onClick={capturePhoto} className="flex-1 bg-primary text-white hover:bg-primary-hover py-2.5 rounded-xl font-medium transition-all text-sm shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                          {t("auth_capture_photo")}
+                        </button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={retakePhoto} className="w-full bg-surface border border-white/10 text-white hover:bg-white/5 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center justify-center gap-2">
+                        <Camera size={16} /> Retake Photo
+                      </button>
+                    )}
                   </div>
                   
                   <div className="relative rounded-xl overflow-hidden bg-black/40 aspect-video border border-white/10 flex items-center justify-center">
-                    <video ref={videoRef} className="w-full h-full object-cover absolute inset-0" autoPlay playsInline muted />
-                    {!streamRef.current && <Camera className="w-12 h-12 text-white/20 relative z-10" />}
+                    {selfiePreviewUrl ? (
+                      <img src={selfiePreviewUrl} alt="Selfie Preview" className="w-full h-full object-cover absolute inset-0" />
+                    ) : (
+                      <>
+                        <video ref={videoRef} className="w-full h-full object-cover absolute inset-0" autoPlay playsInline muted />
+                        {!streamRef.current && <Camera className="w-12 h-12 text-white/20 relative z-10" />}
+                      </>
+                    )}
                   </div>
 
                   {verificationSelfie && (

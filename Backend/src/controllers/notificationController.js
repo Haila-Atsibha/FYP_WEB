@@ -92,34 +92,26 @@ exports.getBadgeStats = async (req, res) => {
         };
 
         try {
-            // 1. Unread Messages for everyone
-            const msgRes = await pool.query(
-                "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'message'",
-                [userId]
-            );
-            stats.messages = parseInt(msgRes.rows[0].count || 0);
+            const notifRes = await pool.query(`
+                SELECT 
+                    COUNT(*) FILTER (WHERE type = 'message') as messages,
+                    COUNT(*) FILTER (WHERE type = 'booking') as bookings,
+                    COUNT(*) FILTER (WHERE type = 'review') as reviews,
+                    COUNT(*) FILTER (WHERE type = 'verification') as verification
+                FROM notifications 
+                WHERE user_id = $1 AND is_read = false
+            `, [userId]);
 
-            // 2. Unread Bookings for everyone
-            const bookNotifRes = await pool.query(
-                "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'booking'",
-                [userId]
-            );
-            stats.bookings = parseInt(bookNotifRes.rows[0].count || 0);
-
+            const row = notifRes.rows[0];
+            stats.messages = parseInt(row.messages || 0);
+            stats.bookings = parseInt(row.bookings || 0);
+            
             if (role === 'provider') {
-                const revRes = await pool.query(
-                    "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'review'",
-                    [userId]
-                );
-                stats.reviews = parseInt(revRes.rows[0].count || 0);
+                stats.reviews = parseInt(row.reviews || 0);
             }
-
+            
             if (role === 'admin') {
-                const verNotifRes = await pool.query(
-                    "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false AND type = 'verification'",
-                    [userId]
-                );
-                stats.verification = parseInt(verNotifRes.rows[0].count || 0);
+                stats.verification = parseInt(row.verification || 0);
             }
         } catch (dbError) {
             console.warn("Notifications table missing or query failed:", dbError.message);

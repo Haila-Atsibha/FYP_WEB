@@ -10,7 +10,8 @@ import {
     MessageSquare,
     Star,
     ShoppingBag,
-    Briefcase
+    Briefcase,
+    AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "../../../../src/context/AuthContext";
@@ -40,6 +41,12 @@ export default function BookingsPage() {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+    // Complaint Modal State
+    const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
+    const [complaintSubject, setComplaintSubject] = useState("");
+    const [complaintDescription, setComplaintDescription] = useState("");
+    const [isSubmittingComplaint, setIsSubmittingComplaint] = useState(false);
 
     const fetchBookings = async () => {
         if (!user) return;
@@ -128,6 +135,34 @@ export default function BookingsPage() {
         }
     };
 
+    const handleOpenComplaintModal = (booking) => {
+        setSelectedBooking(booking);
+        setComplaintSubject("");
+        setComplaintDescription("");
+        setIsComplaintModalOpen(true);
+    };
+
+    const handleSubmitComplaint = async (e) => {
+        e.preventDefault();
+        setIsSubmittingComplaint(true);
+        try {
+            await api.post("/api/complaints", {
+                booking_id: selectedBooking.id,
+                provider_id: selectedBooking.provider_user_id,
+                subject: complaintSubject,
+                description: complaintDescription,
+                priority: "high"
+            });
+            setIsComplaintModalOpen(false);
+            showToast("Dispute filed successfully. An admin will review it shortly.", "success");
+        } catch (err) {
+            console.error("Error submitting complaint:", err);
+            showToast(err.response?.data?.message || "Failed to file dispute", "error");
+        } finally {
+            setIsSubmittingComplaint(false);
+        }
+    };
+
     const activeBookings = bookings.filter(b => ["pending", "accepted"].includes(b.status));
     const historyBookings = bookings.filter(b => ["completed", "rejected", "cancelled"].includes(b.status));
 
@@ -196,11 +231,6 @@ export default function BookingsPage() {
                                         ? t("no_active_orders_desc")
                                         : t("no_history_orders_desc")}
                                 </p>
-                                {activeTab === "active" && (
-                                    <Link href="/services">
-                                        <Button className="mt-8 px-8 py-4 rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform font-bold text-lg">{t("btn_explore_menu")}</Button>
-                                    </Link>
-                                )}
                             </motion.div>
                         ) : (
                             <AnimatePresence>
@@ -217,6 +247,7 @@ export default function BookingsPage() {
                                             onCancel={() => handleCancelBooking(booking.id)}
                                             onComplete={() => handleCompleteBooking(booking.id)}
                                             onReview={() => handleOpenReviewModal(booking)}
+                                            onComplain={() => handleOpenComplaintModal(booking)}
                                             isCancelling={cancellingId === booking.id}
                                             t={t}
                                         />
@@ -286,12 +317,68 @@ export default function BookingsPage() {
                         </form>
                     </div>
                 </Modal>
+
+                {/* Complaint Modal */}
+                <Modal isOpen={isComplaintModalOpen} onClose={() => setIsComplaintModalOpen(false)}>
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-500/20">
+                                <AlertTriangle className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-foreground">Report an Issue</h3>
+                            <p className="text-text-muted text-sm mt-1">File a dispute regarding this booking. An admin will step in to help.</p>
+                        </div>
+
+                        <form onSubmit={handleSubmitComplaint} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-foreground/80 ml-1">Subject</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-md"
+                                    placeholder="e.g. Provider didn't finish the job"
+                                    required
+                                    value={complaintSubject}
+                                    onChange={(e) => setComplaintSubject(e.target.value)}
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-foreground/80 ml-1">Description</label>
+                                <textarea
+                                    className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all min-h-[120px] backdrop-blur-md"
+                                    placeholder="Please provide details about the issue..."
+                                    required
+                                    value={complaintDescription}
+                                    onChange={(e) => setComplaintDescription(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1 bg-transparent border-white/10 text-foreground hover:bg-surface shadow-none rounded-xl"
+                                    onClick={() => setIsComplaintModalOpen(false)}
+                                >
+                                    {t("btn_cancel")}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="flex-1 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 shadow-lg shadow-red-500/20 text-white border-none font-bold"
+                                    disabled={isSubmittingComplaint}
+                                >
+                                    {isSubmittingComplaint ? "Submitting..." : "Submit Dispute"}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </Modal>
             </DashboardLayout>
         </ProtectedRoute>
     );
 }
 
-const OrderCard = ({ booking, onCancel, onComplete, onReview, isCancelling, t }) => {
+const OrderCard = ({ booking, onCancel, onComplete, onReview, onComplain, isCancelling, t }) => {
     // Determine progress state (1: Received, 2: Preparing, 3: Delivered/Completed)
     let progressStep = 0;
     if (booking.status === "pending") progressStep = 1;
@@ -448,6 +535,14 @@ const OrderCard = ({ booking, onCancel, onComplete, onReview, isCancelling, t })
                             className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/20 py-3 px-6 rounded-xl text-sm shadow-none active:scale-95 transition-all font-bold"
                         >
                             {isCancelling ? t("btn_cancelling") : t("btn_cancel_order")}
+                        </Button>
+                    )}
+                    {(progressStep === 2 || progressStep === 3) && (
+                        <Button
+                            onClick={onComplain}
+                            className="bg-transparent text-text-muted hover:text-red-400 border border-white/10 py-3 px-4 rounded-xl text-sm shadow-none active:scale-95 transition-all font-bold flex items-center gap-2"
+                        >
+                            <AlertTriangle size={16} /> Report Issue
                         </Button>
                     )}
                 </div>

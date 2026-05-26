@@ -17,7 +17,10 @@ import {
 } from "lucide-react";
 import Badge from "../../../../src/components/Badge";
 
+import { useTranslation } from "../../../../src/hooks/useTranslation";
+
 export default function ProviderReviews() {
+    const { t } = useTranslation();
     const { user, loading: authLoading } = useContext(AuthContext);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -68,8 +71,8 @@ export default function ProviderReviews() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
-                            <h1 className="text-4xl font-black text-foreground tracking-tight">Customer Reviews</h1>
-                            <p className="text-text-muted font-medium mt-1">See what your customers are saying about your services</p>
+                            <h1 className="text-4xl font-black text-foreground tracking-tight">{t("provider_reviews_title")}</h1>
+                            <p className="text-text-muted font-medium mt-1">{t("provider_reviews_desc")}</p>
                         </div>
                     </div>
 
@@ -78,7 +81,7 @@ export default function ProviderReviews() {
                         {/* Main Rating Card */}
                         <div className="bg-primary rounded-[2.5rem] p-10 text-white shadow-2xl shadow-primary/20 flex flex-col items-center justify-center text-center relative overflow-hidden group">
                             <div className="relative z-10">
-                                <p className="text-primary-foreground/80 font-black uppercase tracking-widest text-xs mb-2">Overall Rating</p>
+                                <p className="text-primary-foreground/80 font-black uppercase tracking-widest text-xs mb-2">{t("provider_reviews_overall_rating")}</p>
                                 <p className="text-7xl font-black tracking-tighter mb-4">{averageRating}</p>
                                 <div className="flex gap-1 mb-4 justify-center">
                                     {[...Array(5)].map((_, i) => (
@@ -90,7 +93,7 @@ export default function ProviderReviews() {
                                         />
                                     ))}
                                 </div>
-                                <p className="text-sm font-bold text-white/80">Based on {reviews.length} total reviews</p>
+                                <p className="text-sm font-bold text-white/80">{t("provider_reviews_based_on")} {reviews.length} {t("provider_reviews_total_reviews")}</p>
                             </div>
                             {/* Decoration */}
                             <Award size={180} className="absolute -bottom-10 -right-10 text-white/10 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
@@ -122,10 +125,10 @@ export default function ProviderReviews() {
                         <div className="flex items-center justify-between px-2">
                             <h3 className="text-xl font-bold flex items-center gap-2">
                                 <MessageSquare size={20} className="text-primary" />
-                                Recent Feedback
+                                {t("provider_reviews_recent_feedback")}
                             </h3>
                             <div className="flex items-center gap-2 text-xs font-bold text-text-muted cursor-pointer hover:text-foreground transition-colors">
-                                <Filter size={14} /> Sort: Newest First
+                                <Filter size={14} /> {t("provider_reviews_sort_newest")}
                             </div>
                         </div>
 
@@ -138,13 +141,13 @@ export default function ProviderReviews() {
                                 <div className="w-20 h-20 bg-primary/5 text-primary/30 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Star size={40} />
                                 </div>
-                                <h1 className="text-2xl font-black text-foreground">No reviews yet</h1>
-                                <p className="text-text-muted font-medium mt-2">Finish more bookings to start getting feedback from customers!</p>
+                                <h1 className="text-2xl font-black text-foreground">{t("provider_reviews_no_reviews")}</h1>
+                                <p className="text-text-muted font-medium mt-2">{t("provider_reviews_no_reviews_desc")}</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {reviews.map((review) => (
-                                    <ReviewCard key={review.id} review={review} />
+                                    <ReviewCard key={review.id} review={review} t={t} />
                                 ))}
                             </div>
                         )
@@ -156,7 +159,7 @@ export default function ProviderReviews() {
     );
 }
 
-function ReviewCard({ review }) {
+function ReviewCard({ review, t }) {
     return (
         <div className="bg-surface border border-border p-8 rounded-[2.5rem] hover:shadow-xl hover:shadow-primary/5 transition-all group relative overflow-hidden">
             <div className="space-y-5 relative z-10">
@@ -188,7 +191,7 @@ function ReviewCard({ review }) {
                         <div>
                             <p className="text-sm font-black text-foreground leading-none">{review.customer_name}</p>
                             <p className="text-[10px] font-bold text-text-muted mt-1 uppercase flex items-center gap-1">
-                                Booked: <span className="text-secondary">{review.service_title}</span>
+                                {t("provider_reviews_booked")} <span className="text-secondary">{review.service_title}</span>
                             </p>
                         </div>
                     </div>

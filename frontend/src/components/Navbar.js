@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { User, LogOut, LayoutDashboard, BriefcaseBusiness, Globe } from "lucide-react";
+import { ThemeContext } from "../context/ThemeContext";
+import { User, LogOut, LayoutDashboard, BriefcaseBusiness, Globe, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "../hooks/useTranslation";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const { t, language, toggleLanguage } = useTranslation();
 
   return (
@@ -23,19 +25,27 @@ export default function Navbar() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-all duration-300">
             <BriefcaseBusiness size={20} />
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-accent transition-all duration-300">
+          <span className="text-2xl font-extrabold tracking-tight text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-accent transition-all duration-300">
             QuickServe
           </span>
         </Link>
         
         <div className="flex items-center space-x-8">
-          <Link href="/services" className="text-text-muted hover:text-white transition-colors font-medium">
+          <Link href="/services" className="text-text-muted hover:text-foreground transition-colors font-medium">
             {t("nav_menu")}
           </Link>
 
           <button 
+            onClick={toggleTheme} 
+            className="flex items-center gap-1 text-text-muted hover:text-foreground transition-colors font-medium"
+            title="Toggle Theme"
+          >
+            {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+
+          <button 
             onClick={toggleLanguage} 
-            className="flex items-center gap-1 text-text-muted hover:text-white transition-colors font-medium"
+            className="flex items-center gap-1 text-text-muted hover:text-foreground transition-colors font-medium"
             title="Toggle Language"
           >
             <Globe size={18} />
@@ -46,7 +56,7 @@ export default function Navbar() {
             <div className="flex items-center space-x-6 border-l border-white/10 pl-6">
               <Link
                 href={`/${user.role}`}
-                className="flex items-center gap-2 text-text-muted hover:text-white transition-colors font-medium group"
+                className="flex items-center gap-2 text-text-muted hover:text-foreground transition-colors font-medium group"
               >
                 <div className="w-9 h-9 rounded-full bg-surface border border-white/10 overflow-hidden flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-lg">
                   {user?.profile_image_url ? (
@@ -59,7 +69,7 @@ export default function Navbar() {
               </Link>
               <button
                 onClick={logout}
-                className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors font-medium"
+                className="flex items-center gap-2 text-text-muted hover:text-red-500 transition-colors font-medium"
               >
                 <LogOut size={18} />
                 {t("nav_logout")}
@@ -67,7 +77,10 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex items-center space-x-4 border-l border-white/10 pl-6">
-              <Link href="/auth/login" className="text-text-muted hover:text-white transition-colors font-medium">
+              <Link
+                href="/auth/login"
+                className="text-text-muted hover:text-foreground transition-colors font-medium"
+              >
                 {t("nav_login")}
               </Link>
               <Link href="/auth/register" className="relative group">

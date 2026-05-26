@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useContext } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Star, MapPin, ShieldCheck, Clock, CheckCircle, MessageSquare, ShoppingBag, Plus } from "lucide-react";
+import { Star, MapPin, ShieldCheck, Clock, CheckCircle, MessageSquare, ShoppingBag, Plus, CalendarX } from "lucide-react";
 import api from "../../../../src/services/api";
 import { AuthContext } from "../../../../src/context/AuthContext";
 import Button from "../../../../src/components/Button";
@@ -21,8 +21,7 @@ export default function ProviderProfilePage() {
     const [bookingLoading, setBookingLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
-    const [bookingDate, setBookingDate] = useState("");
-    const [bookingTime, setBookingTime] = useState("");
+    const [unavailableDates, setUnavailableDates] = useState([]);
 
     useEffect(() => {
         const fetchProviderData = async () => {
@@ -31,8 +30,14 @@ export default function ProviderProfilePage() {
                     api.get(`/api/providers/${providerId}`),
                     api.get(`/api/reviews/provider/${providerId}`)
                 ]);
-                setProvider(providerRes.data);
+                const providerData = providerRes.data;
+                setProvider(providerData);
                 setReviews(reviewsRes.data);
+
+                if (providerData && providerData.provider_profile_id) {
+                    const unavailRes = await api.get(`/api/providers/${providerData.provider_profile_id}/unavailability`);
+                    setUnavailableDates(unavailRes.data);
+                }
             } catch (e) {
                 console.error(e);
                 setError("Failed to load provider profile.");
@@ -59,9 +64,7 @@ export default function ProviderProfilePage() {
         try {
             await api.post("/api/bookings", {
                 service_id: selectedService.id,
-                description: description || "No special instructions.",
-                booking_date: bookingDate,
-                booking_time: bookingTime
+                description: description || "No special instructions."
             });
             setSuccess(true);
             setTimeout(() => {
@@ -220,29 +223,25 @@ export default function ProviderProfilePage() {
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                                <div>
-                                                    <label className="block text-sm font-bold text-foreground mb-3 ml-1">Date</label>
-                                                    <input
-                                                        type="date"
-                                                        value={bookingDate}
-                                                        onChange={(e) => setBookingDate(e.target.value)}
-                                                        required
-                                                        min={new Date().toISOString().split("T")[0]}
-                                                        className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-bold text-foreground mb-3 ml-1">Time</label>
-                                                    <input
-                                                        type="time"
-                                                        value={bookingTime}
-                                                        onChange={(e) => setBookingTime(e.target.value)}
-                                                        required
-                                                        className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
-                                                    />
-                                                </div>
+                                            <div className="mb-4">
+                                                {unavailableDates.length > 0 ? (
+                                                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                                                        <h4 className="text-sm font-bold text-red-500 flex items-center gap-2 mb-2">
+                                                            <CalendarX size={16} /> Provider Unavailable On:
+                                                        </h4>
+                                                        <ul className="text-sm font-medium text-red-400 space-y-1 list-disc list-inside">
+                                                            {unavailableDates.map(d => (
+                                                                <li key={d.id}>{new Date(d.date).toLocaleDateString()}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
+                                                        <h4 className="text-sm font-bold text-green-500 flex items-center gap-2">
+                                                            <CheckCircle size={16} /> Provider is generally available.
+                                                        </h4>
+                                                    </div>
+                                                )}
                                             </div>
                                             <label className="block text-sm font-bold text-foreground mb-3 ml-1">Job Details (Optional)</label>
                                             <textarea
@@ -252,7 +251,6 @@ export default function ProviderProfilePage() {
                                                 rows={3}
                                                 className="w-full bg-surface/50 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all backdrop-blur-sm"
                                             />
-                                        </div>
 
                                         {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium">{error}</div>}
                                         {success && <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm font-medium flex items-center gap-2"><CheckCircle size={16}/> Booking placed successfully! Redirecting...</div>}

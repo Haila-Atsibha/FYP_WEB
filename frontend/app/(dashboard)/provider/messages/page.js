@@ -6,9 +6,13 @@ import { useTranslation } from "../../../../src/hooks/useTranslation";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import DashboardLayout from "../../../../src/components/DashboardLayout";
 import api from "../../../../src/services/api";
-import { Send, User, MessageCircle, ArrowLeft, Clock, ImagePlus, MapPin } from "lucide-react";
+import { Send, User, MessageCircle, ArrowLeft, Clock, ImagePlus, MapPin, X } from "lucide-react";
 import Button from "../../../../src/components/Button";
 import Badge from "../../../../src/components/Badge";
+import Modal from "../../../../src/components/Modal";
+import dynamic from "next/dynamic";
+
+const LocationPickerMap = dynamic(() => import("../../../../src/components/LocationPickerMap"), { ssr: false });
 
 export default function ProviderMessages() {
     const { t } = useTranslation();
@@ -18,11 +22,16 @@ export default function ProviderMessages() {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [selectedMedia, setSelectedMedia] = useState(null);
+    const [location, setLocation] = useState(null);
     const [previewImageUrl, setPreviewImageUrl] = useState(null);
     const [loadingConv, setLoadingConv] = useState(true);
     const [loadingMsgs, setLoadingMsgs] = useState(false);
     const [isSendingLocation, setIsSendingLocation] = useState(false);
-    const messagesEndRef = useRef(null);
+    const [isLocationChoiceModalOpen, setIsLocationChoiceModalOpen] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [tempLocation, setTempLocation] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
+    const scrollContainerRef = useRef(null);
     const fileInputRef = useRef(null);
 
     const normalizeMessage = (msg) => {
@@ -79,7 +88,9 @@ export default function ProviderMessages() {
     };
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+        }
     };
 
     useEffect(() => {
@@ -138,15 +149,22 @@ export default function ProviderMessages() {
         if (!selectedBookingId) return;
         const hasText = !!newMessage.trim();
         const hasMedia = !!selectedMedia;
-        if (!hasText && !hasMedia) return;
+        const hasLocation = !!location;
+        if (!hasText && !hasMedia && !hasLocation) return;
 
         try {
             let response;
-            if (hasMedia) {
+            if (hasMedia || hasLocation) {
                 const formData = new FormData();
                 formData.append("booking_id", String(selectedBookingId));
-                formData.append("media", selectedMedia);
+                if (hasMedia) formData.append("media", selectedMedia);
+                if (hasLocation) {
+                    formData.append("location_lat", String(location.lat));
+                    formData.append("location_lng", String(location.lng));
+                    formData.append("location_label", t("shared_location"));
+                }
                 if (hasText) formData.append("content", newMessage.trim());
+                else if (hasLocation) formData.append("content", "[location]");
                 response = await api.post("/api/messages", formData);
             } else {
                 response = await api.post("/api/messages", {
@@ -157,10 +175,14 @@ export default function ProviderMessages() {
             setMessages([...messages, normalizeMessage({ ...response.data.messageObj, sender_name: user.name })]);
             setNewMessage("");
             setSelectedMedia(null);
+            setLocation(null);
             // Refresh conversations to update preview
             fetchConversations();
         } catch (err) {
             console.error("Error sending message:", err);
+            const msg = err.response?.data?.message || "Failed to send message.";
+            setErrorMsg(msg);
+            setTimeout(() => setErrorMsg(null), 3000);
         }
     };
 
@@ -171,26 +193,18 @@ export default function ProviderMessages() {
         e.target.value = "";
     };
 
-    const handleSendLocation = async () => {
+    const handleLocationChoice = () => {
+        setIsLocationChoiceModalOpen(true);
+    };
+
+    const handleSendCurrentLocation = async () => {
         if (!selectedBookingId || !navigator.geolocation) return;
         setIsSendingLocation(true);
         navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                try {
-                    const formData = new FormData();
-                    formData.append("booking_id", String(selectedBookingId));
-                    formData.append("location_lat", String(position.coords.latitude));
-                    formData.append("location_lng", String(position.coords.longitude));
-                    formData.append("location_label", t("shared_location"));
-                    formData.append("content", "[location]");
-                    const response = await api.post("/api/messages", formData);
-                    setMessages((prev) => [...prev, normalizeMessage({ ...response.data.messageObj, sender_name: user.name })]);
-                    fetchConversations();
-                } catch (err) {
-                    console.error("Error sending location:", err);
-                } finally {
-                    setIsSendingLocation(false);
-                }
+            (position) => {
+                setLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+                setIsSendingLocation(false);
+                setIsLocationChoiceModalOpen(false);
             },
             (err) => {
                 console.error("Location access denied/error:", err);
@@ -199,12 +213,23 @@ export default function ProviderMessages() {
         );
     };
 
+    const handleOpenMapPicker = () => {
+        setTempLocation(null);
+        setIsLocationChoiceModalOpen(false);
+        setIsLocationModalOpen(true);
+    };
+
     const selectedConversation = conversations.find(c => c.booking_id === selectedBookingId);
 
     return (
         <ProtectedRoute roles={["provider"]}>
             <DashboardLayout>
-                <div className="max-w-7xl mx-auto h-[calc(100vh-180px)] min-h-[600px] flex flex-col">
+                {errorMsg && (
+                    <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[100] bg-red-500 text-white px-6 py-3 rounded-2xl shadow-xl font-bold animate-in fade-in slide-in-from-top-4 duration-300">
+                        {errorMsg}
+                    </div>
+                )}
+                <div className="max-w-7xl mx-auto h-[calc(100vh-150px)] flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                         <h1 className="text-3xl font-black text-foreground tracking-tight">{t("messages_title")}</h1>
                         <p className="text-text-muted font-medium text-sm">{t("messages_subtitle_provider")}</p>
@@ -330,7 +355,7 @@ export default function ProviderMessages() {
                                     </div>
 
                                     {/* Messages List */}
-                                    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-primary/20 transition-all">
+                                    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-primary/20 transition-all">
                                         {loadingMsgs ? (
                                             <div className="flex justify-center items-center h-full">
                                                 <div className="animate-pulse flex flex-col items-center gap-2">
@@ -397,7 +422,6 @@ export default function ProviderMessages() {
                                                 );
                                             })
                                         )}
-                                        <div ref={messagesEndRef} />
                                     </div>
 
                                     {/* Message Input */}
@@ -420,34 +444,37 @@ export default function ProviderMessages() {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={handleSendLocation}
+                                                onClick={handleLocationChoice}
                                                 disabled={isSendingLocation}
                                                 className="p-3 rounded-xl border border-border hover:bg-surface-hover text-text-muted disabled:opacity-50"
                                                 title="Share location"
                                             >
                                                 <MapPin size={18} />
                                             </button>
-                                            <div className="flex-1 relative">
+                                            <div className="flex-1 relative flex gap-2">
+                                                {selectedMedia && (
+                                                    <div className="px-3 py-2 text-xs font-bold rounded-lg bg-primary/10 text-primary flex items-center gap-2 whitespace-nowrap">
+                                                        <ImagePlus size={14} /> {selectedMedia.name.slice(0, 10)}...
+                                                        <button type="button" onClick={() => setSelectedMedia(null)}><X size={14} className="hover:text-red-500" /></button>
+                                                    </div>
+                                                )}
+                                                {location && (
+                                                    <div className="px-3 py-2 text-xs font-bold rounded-lg bg-primary/10 text-primary flex items-center gap-2 whitespace-nowrap">
+                                                        <MapPin size={14} /> Ready
+                                                        <button type="button" onClick={() => setLocation(null)}><X size={14} className="hover:text-red-500" /></button>
+                                                    </div>
+                                                )}
                                                 <input
                                                     type="text"
                                                     value={newMessage}
                                                     onChange={(e) => setNewMessage(e.target.value)}
                                                     placeholder={t("type_message_placeholder")}
-                                                    className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl px-6 py-4 pr-12 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
+                                                    className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl px-6 py-4 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
                                                 />
                                             </div>
-                                            {selectedMedia && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setSelectedMedia(null)}
-                                                    className="px-3 py-2 text-xs rounded-lg border border-border text-text-muted hover:bg-surface-hover"
-                                                >
-                                                    {selectedMedia.name}
-                                                </button>
-                                            )}
-                                            <Button type="submit" className="rounded-2xl h-auto px-6 bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 group translate-y-[-1px] active:translate-y-[0px]">
+                                            <button type="submit" className="w-14 h-14 shrink-0 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-primary-hover shadow-lg shadow-primary/20 group transition-all translate-y-[-1px] active:translate-y-[0px]">
                                                 <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                                            </Button>
+                                            </button>
                                         </form>
                                         <p className="text-[9px] text-center mt-4 text-text-muted font-bold uppercase tracking-[0.2em] opacity-40">{t("secure_messaging")}</p>
                                     </div>
@@ -468,6 +495,53 @@ export default function ProviderMessages() {
                         />
                     </div>
                 )}
+
+                {/* Location Choice Modal */}
+                <Modal isOpen={isLocationChoiceModalOpen} onClose={() => setIsLocationChoiceModalOpen(false)}>
+                    <div className="space-y-6 text-center">
+                        <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
+                            <MapPin size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-bold text-foreground mb-2">{t("share_location_title")}</h3>
+                            <p className="text-sm text-text-muted">{t("share_location_desc")}</p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <Button variant="primary" className="w-full" onClick={handleSendCurrentLocation}>
+                                {t("btn_send_current_gps")}
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={handleOpenMapPicker}>
+                                {t("btn_select_on_map")}
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+
+                {/* Location Picker Modal */}
+                <Modal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)}>
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-foreground">{t("select_location_title")}</h3>
+                        <p className="text-sm text-text-muted mb-4">{t("select_location_desc")}</p>
+                        
+                        <LocationPickerMap onLocationSelect={setTempLocation} />
+
+                        <div className="flex gap-4 pt-4 mt-4">
+                            <Button variant="outline" className="flex-1" onClick={() => setIsLocationModalOpen(false)}>
+                                {t("btn_cancel")}
+                            </Button>
+                            <Button 
+                                className="flex-1" 
+                                disabled={!tempLocation}
+                                onClick={() => {
+                                    setLocation(tempLocation);
+                                    setIsLocationModalOpen(false);
+                                }}
+                            >
+                                {t("btn_confirm_location")}
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
             </DashboardLayout>
         </ProtectedRoute>
     );

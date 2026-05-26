@@ -2,7 +2,7 @@ const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { ensureVerificationColumns, verifyRegistrationFaces } = require('../utils/faceVerification');
-const { sendOTPEmail } = require('../utils/emailService');
+const { sendOTPEmail, sendNewProviderEmailToAdmin } = require('../utils/emailService');
 
 exports.registerUser = async (req, res) => {
     try {
@@ -67,7 +67,9 @@ exports.registerUser = async (req, res) => {
             verificationSelfieUrl
         });
 
-        const shouldAutoApprove = aiVerification.status === 'matched';
+        // Only auto-approve if AI matches AND the user is not a provider.
+        // Providers must always have their documents manually reviewed by an admin.
+        const shouldAutoApprove = aiVerification.status === 'matched' && role !== 'provider';
         console.log("AI verification result:", {
             email,
             status: aiVerification.status,
@@ -124,7 +126,7 @@ exports.registerUser = async (req, res) => {
 
             // Notify admins about new application
             const { createNotification } = require('./notificationController');
-            const admins = await pool.query("SELECT id FROM users WHERE role = 'admin'");
+            const admins = await pool.query("SELECT id, email FROM users WHERE role = 'admin'");
             for (const admin of admins.rows) {
                 const scoreText = aiVerification.score !== null && aiVerification.score !== undefined
                     ? ` (${Number(aiVerification.score).toFixed(2)}%)`
@@ -138,6 +140,14 @@ exports.registerUser = async (req, res) => {
                     'verification',
                     shouldAutoApprove ? '/admin/ai-approved' : '/admin/pending'
                 );
+
+                // Also send an email notification to the admin
+                sendNewProviderEmailToAdmin(
+                    admin.email, 
+                    name, 
+                    aiVerification.status || 'manual_review', 
+                    aiVerification.message || 'No additional details provided'
+                ).catch(console.error);
             }
 
             // 2. Add categories if present
@@ -193,10 +203,17 @@ exports.registerUser = async (req, res) => {
             }
         }
 
+        let responseMessage;
+        if (shouldAutoApprove) {
+            responseMessage = "User registered and automatically approved by AI verification";
+        } else if (role === 'provider') {
+            responseMessage = "User registered successfully. Your account is pending manual review of your documents by an admin.";
+        } else {
+            responseMessage = `User registered successfully and is pending manual review. Reason: ${aiVerification.message || 'AI verification could not auto-approve this account.'}`;
+        }
+
         res.status(201).json({
-            message: shouldAutoApprove
-                ? "User registered and automatically approved by AI verification"
-                : `User registered successfully and is pending manual review. Reason: ${aiVerification.message || 'AI verification could not auto-approve this account.'}`,
+            message: responseMessage,
             user,
             ai_verification: {
                 status: aiVerification.status,

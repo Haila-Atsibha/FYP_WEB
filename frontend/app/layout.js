@@ -3,9 +3,9 @@ import "./globals.css";
 import { AuthProvider } from "../src/context/AuthContext";
 import { ToastProvider } from "../src/context/ToastContext";
 import { LanguageProvider } from "../src/context/LanguageContext";
+import { ThemeProvider } from "../src/context/ThemeContext";
 import Navbar from "../src/components/Navbar";
-import Footer from "../src/components/Footer";
-import ToastContainer from "../src/components/ToastContainer";
+import { Toaster } from "react-hot-toast";
 import ThreeBackground from "../src/components/ThreeBackground";
 
 const inter = Inter({
@@ -27,18 +27,19 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${outfit.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
       >
         <LanguageProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <ThreeBackground />
-              <Navbar />
-              <main className="min-h-screen relative z-0">{children}</main>
-              <Footer />
-              <ToastContainer />
-            </ToastProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ToastProvider>
+                <ThreeBackground />
+                <Navbar />
+                <main className="flex-1 flex flex-col relative z-0">{children}</main>
+                <Toaster position="top-center" reverseOrder={false} />
+              </ToastProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </LanguageProvider>
       </body>
     </html>

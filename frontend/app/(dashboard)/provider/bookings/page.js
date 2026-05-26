@@ -19,7 +19,8 @@ import {
     Check,
     X,
     History,
-    MessageSquare
+    MessageSquare,
+    Star
 } from "lucide-react";
 import Button from "../../../../src/components/Button";
 import { useToast } from "../../../../src/context/ToastContext";
@@ -213,6 +214,27 @@ const BookingCard = ({ booking, onUpdateStatus, t }) => {
                             {booking.description || t("no_desc")}
                         </p>
                     </div>
+
+                    {booking.status === 'completed' && booking.review_rating && (
+                        <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
+                            <div className="flex items-center justify-between mb-2">
+                                <p className="text-xs font-black text-yellow-600 uppercase tracking-widest flex items-center gap-2">
+                                    <Star size={14} className="fill-yellow-500 text-yellow-500" />
+                                    {t("customer_rating")}
+                                </p>
+                                <div className="flex gap-0.5 text-yellow-500">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} size={14} className={i < booking.review_rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300 dark:text-gray-600"} />
+                                    ))}
+                                </div>
+                            </div>
+                            {booking.review_comment && (
+                                <p className="text-sm text-foreground italic border-t border-yellow-500/20 pt-2 mt-2">
+                                    "{booking.review_comment}"
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Pricing and Actions */}

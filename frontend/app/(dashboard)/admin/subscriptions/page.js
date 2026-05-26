@@ -9,8 +9,10 @@ import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
 import AdminDataTable from "../../../../src/components/AdminDataTable";
 import api from "../../../../src/services/api";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function AdminSubscriptions() {
+    const { t } = useTranslation();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,7 +25,7 @@ export default function AdminSubscriptions() {
                 setData(res.data);
             } catch (err) {
                 console.error("Failed to fetch subscriptions:", err);
-                setError("Failed to load subscription data");
+                setError(t("admin_subs_fetch_error"));
             } finally {
                 setLoading(false);
             }
@@ -49,8 +51,8 @@ export default function AdminSubscriptions() {
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-3xl font-black text-foreground tracking-tight">Provider Subscriptions</h1>
-                                <p className="text-text-muted">Monitor payments and active service members.</p>
+                                <h1 className="text-3xl font-black text-foreground tracking-tight">{t("admin_subs_title")}</h1>
+                                <p className="text-text-muted">{t("admin_subs_desc")}</p>
                             </div>
                         </div>
                     </div>
@@ -58,19 +60,19 @@ export default function AdminSubscriptions() {
                     {/* Stats Overview */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <StatItem
-                            label="Monthly Subscription Revenue"
+                            label={t("admin_subs_monthly_rev")}
                             value={`$${data?.monthlyRevenue || '0.00'}`}
                             icon={<CreditCard className="text-green-500" />}
                             bg="bg-green-500/10"
                         />
                         <StatItem
-                            label="Active Premium Providers"
+                            label={t("admin_subs_active_premium")}
                             value={data?.activePremium || 0}
                             icon={<CheckCircle2 className="text-blue-500" />}
                             bg="bg-blue-500/10"
                         />
                         <StatItem
-                            label="Expiring Within 7 Days"
+                            label={t("admin_subs_expiring_7")}
                             value={data?.expiringSoon || 0}
                             icon={<Clock className="text-yellow-500" />}
                             bg="bg-yellow-500/10"
@@ -83,15 +85,15 @@ export default function AdminSubscriptions() {
                             <div>
                                 <h2 className="text-xl font-bold flex items-center gap-2">
                                     <ArrowUpDown className="w-5 h-5 text-primary" />
-                                    Transaction History
+                                    {t("admin_subs_tx_history")}
                                 </h2>
-                                <p className="text-sm text-text-muted">Full list of subscription payments.</p>
+                                <p className="text-sm text-text-muted">{t("admin_subs_tx_desc")}</p>
                             </div>
                             <div className="relative w-full md:w-80">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                                 <input
                                     type="text"
-                                    placeholder="Search by provider or reference..."
+                                    placeholder={t("admin_subs_search_placeholder")}
                                     className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,7 +105,7 @@ export default function AdminSubscriptions() {
                             loading={loading}
                             columns={[
                                 {
-                                    header: "Provider",
+                                    header: t("admin_subs_col_provider"),
                                     render: (row) => (
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-black text-primary text-xs uppercase">
@@ -114,11 +116,11 @@ export default function AdminSubscriptions() {
                                     )
                                 },
                                 {
-                                    header: "Amount",
+                                    header: t("admin_subs_col_amount"),
                                     render: (row) => <span className="font-black text-green-500">${row.amount}</span>
                                 },
                                 {
-                                    header: "Status",
+                                    header: t("admin_subs_col_status"),
                                     render: (row) => (
                                         <Badge variant={row.status === 'success' ? 'success' : 'warning'}>
                                             {row.status}
@@ -126,11 +128,11 @@ export default function AdminSubscriptions() {
                                     )
                                 },
                                 {
-                                    header: "Date",
+                                    header: t("admin_subs_col_date"),
                                     render: (row) => <span className="text-text-muted text-sm">{new Date(row.date).toLocaleDateString()}</span>
                                 },
                                 {
-                                    header: "Ref",
+                                    header: t("admin_subs_col_ref"),
                                     render: (row) => <span className="text-xs font-mono text-text-muted truncate max-w-[100px] block" title={row.tx_ref}>{row.tx_ref}</span>
                                 }
                             ]}
@@ -140,7 +142,7 @@ export default function AdminSubscriptions() {
                         {!loading && filteredHistory.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-20 text-center">
                                 <XCircle className="w-12 h-12 text-text-muted mb-4 opacity-20" />
-                                <p className="text-text-muted italic">No payment transactions found matching your criteria.</p>
+                                <p className="text-text-muted italic">{t("admin_subs_no_tx")}</p>
                             </div>
                         )}
                     </div>

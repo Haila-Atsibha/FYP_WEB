@@ -1,3 +1,9 @@
+process.on('uncaughtException', err => {
+    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+    console.error(err.name, err.message);
+    process.exit(1);
+});
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -21,6 +27,8 @@ const customerRoutes = require('./src/routes/customerRoutes');
 // Import middlewares
 const protect = require('./src/middlewares/authMiddleware');
 const authorizeRoles = require('./src/middlewares/roleMiddleware');
+const globalErrorHandler = require('./src/middlewares/errorMiddleware');
+const AppError = require('./src/utils/AppError');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -59,15 +67,22 @@ app.get('/', (req, res) => {
     res.send('QuickServe Backend API is running...');
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        message: 'Something went wrong!',
-        error: err.message
-    });
+// Handle unhandled routes
+app.use((req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-app.listen(PORT, () => {
+// Error handling middleware
+app.use(globalErrorHandler);
+
+const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+});
+
+process.on('unhandledRejection', err => {
+    console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+    console.error(err.name, err.message);
+    server.close(() => {
+        process.exit(1);
+    });
 });

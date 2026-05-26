@@ -82,9 +82,9 @@ exports.sendMessage = async (req, res) => {
         }
         const booking = bookingRes.rows[0];
 
-        // Status check: only accepted bookings
-        if (booking.status !== 'accepted') {
-            return res.status(403).json({ message: "Chat is only available for accepted bookings" });
+        // Status check: only accepted or completed bookings
+        if (booking.status !== 'accepted' && booking.status !== 'completed') {
+            return res.status(403).json({ message: "Chat is only available for active or completed bookings" });
         }
 
         // ensure sender is either customer or provider

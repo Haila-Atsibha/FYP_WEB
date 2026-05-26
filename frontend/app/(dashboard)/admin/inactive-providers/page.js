@@ -50,7 +50,7 @@ export default function InactiveProviders() {
 
     const columns = [
         {
-            header: "Provider",
+            header: t("admin_inactive_col_provider"),
             render: (row) => (
                 <div className="flex items-center gap-3">
                     {row.profile_image_url ? (
@@ -72,7 +72,7 @@ export default function InactiveProviders() {
             )
         },
         {
-            header: "Status",
+            header: t("admin_inactive_col_status"),
             render: (row) => (
                 <div className="flex flex-col gap-1">
                     <Badge variant={
@@ -86,23 +86,23 @@ export default function InactiveProviders() {
             )
         },
         {
-            header: "Subscription Info",
+            header: t("admin_inactive_col_sub"),
             render: (row) => (
                 <div className="flex flex-col gap-1">
                     <Badge variant="danger" className="capitalize w-fit">
-                        {row.subscription_status || "Not Subscribed"}
+                        {row.subscription_status || t("admin_inactive_not_subscribed")}
                     </Badge>
                     {row.subscription_expiry && (
                         <span className="text-xs text-text-muted flex items-center gap-1 mt-1">
                             <CalendarX size={12} />
-                            Expired: {new Date(row.subscription_expiry).toLocaleDateString()}
+                            {t("admin_inactive_expired")} {new Date(row.subscription_expiry).toLocaleDateString()}
                         </span>
                     )}
                 </div>
             )
         },
         {
-            header: "Joined",
+            header: t("admin_inactive_col_joined"),
             render: (row) => (
                 <div className="text-xs text-text-muted">
                     {new Date(row.created_at).toLocaleDateString()}
@@ -120,16 +120,16 @@ export default function InactiveProviders() {
                         <div>
                             <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-3">
                                 <UserX className="text-danger" size={32} />
-                                {t("admin_inactive_providers_title") || "Inactive Accounts"}
+                                {t("admin_inactive_providers_title")}
                             </h1>
-                            <p className="text-text-muted mt-1">{t("admin_inactive_providers_desc") || "Providers with missing or expired subscriptions"}</p>
+                            <p className="text-text-muted mt-1">{t("admin_inactive_providers_desc")}</p>
                         </div>
                     </div>
 
                     {/* Mini Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <StatMiniCard 
-                            title={t("admin_total") || "Total Inactive"} 
+                            title={t("admin_inactive_total_inactive")} 
                             value={providers.length} 
                             icon={<Users />} 
                             color="text-danger bg-danger/10" 
@@ -142,7 +142,7 @@ export default function InactiveProviders() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                             <input
                                 type="text"
-                                placeholder="Search by name or email..."
+                                placeholder={t("admin_inactive_search_placeholder")}
                                 className="w-full pl-12 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -156,7 +156,7 @@ export default function InactiveProviders() {
                             <div className="p-20 text-center">
                                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                                 <p className="text-lg font-bold">{error}</p>
-                                <Button onClick={fetchInactiveProviders} className="mt-4">Retry</Button>
+                                <Button onClick={fetchInactiveProviders} className="mt-4">{t("admin_retry")}</Button>
                             </div>
                         ) : (
                             <AdminDataTable
@@ -169,7 +169,7 @@ export default function InactiveProviders() {
                         {!loading && filteredProviders.length === 0 && (
                             <div className="p-20 text-center">
                                 <Shield className="w-12 h-12 text-success mx-auto mb-4 opacity-80" />
-                                <p className="text-text-muted font-medium text-lg">Great! All approved providers have active subscriptions.</p>
+                                <p className="text-text-muted font-medium text-lg">{t("admin_inactive_all_active")}</p>
                             </div>
                         )}
                     </div>

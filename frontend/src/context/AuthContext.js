@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import api from "../services/api";
@@ -118,13 +118,41 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
     delete api.defaults.headers.common["Authorization"];
     router.push("/");
-  };
+  }, [router]);
+
+  // Auto-logout after 10 minutes of inactivity
+  useEffect(() => {
+    let timeoutId;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (user) {
+        // 10 minutes = 600,000 milliseconds
+        timeoutId = setTimeout(() => {
+          console.log("User inactive for 10 minutes. Auto-logging out...");
+          logout();
+        }, 600000);
+      }
+    };
+
+    if (user) {
+      resetTimer();
+      const events = ["mousemove", "keydown", "scroll", "click", "touchstart"];
+      
+      events.forEach(event => window.addEventListener(event, resetTimer));
+
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        events.forEach(event => window.removeEventListener(event, resetTimer));
+      };
+    }
+  }, [user, logout]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, forgotPassword, resetPassword, verifyResetOtp, logout }}>

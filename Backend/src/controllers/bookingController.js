@@ -7,7 +7,7 @@ const { createNotification } = require('./notificationController');
 exports.createBooking = async (req, res) => {
     try {
         const userId = req.user.id; // customer id
-        const { service_id, description, booking_date, booking_time } = req.body;
+        const { service_id, description } = req.body;
 
         if (!service_id) {
             return res.status(400).json({ message: "service_id is required" });
@@ -30,9 +30,9 @@ exports.createBooking = async (req, res) => {
 
         const ins = await pool.query(
             `INSERT INTO bookings
-             (service_id, provider_id, customer_id, total_price, status, description, booking_date, booking_time)
-             VALUES ($1,$2,$3,$4,'pending',$5, $6, $7) RETURNING *`,
-            [service_id, providerId, userId, totalPrice, description || "No description provided", booking_date || new Date(), booking_time || '00:00:00']
+             (service_id, provider_id, customer_id, total_price, status, description, booking_date, scheduled_date, scheduled_time)
+             VALUES ($1,$2,$3,$4,'pending',$5, CURRENT_DATE, CURRENT_DATE, '00:00:00') RETURNING *`,
+            [service_id, providerId, userId, totalPrice, description || "No description provided"]
         );
 
         // Get provider's user_id for notification
@@ -62,7 +62,7 @@ exports.getMyBookings = async (req, res) => {
         const userId = req.user.id;
 
         const bookings = await pool.query(
-            `SELECT b.*, s.title, s.price, u.name as provider_name,
+            `SELECT b.*, s.title, s.price, u.name as provider_name, u.id as provider_user_id,
                     (SELECT COUNT(*) FROM reviews r WHERE r.booking_id = b.id)::int > 0 as is_reviewed
              FROM bookings b
              JOIN services s ON b.service_id = s.id
@@ -98,10 +98,12 @@ exports.getProviderBookings = async (req, res) => {
         const { status } = req.query;
 
         let query = `
-            SELECT b.*, s.title, s.price, u.name AS customer_name, u.email AS customer_email
+            SELECT b.*, s.title, s.price, u.name AS customer_name, u.email AS customer_email,
+                   r.rating AS review_rating, r.comment AS review_comment
             FROM bookings b
             JOIN services s ON b.service_id = s.id
             JOIN users u ON b.customer_id = u.id
+            LEFT JOIN reviews r ON r.booking_id = b.id
             WHERE b.provider_id = $1
         `;
         const params = [providerId];
@@ -231,23 +233,19 @@ exports.updateBookingStatus = async (req, res) => {
                     return res.status(400).json({ message: "Can only complete accepted bookings" });
                 }
                 
-                await pool.query("UPDATE bookings SET customer_completed = true WHERE id = $1", [id]);
+                // If customer marks it as completed, we bypass mutual confirmation and instantly complete it
+                await pool.query("UPDATE bookings SET customer_completed = true, provider_completed = true WHERE id = $1", [id]);
                 
-                if (booking.provider_completed) {
-                    const provUserRes = await pool.query("SELECT user_id FROM provider_profiles WHERE id = $1", [booking.provider_id]);
-                    const providerUserId = provUserRes.rows[0].user_id;
-                    await createNotification(
-                        providerUserId,
-                        "Booking Completed",
-                        `The customer marked "${booking.title}" as completed. The booking is now fully completed.`,
-                        'booking',
-                        '/provider/bookings'
-                    );
-                    return persist('completed');
-                } else {
-                    const upd = await pool.query("SELECT * FROM bookings WHERE id = $1", [id]);
-                    return res.json({ message: "Status updated (waiting for provider)", booking: upd.rows[0] });
-                }
+                const provUserRes = await pool.query("SELECT user_id FROM provider_profiles WHERE id = $1", [booking.provider_id]);
+                const providerUserId = provUserRes.rows[0].user_id;
+                await createNotification(
+                    providerUserId,
+                    "Booking Completed",
+                    `The customer marked "${booking.title}" as completed. The booking is now fully completed.`,
+                    'booking',
+                    '/provider/bookings'
+                );
+                return persist('completed');
             }
             if (status === 'cancelled') {
                 if (current !== 'pending') {

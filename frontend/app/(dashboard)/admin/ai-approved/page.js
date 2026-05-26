@@ -8,8 +8,10 @@ import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import Modal from "../../../../src/components/Modal";
 import Badge from "../../../../src/components/Badge";
 import Button from "../../../../src/components/Button";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function AiApprovedUsers() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(null);
@@ -23,7 +25,7 @@ export default function AiApprovedUsers() {
       setUsers(res.data || []);
     } catch (e) {
       console.error(e);
-      setError(e?.response?.data?.message || e?.message || "Failed to load AI approved users.");
+      setError(e?.response?.data?.message || e?.message || t("admin_ai_fetch_error_msg"));
     } finally {
       setLoading(false);
     }
@@ -39,33 +41,33 @@ export default function AiApprovedUsers() {
         <div className="space-y-8 pb-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-extrabold text-foreground tracking-tight">AI Approved Providers</h2>
-              <p className="text-text-muted mt-1">Providers that were automatically approved by AI (for audit if needed).</p>
+              <h2 className="text-3xl font-extrabold text-foreground tracking-tight">{t("admin_ai_title")}</h2>
+              <p className="text-text-muted mt-1">{t("admin_ai_desc")}</p>
             </div>
             <div className="flex items-center gap-2 text-sm font-bold text-green-600 bg-green-500/10 px-4 py-2 rounded-xl border border-green-500/20">
               <ShieldCheck size={16} />
-              {users.length} AI Approvals
+              {users.length} {t("admin_ai_approvals_count")}
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 bg-surface border border-border border-dashed rounded-3xl">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary mb-4"></div>
-              <p className="text-text-muted font-medium">Fetching AI approved users...</p>
+              <p className="text-text-muted font-medium">{t("admin_ai_fetching")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-16 bg-surface border border-border rounded-3xl">
-              <p className="text-lg font-bold text-foreground">Couldn’t load AI approved users</p>
+              <p className="text-lg font-bold text-foreground">{t("admin_ai_fetch_error_title")}</p>
               <p className="text-text-muted mt-2 max-w-xl mx-auto text-sm">{error}</p>
               <Button onClick={fetchAiApproved} className="mt-6">
-                Retry
+                {t("admin_retry")}
               </Button>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-24 bg-surface border border-border rounded-3xl">
               <CheckCircle className="w-16 h-16 text-green-500/20 mx-auto mb-4" />
-              <p className="text-xl font-bold text-foreground">No AI Approved Users Yet</p>
-              <p className="text-text-muted">Once providers are auto-approved, they will appear here.</p>
+              <p className="text-xl font-bold text-foreground">{t("admin_ai_no_users_title")}</p>
+              <p className="text-text-muted">{t("admin_ai_no_users_desc")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -113,7 +115,7 @@ export default function AiApprovedUsers() {
                       className="flex-1 md:flex-none flex items-center justify-center gap-2 whitespace-nowrap"
                     >
                       <Eye size={16} />
-                      Review Documents
+                      {t("admin_ai_review_btn")}
                     </Button>
                   </div>
                 </div>
@@ -122,24 +124,24 @@ export default function AiApprovedUsers() {
           )}
         </div>
 
-        <Modal isOpen={!!reviewing} onClose={() => setReviewing(null)} title="AI Approved - Document Review">
+        <Modal isOpen={!!reviewing} onClose={() => setReviewing(null)} title={t("admin_ai_modal_title")}>
           {reviewing && (
             <div className="space-y-6">
               <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-sm font-bold text-foreground mb-1">AI Verification Result</p>
+                <p className="text-sm font-bold text-foreground mb-1">{t("admin_users_ai_result")}</p>
                 <p className="text-xs text-text-muted capitalize">
-                  Status: {reviewing.ai_verification_status || "matched"}
+                  {t("admin_users_ai_status")} {reviewing.ai_verification_status || "matched"}
                   {reviewing.ai_verification_score !== null && reviewing.ai_verification_score !== undefined
                     ? ` (${Number(reviewing.ai_verification_score).toFixed(2)}%)`
                     : ""}
                 </p>
                 <p className="text-xs text-text-muted mt-1">
-                  {reviewing.ai_verification_message || "No AI verification message available."}
+                  {reviewing.ai_verification_message || t("admin_users_ai_no_msg")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-bold text-foreground">National ID</p>
+                <p className="text-sm font-bold text-foreground">{t("admin_users_national_id")}</p>
                 <div className={`grid gap-4 ${reviewing.national_id_url && reviewing.national_id_url.split(',').length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {reviewing.national_id_url ? (
                     reviewing.national_id_url.split(',').map((url, idx) => (
@@ -151,20 +153,20 @@ export default function AiApprovedUsers() {
                           rel="noreferrer"
                           className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold"
                         >
-                          <ExternalLink size={20} /> View Full Size
+                          <ExternalLink size={20} /> {t("admin_users_view_full")}
                         </a>
                       </div>
                     ))
                   ) : (
                     <div className="rounded-2xl border border-border aspect-[4/3] bg-background flex items-center justify-center text-text-muted">
-                      Missing
+                      {t("admin_ai_missing")}
                     </div>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-bold text-foreground">Verification Selfie</p>
+                <p className="text-sm font-bold text-foreground">{t("admin_users_selfie")}</p>
                 <div className="relative group overflow-hidden rounded-2xl border border-border aspect-video bg-background flex items-center justify-center">
                   {reviewing.verification_selfie_url ? (
                     <>
@@ -175,17 +177,17 @@ export default function AiApprovedUsers() {
                         rel="noreferrer"
                         className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold"
                       >
-                        <ExternalLink size={20} /> View Full Size
+                        <ExternalLink size={20} /> {t("admin_users_view_full")}
                       </a>
                     </>
                   ) : (
-                    <div className="text-text-muted">Missing</div>
+                    <div className="text-text-muted">{t("admin_ai_missing")}</div>
                   )}
                 </div>
               </div>
 
               <div className="text-xs text-text-muted">
-                Note: Educational documents are shown in the pending verification screen. This AI-approved list is kept lightweight for speed.
+                {t("admin_ai_note")}
               </div>
             </div>
           )}

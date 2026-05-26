@@ -8,8 +8,10 @@ import DashboardLayout from "../../../../src/components/DashboardLayout";
 import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import Button from "../../../../src/components/Button";
 import api from "../../../../src/services/api";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function SubscriptionSuccess() {
+    const { t } = useTranslation();
     const searchParams = useSearchParams();
     const tx_ref = searchParams.get("tx_ref");
     const [status, setStatus] = useState("verifying"); // verifying, success, error
@@ -40,16 +42,16 @@ export default function SubscriptionSuccess() {
                     {status === "verifying" ? (
                         <div className="space-y-4">
                             <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto" />
-                            <h2 className="text-2xl font-bold">Verifying your payment...</h2>
-                            <p className="text-text-muted">Please wait while we activate your subscription.</p>
+                            <h2 className="text-2xl font-bold">{t("verifying_payment")}</h2>
+                            <p className="text-text-muted">{t("verifying_payment_desc")}</p>
                         </div>
                     ) : status === "error" ? (
                         <div className="space-y-4">
                             <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
-                            <h2 className="text-2xl font-bold text-red-500">Verification Pending</h2>
-                            <p className="text-text-muted">We couldn't verify your payment immediately. Don't worry, it might take a few minutes for Chapa to confirm. Your status will update soon!</p>
+                            <h2 className="text-2xl font-bold text-red-500">{t("verification_pending")}</h2>
+                            <p className="text-text-muted">{t("verification_pending_desc")}</p>
                             <Link href="/provider">
-                                <Button>Go to Dashboard</Button>
+                                <Button>{t("btn_go_to_dashboard")}</Button>
                             </Link>
                         </div>
                     ) : (
@@ -64,16 +66,16 @@ export default function SubscriptionSuccess() {
                             </div>
 
                             <div className="space-y-3">
-                                <h1 className="text-4xl font-black text-foreground tracking-tight">Payment Successful!</h1>
+                                <h1 className="text-4xl font-black text-foreground tracking-tight">{t("payment_successful")}</h1>
                                 <p className="text-text-muted text-lg max-w-md mx-auto">
-                                    Your subscription has been activated. Your profile is now visible to customers, and you can start receiving booking requests.
+                                    {t("payment_successful_desc")}
                                 </p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
                                 <Link href="/provider" className="flex-1">
                                     <Button className="w-full flex items-center justify-center gap-2">
-                                        <Home className="w-4 h-4" /> Go to Dashboard
+                                        <Home className="w-4 h-4" /> {t("btn_go_to_dashboard")}
                                     </Button>
                                 </Link>
                             </div>

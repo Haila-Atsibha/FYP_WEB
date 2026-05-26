@@ -1,5 +1,6 @@
 const pool = require('../db');
 const { ensureVerificationColumns } = require('../utils/faceVerification');
+const { sendStatusUpdateEmail } = require('../utils/emailService');
 
 exports.getPendingUsers = async (req, res) => {
     try {
@@ -91,13 +92,19 @@ exports.approveUser = async (req, res) => {
                     `UPDATE provider_profiles 
                      SET subscription_status = 'active', 
                          subscription_expiry = NOW() + INTERVAL '1 month',
-                         is_verified = true
+                         is_verified = true,
+                         verification_status = 'approved'
                      WHERE user_id = $1`,
                     [id]
                 );
             }
 
             await client.query('COMMIT');
+
+            if (user.role === 'provider' && user.email) {
+                await sendStatusUpdateEmail(user.email, 'approved');
+            }
+
             res.json({ message: 'User approved and subscription activated', user });
         } catch (err) {
             await client.query('ROLLBACK');
@@ -127,7 +134,13 @@ exports.rejectUser = async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.json({ message: 'User rejected', user: result.rows[0] });
+
+        const user = result.rows[0];
+        if (user.role === 'provider' && user.email) {
+            await sendStatusUpdateEmail(user.email, 'rejected');
+        }
+
+        res.json({ message: 'User rejected', user });
     } catch (error) {
         console.error("Reject User Error:", error.message);
         res.status(500).json({ message: 'Server error while rejecting user', error: error.message });
@@ -370,19 +383,52 @@ exports.updateUserStatus = async (req, res) => {
             return res.status(400).json({ message: "Status is required" });
         }
 
-        const result = await pool.query(
-            "UPDATE users SET status = $1 WHERE id = $2 RETURNING id, name, status",
-            [status, id]
-        );
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: "User not found" });
+            const result = await client.query(
+                "UPDATE users SET status = $1 WHERE id = $2 RETURNING id, name, email, status, role",
+                [status, id]
+            );
+
+            if (result.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            const user = result.rows[0];
+
+            if (user.role === 'provider') {
+                if (status === 'approved') {
+                    await client.query(
+                        "UPDATE provider_profiles SET is_verified = true, verification_status = 'approved' WHERE user_id = $1",
+                        [id]
+                    );
+                } else {
+                    await client.query(
+                        "UPDATE provider_profiles SET is_verified = false, verification_status = $1 WHERE user_id = $2",
+                        [status, id]
+                    );
+                }
+            }
+
+            await client.query('COMMIT');
+
+            if (user.role === 'provider' && user.email) {
+                await sendStatusUpdateEmail(user.email, status);
+            }
+
+            res.json({
+                message: `User status updated to ${status}`,
+                user: result.rows[0]
+            });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
-
-        res.json({
-            message: `User status updated to ${status}`,
-            user: result.rows[0]
-        });
     } catch (error) {
         console.error("Update User Status Error:", error.message);
         res.status(500).json({ message: "Server error while updating user status", error: error.message });
@@ -415,9 +461,12 @@ exports.deleteUser = async (req, res) => {
 exports.getComplaints = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT c.*, u.name as "userName"
+            SELECT c.*, 
+                   u.name as "userName", u.email as user_email,
+                   p.name as provider_name
             FROM complaints c
             JOIN users u ON c.user_id = u.id
+            LEFT JOIN users p ON c.provider_id = p.id
             ORDER BY c.created_at DESC
             LIMIT 20
         `);

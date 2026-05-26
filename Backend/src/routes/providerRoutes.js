@@ -9,7 +9,10 @@ const {
     getPublicProviders,
     getTopProviders,
     getProviderStats,
-    getMyCategories
+    getMyCategories,
+    getUnavailability,
+    addUnavailability,
+    deleteUnavailability
 } = require('../controllers/providerController');
 const multer = require('multer');
 
@@ -38,9 +41,18 @@ router.get(
     getMyProfile
 );
 
+router.get(
+    '/me/unavailability',
+    protect,
+    authorizeRoles('provider'),
+    getUnavailability
+);
+
 // Public routes
 router.get('/', getPublicProviders);
 router.get('/top', getTopProviders);
+
+router.get('/:id/unavailability', getUnavailability);
 
 router.get('/:id', (req, res, next) => {
     // Controller is imported below
@@ -61,6 +73,20 @@ router.put(
     authorizeRoles('provider'),
     upload.single('profileImage'),
     updateMyProfile
+);
+
+router.post(
+    '/profile/unavailability',
+    protect,
+    authorizeRoles('provider'),
+    addUnavailability
+);
+
+router.delete(
+    '/profile/unavailability/:id',
+    protect,
+    authorizeRoles('provider'),
+    deleteUnavailability
 );
 
 module.exports = router;

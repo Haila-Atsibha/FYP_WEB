@@ -9,12 +9,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        orange: {
-          500: '#f97316',
-          600: '#ea580c',
+        violet: {
+          500: '#8b5cf6',
+          600: '#7c3aed',
         },
-        cyan: {
-          500: '#0ea5e9',
+        pink: {
+          500: '#ec4899',
         },
         slate: {
           900: '#0f172a',

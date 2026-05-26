@@ -18,8 +18,10 @@ import ProtectedRoute from "../../../../src/components/ProtectedRoute";
 import Button from "../../../../src/components/Button";
 import Modal from "../../../../src/components/Modal";
 import Badge from "../../../../src/components/Badge";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function PendingUsers() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejecting, setRejecting] = useState(null);
@@ -58,9 +60,9 @@ export default function PendingUsers() {
       await api.post(`/api/admin/approve/${id}`);
       setUsers((u) => u.filter((x) => x.id !== id));
       setReviewing(null);
-      showToast("User approved successfully!", "success");
+      showToast(t("admin_pending_toast_approve_success"), "success");
     } catch (err) {
-      showToast("Failed to approve user", "error");
+      showToast(t("admin_pending_toast_approve_fail"), "error");
     }
   };
 
@@ -71,7 +73,7 @@ export default function PendingUsers() {
 
   const submitReject = async () => {
     if (!reason.trim()) {
-      showToast("Please provide a reason", "error");
+      showToast(t("admin_pending_toast_no_reason"), "error");
       return;
     }
     setSubmitting(true);
@@ -80,9 +82,9 @@ export default function PendingUsers() {
       setUsers((u) => u.filter((x) => x.id !== rejecting.id));
       setRejecting(null);
       setReviewing(null);
-      showToast("User rejected successfully", "warning");
+      showToast(t("admin_pending_toast_reject_success"), "warning");
     } catch (err) {
-      showToast("Failed to reject user", "error");
+      showToast(t("admin_pending_toast_reject_fail"), "error");
     } finally {
       setSubmitting(false);
     }
@@ -95,25 +97,25 @@ export default function PendingUsers() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-extrabold text-foreground tracking-tight">Account Verifications</h2>
-              <p className="text-text-muted mt-1">Review registration requests and verify provider credentials.</p>
+              <h2 className="text-3xl font-extrabold text-foreground tracking-tight">{t("admin_pending_title")}</h2>
+              <p className="text-text-muted mt-1">{t("admin_pending_desc")}</p>
             </div>
             <div className="flex items-center gap-2 text-sm font-bold text-yellow-500 bg-yellow-500/10 px-4 py-2 rounded-xl border border-yellow-500/20">
               <Clock size={16} />
-              {users.length} Applications Waiting
+              {users.length} {t("admin_pending_waiting")}
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 bg-surface border border-border border-dashed rounded-3xl">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary mb-4"></div>
-              <p className="text-text-muted font-medium">Fetching pending applications...</p>
+              <p className="text-text-muted font-medium">{t("admin_pending_fetching")}</p>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-24 bg-surface border border-border rounded-3xl">
               <CheckCircle className="w-16 h-16 text-green-500/20 mx-auto mb-4" />
-              <p className="text-xl font-bold text-foreground">All Caught Up!</p>
-              <p className="text-text-muted">No pending user applications at the moment.</p>
+              <p className="text-xl font-bold text-foreground">{t("admin_pending_caught_up")}</p>
+              <p className="text-text-muted">{t("admin_pending_no_pending")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -170,21 +172,21 @@ export default function PendingUsers() {
                       className="flex-1 md:flex-none flex items-center justify-center gap-2 whitespace-nowrap"
                     >
                       <Eye size={16} />
-                      Review Documents
+                      {t("admin_pending_review_btn")}
                     </Button>
                     <Button
                       onClick={() => approve(u.id)}
                       className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 items-center justify-center gap-2"
                     >
                       <CheckCircle size={16} />
-                      Approve
+                      {t("admin_pending_approve_btn")}
                     </Button>
                     <Button
                       onClick={() => openReject(u)}
                       className="flex-1 md:flex-none bg-red-600 hover:bg-red-700 items-center justify-center gap-2"
                     >
                       <XCircle size={16} />
-                      Reject
+                      {t("admin_pending_reject_btn")}
                     </Button>
                   </div>
                 </div>
@@ -197,7 +199,7 @@ export default function PendingUsers() {
         <Modal
           isOpen={!!reviewing}
           onClose={() => setReviewing(null)}
-          title="Review Identification Documents"
+          title={t("admin_pending_modal_title")}
         >
           {reviewing && (
             <div className="space-y-6">
@@ -211,21 +213,21 @@ export default function PendingUsers() {
 
               <div className="grid grid-cols-1 gap-4">
                 <div className="rounded-2xl border border-border bg-background p-4">
-                  <p className="text-sm font-bold text-foreground mb-1">AI Verification Result</p>
+                  <p className="text-sm font-bold text-foreground mb-1">{t("admin_pending_ai_result")}</p>
                   <p className="text-xs text-text-muted capitalize">
-                    Status: {reviewing.ai_verification_status || "manual_review"}
+                    {t("admin_pending_ai_status")} {reviewing.ai_verification_status || "manual_review"}
                     {reviewing.ai_verification_score !== null && reviewing.ai_verification_score !== undefined
                       ? ` (${Number(reviewing.ai_verification_score).toFixed(2)}%)`
                       : ""}
                   </p>
                   <p className="text-xs text-text-muted mt-1">
-                    {reviewing.ai_verification_message || "No AI verification message available."}
+                    {reviewing.ai_verification_message || t("admin_pending_ai_no_msg")}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-muted flex items-center gap-2">
-                    <FileText size={14} /> National ID Card
+                    <FileText size={14} /> {t("admin_pending_national_id")}
                   </label>
                   <div className={`grid gap-4 ${reviewing.national_id_url && reviewing.national_id_url.split(',').length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     {reviewing.national_id_url ? (
@@ -237,14 +239,14 @@ export default function PendingUsers() {
                             target="_blank"
                             className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold"
                           >
-                            <ExternalLink size={20} /> View Full Size
+                            <ExternalLink size={20} /> {t("admin_pending_view_full")}
                           </a>
                         </div>
                       ))
                     ) : (
                       <div className="relative overflow-hidden rounded-2xl border border-border aspect-[4/3] bg-background flex flex-col items-center justify-center text-red-500 gap-2">
                         <AlertCircle size={24} />
-                        <span className="text-xs font-bold">Document Missing</span>
+                        <span className="text-xs font-bold">{t("admin_pending_doc_missing")}</span>
                       </div>
                     )}
                   </div>
@@ -252,7 +254,7 @@ export default function PendingUsers() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-muted flex items-center gap-2">
-                    <User size={14} /> Verification Selfie
+                    <User size={14} /> {t("admin_pending_selfie")}
                   </label>
                   <div className="relative group overflow-hidden rounded-2xl border border-border aspect-video bg-background flex items-center justify-center">
                     {reviewing.verification_selfie_url ? (
@@ -263,13 +265,13 @@ export default function PendingUsers() {
                           target="_blank"
                           className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold"
                         >
-                          <ExternalLink size={20} /> View Full Size
+                          <ExternalLink size={20} /> {t("admin_pending_view_full")}
                         </a>
                       </>
                     ) : (
                       <div className="text-red-500 flex flex-col items-center gap-2">
                         <AlertCircle size={24} />
-                        <span className="text-xs font-bold">Selfie Missing</span>
+                        <span className="text-xs font-bold">{t("admin_pending_selfie_missing")}</span>
                       </div>
                     )}
                   </div>
@@ -278,7 +280,7 @@ export default function PendingUsers() {
                 {reviewing.educational_documents && reviewing.educational_documents.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-text-muted flex items-center gap-2">
-                      <FileText size={14} /> Educational Documents
+                      <FileText size={14} /> {t("admin_pending_edu_docs")}
                     </label>
                     <div className="grid grid-cols-1 gap-2">
                       {reviewing.educational_documents.map((doc, idx) => (
@@ -293,7 +295,7 @@ export default function PendingUsers() {
                             href={doc.url}
                             target="_blank"
                             className="bg-primary/10 text-primary hover:bg-primary/20 p-2 rounded-lg transition-all"
-                            title="View Document"
+                            title={t("admin_pending_view_doc")}
                           >
                             <ExternalLink size={16} />
                           </a>
@@ -310,13 +312,13 @@ export default function PendingUsers() {
                   variant="outline"
                   className="flex-1 border-red-500/20 text-red-500 hover:bg-red-500/10"
                 >
-                  Reject Application
+                  {t("admin_pending_reject_app")}
                 </Button>
                 <Button
                   onClick={() => approve(reviewing.id)}
                   className="flex-1 bg-green-600 hover:bg-green-700"
                 >
-                  Approve User
+                  {t("admin_pending_approve_user")}
                 </Button>
               </div>
             </div>
@@ -324,24 +326,24 @@ export default function PendingUsers() {
         </Modal>
 
         {/* Reject Modal */}
-        <Modal isOpen={!!rejecting} onClose={() => setRejecting(null)} title="Reason for Rejection">
-          <p className="text-text-muted text-sm mb-4">This message will be sent to <strong>{rejecting?.name}</strong> to help them correct their application.</p>
+        <Modal isOpen={!!rejecting} onClose={() => setRejecting(null)} title={t("admin_pending_reject_modal_title")}>
+          <p className="text-text-muted text-sm mb-4">{t("admin_pending_reject_msg1")} <strong>{rejecting?.name}</strong> {t("admin_pending_reject_msg2")}</p>
           <textarea
             className="w-full bg-background border border-border text-foreground rounded-2xl p-4 mb-6 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] text-sm"
-            placeholder="e.g. Identity card is blurry, please re-upload a clear photo."
+            placeholder={t("admin_pending_reject_placeholder")}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
           <div className="flex space-x-3">
             <Button onClick={() => setRejecting(null)} variant="secondary" className="flex-1">
-              Go Back
+              {t("admin_pending_go_back")}
             </Button>
             <Button
               onClick={submitReject}
               className="flex-1 bg-red-600 hover:bg-red-700"
               loading={submitting}
             >
-              Confirm Rejection
+              {t("admin_pending_confirm_reject")}
             </Button>
           </div>
         </Modal>

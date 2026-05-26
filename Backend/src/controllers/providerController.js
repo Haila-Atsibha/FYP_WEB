@@ -212,7 +212,8 @@ exports.getPublicProviderProfile = async (req, res) => {
             `SELECT 
                 u.name, u.profile_image_url, 
                 p.id as provider_profile_id, p.bio, p.average_rating,
-                u.id as user_id
+                u.id as user_id,
+                (SELECT COUNT(*)::int FROM bookings WHERE provider_id = p.id AND status = 'completed') as "completedJobs"
              FROM provider_profiles p
              JOIN users u ON p.user_id = u.id
              WHERE p.id = $1 AND u.status = 'approved'`,
@@ -282,11 +283,47 @@ exports.getProviderStats = async (req, res) => {
             [providerProfileId]
         );
 
+        // 4a. Total Bookings (All statuses)
+        const totalBookingsRes = await pool.query(
+            "SELECT COUNT(*)::int as count FROM bookings WHERE provider_id = $1",
+            [providerProfileId]
+        );
+
+        // 4b. Cancelled/Rejected Bookings
+        const cancelledRes = await pool.query(
+            "SELECT COUNT(*)::int as count FROM bookings WHERE provider_id = $1 AND status IN ('cancelled', 'rejected')",
+            [providerProfileId]
+        );
+
+        // 4c. Total Distinct Customers
+        const customersRes = await pool.query(
+            "SELECT COUNT(DISTINCT customer_id)::int as count FROM bookings WHERE provider_id = $1",
+            [providerProfileId]
+        );
+
+        // 4d. Total Services Offered
+        const servicesRes = await pool.query(
+            "SELECT COUNT(*)::int as count FROM services WHERE provider_id = $1",
+            [providerProfileId]
+        );
+
+        // 4e. Subscription Payments
+        const paymentsRes = await pool.query(
+            "SELECT COUNT(*)::int as count, COALESCE(SUM(amount), 0)::numeric as total FROM payments WHERE provider_id = $1 AND status = 'success'",
+            [providerProfileId]
+        );
+
         let stats = {
             pendingRequests: pendingRes.rows[0]?.count || 0,
             activeBookings: activeRes.rows[0]?.count || 0,
             completedJobs: completedRes.rows[0]?.count || 0,
             totalEarnings: Number(earningsRes.rows[0]?.total || 0),
+            totalBookings: totalBookingsRes.rows[0]?.count || 0,
+            cancelledBookings: cancelledRes.rows[0]?.count || 0,
+            totalCustomers: customersRes.rows[0]?.count || 0,
+            totalServices: servicesRes.rows[0]?.count || 0,
+            subscriptionPaymentsCount: paymentsRes.rows[0]?.count || 0,
+            subscriptionPaymentsTotal: Number(paymentsRes.rows[0]?.total || 0),
             averageRating: 0,
             totalReviews: 0,
             subscriptionStatus: null,
@@ -352,5 +389,64 @@ exports.getMyCategories = async (req, res) => {
             message: "Server error",
             error: error.message
         });
+    }
+};
+
+exports.getUnavailability = async (req, res) => {
+    try {
+        let providerId;
+        if (req.params.id && req.params.id !== 'me') {
+            providerId = req.params.id;
+        } else {
+            const profileRes = await pool.query("SELECT id FROM provider_profiles WHERE user_id = $1", [req.user.id]);
+            if (profileRes.rows.length === 0) return res.status(404).json({ message: "Profile not found" });
+            providerId = profileRes.rows[0].id;
+        }
+
+        const result = await pool.query(
+            "SELECT * FROM provider_unavailability WHERE provider_id = $1 ORDER BY date ASC",
+            [providerId]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+exports.addUnavailability = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { date } = req.body;
+        
+        const profileRes = await pool.query("SELECT id FROM provider_profiles WHERE user_id = $1", [userId]);
+        if (profileRes.rows.length === 0) return res.status(404).json({ message: "Profile not found" });
+        const providerId = profileRes.rows[0].id;
+
+        const result = await pool.query(
+            "INSERT INTO provider_unavailability (provider_id, date) VALUES ($1, $2) RETURNING *",
+            [providerId, date]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+exports.deleteUnavailability = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+
+        const profileRes = await pool.query("SELECT id FROM provider_profiles WHERE user_id = $1", [userId]);
+        if (profileRes.rows.length === 0) return res.status(404).json({ message: "Profile not found" });
+        const providerId = profileRes.rows[0].id;
+
+        await pool.query(
+            "DELETE FROM provider_unavailability WHERE id = $1 AND provider_id = $2",
+            [id, providerId]
+        );
+        res.json({ message: "Unavailability deleted" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };

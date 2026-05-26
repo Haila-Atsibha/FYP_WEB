@@ -19,8 +19,10 @@ import Modal from "../../../../src/components/Modal";
 import Input from "../../../../src/components/Input";
 import api from "../../../../src/services/api";
 import { useToast } from "../../../../src/context/ToastContext";
+import { useTranslation } from "../../../../src/hooks/useTranslation";
 
 export default function AdminCategories() {
+    const { t } = useTranslation();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -66,14 +68,14 @@ export default function AdminCategories() {
     };
 
     const handleDeleteClick = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this category? This might affect providers linked to it.")) return;
+        if (!window.confirm(t("admin_categories_delete_confirm"))) return;
 
         try {
             await api.delete(`/api/categories/${id}`);
             fetchCategories();
         } catch (err) {
             console.error("Delete failed:", err);
-            showToast(err.response?.data?.message || "Failed to delete category", "error");
+            showToast(err.response?.data?.message || t("admin_categories_delete_fail"), "error");
         }
     };
 
@@ -91,7 +93,7 @@ export default function AdminCategories() {
             setIsModalOpen(false);
             fetchCategories();
         } catch (err) {
-            setFormError(err.response?.data?.message || "Something went wrong");
+            setFormError(err.response?.data?.message || t("admin_categories_save_fail"));
         } finally {
             setSubmitting(false);
         }
@@ -103,23 +105,23 @@ export default function AdminCategories() {
     );
 
     const columns = [
-        { header: "Name", accessor: "name", render: (row) => <span className="font-bold text-foreground">{row.name}</span> },
-        { header: "Description", accessor: "description", render: (row) => <p className="max-w-md text-sm text-text-muted">{row.description || "No description"}</p> },
+        { header: t("admin_categories_col_name"), accessor: "name", render: (row) => <span className="font-bold text-foreground">{row.name}</span> },
+        { header: t("admin_categories_col_desc"), accessor: "description", render: (row) => <p className="max-w-md text-sm text-text-muted">{row.description || t("admin_categories_no_desc")}</p> },
         {
-            header: "Actions",
+            header: t("admin_categories_col_actions"),
             render: (row) => (
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => handleEditClick(row)}
                         className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors"
-                        title="Edit Category"
+                        title={t("admin_categories_edit_title")}
                     >
                         <Edit2 size={16} />
                     </button>
                     <button
                         onClick={() => handleDeleteClick(row.id)}
                         className="p-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-                        title="Delete Category"
+                        title={t("admin_categories_delete_title")}
                     >
                         <Trash2 size={16} />
                     </button>
@@ -135,12 +137,12 @@ export default function AdminCategories() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Service Categories</h1>
-                            <p className="text-text-muted mt-1">Manage the types of services available on the platform.</p>
+                            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{t("admin_categories_title")}</h1>
+                            <p className="text-text-muted mt-1">{t("admin_categories_desc")}</p>
                         </div>
                         <Button onClick={handleAddClick} className="flex items-center gap-2 shadow-lg shadow-primary/20">
                             <Plus className="w-4 h-4" />
-                            <span>Add New Category</span>
+                            <span>{t("admin_categories_add_btn")}</span>
                         </Button>
                     </div>
 
@@ -150,7 +152,7 @@ export default function AdminCategories() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                             <input
                                 type="text"
-                                placeholder="Search categories..."
+                                placeholder={t("admin_categories_search_placeholder")}
                                 className="w-full pl-12 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,7 +166,7 @@ export default function AdminCategories() {
                             <div className="p-20 text-center">
                                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                                 <p className="text-lg font-bold">{error}</p>
-                                <Button onClick={fetchCategories} className="mt-4">Retry</Button>
+                                <Button onClick={fetchCategories} className="mt-4">{t("admin_retry")}</Button>
                             </div>
                         ) : (
                             <AdminDataTable
@@ -177,7 +179,7 @@ export default function AdminCategories() {
                         {!loading && filteredCategories.length === 0 && (
                             <div className="p-20 text-center">
                                 <Shapes className="w-12 h-12 text-text-muted mx-auto mb-4 opacity-20" />
-                                <p className="text-text-muted font-medium">No categories found matching your search.</p>
+                                <p className="text-text-muted font-medium">{t("admin_categories_no_found")}</p>
                             </div>
                         )}
                     </div>
@@ -187,7 +189,7 @@ export default function AdminCategories() {
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    title={modalMode === "add" ? "Create New Category" : "Edit Category"}
+                    title={modalMode === "add" ? t("admin_categories_create_title") : t("admin_categories_edit_title")}
                 >
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {formError && (
@@ -198,9 +200,9 @@ export default function AdminCategories() {
                         )}
 
                         <div>
-                            <label className="block text-sm font-bold text-foreground mb-1.5">Category Name</label>
+                            <label className="block text-sm font-bold text-foreground mb-1.5">{t("admin_categories_name_label")}</label>
                             <Input
-                                placeholder="e.g. Home Cleaning"
+                                placeholder={t("admin_categories_name_placeholder")}
                                 value={currentCategory.name}
                                 onChange={(e) => setCurrentCategory({ ...currentCategory, name: e.target.value })}
                                 required
@@ -208,10 +210,10 @@ export default function AdminCategories() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-foreground mb-1.5">Description</label>
+                            <label className="block text-sm font-bold text-foreground mb-1.5">{t("admin_categories_desc_label")}</label>
                             <textarea
                                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px]"
-                                placeholder="Briefly describe what this category entails..."
+                                placeholder={t("admin_categories_desc_placeholder")}
                                 value={currentCategory.description || ""}
                                 onChange={(e) => setCurrentCategory({ ...currentCategory, description: e.target.value })}
                             />
@@ -224,14 +226,14 @@ export default function AdminCategories() {
                                 className="flex-1"
                                 onClick={() => setIsModalOpen(false)}
                             >
-                                Cancel
+                                {t("btn_cancel")}
                             </Button>
                             <Button
                                 type="submit"
                                 className="flex-1"
                                 loading={submitting}
                             >
-                                {modalMode === "add" ? "Create Category" : "Save Changes"}
+                                {modalMode === "add" ? t("admin_categories_create_btn") : t("btn_save_changes")}
                             </Button>
                         </div>
                     </form>

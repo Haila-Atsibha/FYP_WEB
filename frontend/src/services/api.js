@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
 // central axios instance for communicating with external backend
 const api = axios.create({
@@ -32,6 +33,38 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for global error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Check if error response exists
+    if (error.response) {
+      const { data, status } = error.response;
+      
+      // If backend explicitly provided an error message, use it
+      if (data && data.message) {
+        toast.error(data.message);
+      } 
+      // Handle generic 500 errors
+      else if (status >= 500) {
+        toast.error("Internal Server Error. Please try again later.");
+      } 
+      // Handle generic 4xx errors if no message provided
+      else if (status >= 400) {
+        toast.error("An error occurred. Please check your input.");
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      toast.error("Network error. Please check your connection.");
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      toast.error("An unexpected error occurred.");
+    }
+
     return Promise.reject(error);
   }
 );
