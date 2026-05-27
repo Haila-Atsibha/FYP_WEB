@@ -1,7 +1,7 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
-// central axios instance for communicating with external backend
+// Trigger redeployment with updated root directory settings
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "https://quickserve-api.onrender.com",
   headers: {
