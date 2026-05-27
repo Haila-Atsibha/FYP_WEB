@@ -16,7 +16,7 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        let natIdFiles = req.files.nationalId || req.files['nationalId[]'];
+        let natIdFiles = req.files ? req.files.nationalId : null;
 
         // make sure uploaded files exist
         if (
@@ -86,9 +86,9 @@ exports.registerUser = async (req, res) => {
                 (
                     name, email, password, role, status, profile_image_url, national_id_url, verification_selfie_url,
                     ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at,
-                    otp, otp_expires
+                    otp, otp_expires, is_verified
                 ) 
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,$14) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,$14,$15) 
              RETURNING id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url,
                        ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at`,
             [
@@ -105,7 +105,8 @@ exports.registerUser = async (req, res) => {
                 aiVerification.message,
                 aiVerification.provider,
                 otp,
-                otpExpires
+                otpExpires,
+                shouldAutoApprove ? true : false
             ]
         );
 
@@ -179,7 +180,7 @@ exports.registerUser = async (req, res) => {
             }
 
             // 3. Add educational documents if present
-            const eduDocs = req.files.educationalDocuments || req.files['educationalDocuments[]'];
+            const eduDocs = req.files ? req.files.educationalDocuments : null;
             if (eduDocs) {
                 for (const file of eduDocs) {
                     try {

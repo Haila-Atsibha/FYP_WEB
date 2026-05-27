@@ -73,9 +73,9 @@ exports.approveUser = async (req, res) => {
         try {
             await client.query('BEGIN');
 
-            // 1. Update user status
+            // 1. Update user status and mark as verified
             const userResult = await client.query(
-                "UPDATE users SET status='approved' WHERE id=$1 RETURNING *",
+                "UPDATE users SET status='approved', is_verified=true WHERE id=$1 RETURNING *",
                 [id]
             );
 
@@ -388,8 +388,8 @@ exports.updateUserStatus = async (req, res) => {
             await client.query('BEGIN');
 
             const result = await client.query(
-                "UPDATE users SET status = $1 WHERE id = $2 RETURNING id, name, email, status, role",
-                [status, id]
+                "UPDATE users SET status = $1, is_verified = $2 WHERE id = $3 RETURNING id, name, email, status, role",
+                [status, status === 'approved' ? true : false, id]
             );
 
             if (result.rows.length === 0) {

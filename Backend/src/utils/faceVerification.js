@@ -4,20 +4,6 @@ const pool = require('../db');
 let columnsEnsured = false;
 
 const ensureVerificationColumns = async () => {
-    if (columnsEnsured) return;
-
-    await pool.query(`
-        ALTER TABLE users
-        ADD COLUMN IF NOT EXISTS ai_verification_status VARCHAR(30),
-        ADD COLUMN IF NOT EXISTS ai_verification_score NUMERIC,
-        ADD COLUMN IF NOT EXISTS ai_verification_message TEXT,
-        ADD COLUMN IF NOT EXISTS ai_verification_provider VARCHAR(50),
-        ADD COLUMN IF NOT EXISTS ai_verification_checked_at TIMESTAMP,
-        ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE,
-        ADD COLUMN IF NOT EXISTS otp VARCHAR(6),
-        ADD COLUMN IF NOT EXISTS otp_expires TIMESTAMP;
-    `);
-
     columnsEnsured = true;
 };
 

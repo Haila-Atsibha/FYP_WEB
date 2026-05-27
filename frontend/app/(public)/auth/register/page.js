@@ -29,8 +29,11 @@ export default function RegisterPage() {
   const [error, setError] = useState(null);
   const [cameraError, setCameraError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeCamera, setActiveCamera] = useState(null); // 'selfie' or 'id'
   const videoRef = useRef();
   const streamRef = useRef(null);
+  const idVideoRef = useRef();
+  const idStreamRef = useRef(null);
   const educationalDocsInputRef = useRef();
 
   useEffect(() => {
@@ -43,6 +46,9 @@ export default function RegisterPage() {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (idStreamRef.current) {
+        idStreamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -100,6 +106,22 @@ export default function RegisterPage() {
     }
   };
 
+  const startIdCamera = async () => {
+    setCameraError(null);
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError(t("auth_camera_not_supported"));
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      idStreamRef.current = stream;
+      if (idVideoRef.current) idVideoRef.current.srcObject = stream;
+    } catch (e) {
+      console.error(e);
+      setCameraError("Failed to start ID camera.");
+    }
+  };
+
   const capturePhoto = () => {
     if (!videoRef.current || !videoRef.current.srcObject) {
       setCameraError(t("auth_camera_start_first"));
@@ -111,18 +133,42 @@ export default function RegisterPage() {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(videoRef.current, 0, 0);
     canvas.toBlob((blob) => {
-      setSelfie(blob);
+      const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+      setSelfie(file);
       setSelfiePreviewUrl(URL.createObjectURL(blob));
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
-    });
+      setActiveCamera(null);
+    }, "image/jpeg");
+  };
+
+  const captureIdPhoto = () => {
+    if (!idVideoRef.current || !idVideoRef.current.srcObject) {
+      setCameraError(t("auth_camera_start_first"));
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = idVideoRef.current.videoWidth;
+    canvas.height = idVideoRef.current.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(idVideoRef.current, 0, 0);
+    canvas.toBlob((blob) => {
+      const file = new File([blob], `national_id_${nationalId.length + 1}.jpg`, { type: "image/jpeg" });
+      setNationalId(prev => [...prev, file]);
+      if (idStreamRef.current) {
+        idStreamRef.current.getTracks().forEach((track) => track.stop());
+        idStreamRef.current = null;
+      }
+      setActiveCamera(null);
+    }, "image/jpeg");
   };
 
   const retakePhoto = () => {
     setSelfie(null);
     setSelfiePreviewUrl(null);
+    setActiveCamera('selfie');
     startCamera();
   };
 
@@ -158,12 +204,12 @@ export default function RegisterPage() {
     formData.append("role", role);
     if (profileImage) formData.append("profileImage", profileImage);
     if (nationalId && nationalId.length > 0) {
-      nationalId.forEach(file => formData.append("nationalId[]", file));
+      nationalId.forEach(file => formData.append("nationalId", file));
     }
     if (verificationSelfie) formData.append("verificationSelfie", verificationSelfie);
     if (role === "provider") {
       selectedCats.forEach((c) => formData.append("categories[]", c));
-      educationalDocuments.forEach((doc) => formData.append("educationalDocuments[]", doc));
+      educationalDocuments.forEach((doc) => formData.append("educationalDocuments", doc));
     }
     setLoading(true);
     try {
@@ -178,6 +224,7 @@ export default function RegisterPage() {
         window.location.href = `/auth/verify-email?email=${encodeURIComponent(email)}`;
       }, 1500);
     } catch (err) {
+      console.error("Registration submission failed:", err);
       setError(err.response?.data?.message || t("auth_register_failed"));
     } finally {
       setLoading(false);
@@ -396,28 +443,109 @@ export default function RegisterPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_national_id")}</label>
-                  <div className="relative flex items-center justify-center w-full">
-                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer transition-all overflow-hidden relative ${nationalIdPreviews.length > 0 ? 'border-primary/50' : 'bg-surface/30 hover:bg-surface/50 hover:border-primary/50'}`}>
-                      {nationalIdPreviews.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="relative flex items-center justify-center w-full">
+                      <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer transition-all overflow-hidden relative ${nationalIdPreviews.length > 0 ? 'border-primary/50' : 'bg-surface/30 hover:bg-surface/50 hover:border-primary/50'}`}>
+                        {nationalIdPreviews.length > 0 ? (
+                          <>
+                            <div className="absolute inset-0 flex w-full h-full">
+                              {nationalIdPreviews.map((url, idx) => (
+                                <img key={idx} src={url} alt={`ID preview ${idx}`} className={`h-full object-cover opacity-60 ${nationalIdPreviews.length === 1 ? 'w-full' : 'w-1/2'}`} />
+                              ))}
+                            </div>
+                            <div className="relative z-10 bg-black/50 px-3 py-1.5 rounded-lg flex flex-col items-center gap-1 backdrop-blur-sm">
+                              <span className="text-xs text-white font-medium">Click to change/upload</span>
+                              <span className="text-[10px] text-text-muted">{nationalId.length} selected</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <FileText className="w-8 h-8 mb-2 text-text-muted" />
+                            <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_upload_id_front_back")}</p>
+                          </div>
+                        )}
+                        <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setNationalId(Array.from(e.target.files))} />
+                      </label>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (activeCamera === 'id') {
+                            if (idStreamRef.current) {
+                              idStreamRef.current.getTracks().forEach(track => track.stop());
+                              idStreamRef.current = null;
+                            }
+                            setActiveCamera(null);
+                          } else {
+                            if (streamRef.current) {
+                              streamRef.current.getTracks().forEach(track => track.stop());
+                              streamRef.current = null;
+                            }
+                            setActiveCamera('id');
+                            await startIdCamera();
+                          }
+                        }}
+                        className="flex-1 bg-surface border border-border text-foreground hover:bg-surface-hover py-2.5 rounded-xl font-medium transition-all text-xs flex items-center justify-center gap-2"
+                      >
+                        <Camera size={14} />
+                        {activeCamera === 'id' ? 'Close ID Camera' : 'Take ID Photo with Camera'}
+                      </button>
+                      
+                      {nationalId.length > 0 && (
                         <>
-                          <div className="absolute inset-0 flex w-full h-full">
-                            {nationalIdPreviews.map((url, idx) => (
-                              <img key={idx} src={url} alt={`ID preview ${idx}`} className={`h-full object-cover opacity-50 ${nationalIdPreviews.length === 1 ? 'w-full' : 'w-1/2'}`} />
-                            ))}
-                          </div>
-                          <div className="relative z-10 bg-black/40 px-3 py-1.5 rounded-lg flex flex-col items-center gap-1 backdrop-blur-sm">
-                            <span className="text-xs text-white font-medium">Change ID Images</span>
-                            <span className="text-[10px] text-text-muted">{nationalId.length} {t("auth_files_selected")}</span>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setNationalId([]);
+                              if (streamRef.current) {
+                                streamRef.current.getTracks().forEach(track => track.stop());
+                                streamRef.current = null;
+                              }
+                              setActiveCamera('id');
+                              await startIdCamera();
+                            }}
+                            className="bg-primary text-white hover:bg-primary-hover px-4 py-2.5 rounded-xl font-medium transition-all text-xs flex items-center justify-center gap-1.5"
+                          >
+                            <Camera size={14} />
+                            Retake
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNationalId([]);
+                              if (idStreamRef.current) {
+                                idStreamRef.current.getTracks().forEach(track => track.stop());
+                                idStreamRef.current = null;
+                              }
+                              setActiveCamera(null);
+                            }}
+                            className="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-3.5 py-2.5 rounded-xl font-medium transition-all text-xs"
+                          >
+                            Clear
+                          </button>
                         </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <FileText className="w-8 h-8 mb-2 text-text-muted" />
-                          <p className="mb-2 text-sm text-text-muted font-medium">{t("auth_upload_id_front_back")}</p>
-                        </div>
                       )}
-                      <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setNationalId(Array.from(e.target.files))} />
-                    </label>
+                    </div>
+
+                    {activeCamera === 'id' && (
+                      <div className="bg-surface/50 rounded-2xl p-3.5 border border-border space-y-3">
+                        <div className="relative rounded-xl overflow-hidden bg-black/40 aspect-video border border-border flex items-center justify-center">
+                          <video ref={idVideoRef} className="w-full h-full object-cover absolute inset-0" autoPlay playsInline muted />
+                          {!idStreamRef.current && <Camera className="w-10 h-10 text-white/20 relative z-10" />}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={captureIdPhoto}
+                          disabled={!idStreamRef.current}
+                          className="w-full bg-primary text-white hover:bg-primary-hover py-2.5 rounded-xl font-semibold transition-all text-xs shadow-md disabled:opacity-50"
+                        >
+                          Capture ID Photo ({nationalId.length}/2 captured)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

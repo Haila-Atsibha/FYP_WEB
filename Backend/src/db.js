@@ -5,6 +5,7 @@ const pool = new Pool({
     ssl: {
         rejectUnauthorized: false
     },
+    max: 25,
     keepAlive: true,
     keepAliveInitialDelayMillis: 10000,
     idleTimeoutMillis: 30000,
