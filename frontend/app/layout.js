@@ -21,6 +21,9 @@ const outfit = Outfit({
 export const metadata = {
   title: "QuickServe - Fast, Premium Service",
   description: "Marketplace connecting job seekers with trusted service providers",
+  icons: {
+    icon: "/vercel.svg",
+  },
 };
 
 const themeInitScript = `
