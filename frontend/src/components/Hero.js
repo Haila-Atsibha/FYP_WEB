@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { useTranslation } from "../hooks/useTranslation";
 
 export default function Hero() {
@@ -11,13 +10,6 @@ export default function Hero() {
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden transition-colors duration-500">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <Image 
-          src="/hero-bg.png" 
-          alt="Modern Architecture Background" 
-          fill 
-          priority
-          className="object-cover object-center w-full h-full opacity-20 dark:opacity-30 select-none mix-blend-luminosity"
-        />
         {/* Gradient Overlay for Text Readability */}
         <div className="absolute inset-0 bg-hero-gradient" />
       </div>
