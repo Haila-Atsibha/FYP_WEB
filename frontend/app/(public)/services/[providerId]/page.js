@@ -91,9 +91,9 @@ export default function ProviderProfilePage() {
     }
 
     return (
-        <div className="relative min-h-screen overflow-hidden pb-20">
+        <div className="relative min-h-screen overflow-x-hidden pb-16 sm:pb-20">
             {/* Big Hero Imagery */}
-            <div className="absolute top-0 inset-x-0 h-[40vh] md:h-[50vh] z-0 overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-[28vh] sm:h-[36vh] md:h-[50vh] z-0 overflow-hidden">
                 {provider.profile_image_url ? (
                     <img src={provider.profile_image_url} alt={provider.name} className="w-full h-full object-cover blur-sm opacity-30 select-none scale-105" />
                 ) : (
@@ -102,18 +102,18 @@ export default function ProviderProfilePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-6 pt-[20vh] md:pt-[30vh]">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[18vh] sm:pt-[22vh] md:pt-[28vh] lg:pt-[30vh]">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
 
                     {/* Left Column: Provider Info */}
                     <div className="lg:col-span-1 space-y-6">
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="glass-card rounded-[2.5rem] p-8 md:-mt-12 shadow-2xl relative"
+                            className="glass-card rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 lg:-mt-12 shadow-2xl relative"
                         >
-                            <div className="flex flex-col items-center text-center space-y-4">
-                                <div className="w-32 h-32 rounded-3xl bg-surface border border-white/10 overflow-hidden shadow-xl -mt-16 bg-gradient-to-tr from-surface to-surface-hover">
+                            <div className="flex flex-col items-center text-center space-y-3 sm:space-y-4">
+                                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl bg-surface border border-white/10 overflow-hidden shadow-xl -mt-12 sm:-mt-16 bg-gradient-to-tr from-surface to-surface-hover">
                                     {provider.profile_image_url ? (
                                         <img src={provider.profile_image_url} alt={provider.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -123,7 +123,7 @@ export default function ProviderProfilePage() {
                                     )}
                                 </div>
                                 <div className="pt-2">
-                                    <h1 className="text-3xl font-bold text-foreground tracking-tight">{provider.name}</h1>
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight break-words">{provider.name}</h1>
                                     <div className="flex items-center justify-center gap-1.5 text-yellow-500 font-bold mt-2 bg-yellow-500/10 w-fit mx-auto px-3 py-1 rounded-full text-sm">
                                         <Star size={14} fill="currentColor" />
                                         <span>{Number(provider.average_rating || 0).toFixed(1)}</span>
@@ -159,26 +159,26 @@ export default function ProviderProfilePage() {
                     </div>
 
                     {/* Right Column: Services & Booking */}
-                    <div className="lg:col-span-2 space-y-12">
+                    <div className="lg:col-span-2 space-y-8 sm:space-y-12 min-w-0">
                         <motion.section 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <h2 className="text-3xl font-bold mb-8 text-foreground tracking-tight">Available Services</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-5 sm:mb-8 text-foreground tracking-tight">Available Services</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 {provider.services?.map((svc) => (
                                     <div
                                         key={svc.id}
                                         onClick={() => setSelectedService(svc)}
-                                        className={`p-6 rounded-[2rem] transition-all cursor-pointer group glass-card hover:translate-y-[-4px] ${selectedService?.id === svc.id
+                                        className={`p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] transition-all cursor-pointer group glass-card hover:translate-y-[-4px] min-w-0 ${selectedService?.id === svc.id
                                             ? "border-primary shadow-[0_0_30px_rgba(99,102,241,0.2)] bg-primary/5"
                                             : "border-white/5 hover:border-primary/40"
                                             }`}
                                     >
-                                        <div className="flex justify-between items-start mb-3">
-                                            <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors pr-4">{svc.title}</h4>
-                                            <span className="text-foreground font-extrabold text-xl bg-surface/50 px-3 py-1 rounded-xl shadow-inner border border-border">${svc.price}</span>
+                                        <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
+                                            <h4 className="font-bold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors break-words flex-1 min-w-0">{svc.title}</h4>
+                                            <span className="text-foreground font-extrabold text-lg sm:text-xl bg-surface/50 px-2.5 sm:px-3 py-1 rounded-xl shadow-inner border border-border shrink-0">${svc.price}</span>
                                         </div>
                                         <p className="text-text-muted text-sm line-clamp-2 leading-relaxed">{svc.description}</p>
                                         <div className="mt-4 flex justify-end">
@@ -202,17 +202,17 @@ export default function ProviderProfilePage() {
                                     initial={{ opacity: 0, height: 0, y: 20 }}
                                     animate={{ opacity: 1, height: 'auto', y: 0 }}
                                     exit={{ opacity: 0, height: 0, y: -20 }}
-                                    className="glass-card rounded-[2.5rem] p-8 shadow-xl overflow-hidden"
+                                    className="glass-card rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-xl overflow-hidden"
                                 >
-                                    <div className="flex items-center gap-3 mb-6">
+                                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white shadow-lg">
                                             <ShoppingBag size={18} />
                                         </div>
-                                        <h2 className="text-2xl font-bold text-foreground">Confirm Booking</h2>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Confirm Booking</h2>
                                     </div>
                                     
-                                    <form onSubmit={handleBooking} className="space-y-6 relative z-10">
-                                        <div className="p-6 bg-surface/50 border border-border rounded-2xl flex justify-between items-center backdrop-blur-md">
+                                    <form onSubmit={handleBooking} className="space-y-4 sm:space-y-6 relative z-10">
+                                        <div className="p-4 sm:p-6 bg-surface/50 border border-border rounded-2xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 backdrop-blur-md">
                                             <div>
                                                 <div className="text-text-muted text-xs font-bold uppercase tracking-wider mb-1">Selected Service</div>
                                                 <div className="text-foreground font-bold text-lg">{selectedService.title}</div>
@@ -274,15 +274,15 @@ export default function ProviderProfilePage() {
                             viewport={{ once: true }}
                             className="space-y-6 pt-6"
                         >
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-bold text-foreground tracking-tight">Customer Reviews</h2>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Customer Reviews</h2>
                                 <div className="flex items-center gap-2 text-sm font-bold glass-card px-4 py-2 rounded-2xl">
                                     <Star size={16} className="text-yellow-500 fill-yellow-500" />
                                     <span>{Number(provider.average_rating || 0).toFixed(1)} / 5.0</span>
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {reviews.length > 0 ? (
                                     reviews.map((review) => (
                                         <div key={review.id} className="glass-card p-6 rounded-[2rem] space-y-4">

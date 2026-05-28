@@ -3,6 +3,7 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../../../../src/context/AuthContext";
 import Input from "../../../../src/components/Input";
+import PasswordInput from "../../../../src/components/PasswordInput";
 import Button from "../../../../src/components/Button";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,10 +11,8 @@ import { BriefcaseBusiness, KeyRound, Mail, ArrowRight, ShieldCheck, CheckCircle
 import { useRouter } from "next/navigation";
 
 import { useTranslation } from "../../../../src/hooks/useTranslation";
-
-const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-const STRONG_PASSWORD_HINT =
-  "Use at least 8 characters with uppercase, lowercase, number, and special character.";
+import PasswordStrengthIndicator from "../../../../src/components/PasswordStrengthIndicator";
+import { isStrongPassword } from "../../../../src/utils/passwordValidation";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
@@ -79,8 +78,8 @@ export default function ForgotPasswordPage() {
       return;
     }
     
-    if (!STRONG_PASSWORD_REGEX.test(newPassword)) {
-      setError(STRONG_PASSWORD_HINT);
+    if (!isStrongPassword(newPassword)) {
+      setError("Please meet all password requirements (all items must be green).");
       return;
     }
 
@@ -287,30 +286,40 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleResetPassword} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_new_password")}</label>
-                <Input
-                  type="password"
+                <PasswordInput
                   name="newPassword"
                   id="newPassword"
                   placeholder={t("auth_enter_new_password")}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                  className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  className="w-full bg-surface/50 backdrop-blur-sm border border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 pl-4 pr-12 shadow-inner transition-all"
                 />
-                <p className="text-xs text-text-muted mt-2 ml-1">{STRONG_PASSWORD_HINT}</p>
+                <PasswordStrengthIndicator password={newPassword} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_confirm_new_password_label")}</label>
-                <Input
-                  type="password"
+                <PasswordInput
                   name="confirmPassword"
                   id="confirmPassword"
                   placeholder={t("auth_confirm_new_password")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                  className={`w-full bg-surface/50 backdrop-blur-sm border text-foreground placeholder:text-text-muted focus:ring-1 rounded-2xl py-3 pl-4 pr-12 shadow-inner transition-all ${
+                    confirmPassword.length > 0
+                      ? newPassword === confirmPassword
+                        ? "border-green-500/50 focus:border-green-500 focus:ring-green-500/30"
+                        : "border-red-500/50 focus:border-red-500 focus:ring-red-500/30"
+                      : "border-border focus:border-primary focus:ring-primary/50"
+                  }`}
                 />
+                {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                  <p className="text-xs text-red-400 mt-2 ml-1 font-medium">Passwords do not match.</p>
+                )}
+                {confirmPassword.length > 0 && newPassword === confirmPassword && isStrongPassword(newPassword) && (
+                  <p className="text-xs text-green-500 mt-2 ml-1 font-medium">Passwords match</p>
+                )}
               </div>
               <div className="pt-4">
                 <Button 

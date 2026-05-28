@@ -2,16 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { BriefcaseBusiness, FileText, CheckCircle2, UserPlus, UploadCloud, Camera, ShieldCheck } from "lucide-react";
+import { BriefcaseBusiness, FileText, CheckCircle2, UserPlus, UploadCloud, Camera, ShieldCheck, AlertCircle, Sparkles } from "lucide-react";
 import api from "../../../../src/services/api";
 import Input from "../../../../src/components/Input";
+import PasswordInput from "../../../../src/components/PasswordInput";
 import Button from "../../../../src/components/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "../../../../src/hooks/useTranslation";
-
-const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-const STRONG_PASSWORD_HINT =
-  "Use at least 8 characters with uppercase, lowercase, number, and special character.";
+import PasswordStrengthIndicator from "../../../../src/components/PasswordStrengthIndicator";
+import { isStrongPassword } from "../../../../src/utils/passwordValidation";
 
 export default function RegisterPage() {
   const { t } = useTranslation();
@@ -30,6 +29,10 @@ export default function RegisterPage() {
   const [selfiePreviewUrl, setSelfiePreviewUrl] = useState(null);
   const [educationalDocuments, setEducationalDocuments] = useState([]);
   const [message, setMessage] = useState(null);
+  const [aiVerification, setAiVerification] = useState(null);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [redirectSeconds, setRedirectSeconds] = useState(8);
   const [error, setError] = useState(null);
   const [cameraError, setCameraError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,6 +42,55 @@ export default function RegisterPage() {
   const idVideoRef = useRef();
   const idStreamRef = useRef(null);
   const educationalDocsInputRef = useRef();
+
+  const REDIRECT_DELAY_SEC = 8;
+
+  useEffect(() => {
+    if (!registrationComplete || !registeredEmail) return;
+
+    setRedirectSeconds(REDIRECT_DELAY_SEC);
+    const interval = setInterval(() => {
+      setRedirectSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          window.location.href = `/auth/verify-email?email=${encodeURIComponent(registeredEmail)}`;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [registrationComplete, registeredEmail]);
+
+  const goToVerification = () => {
+    if (registeredEmail) {
+      window.location.href = `/auth/verify-email?email=${encodeURIComponent(registeredEmail)}`;
+    }
+  };
+
+  const getAiStatusStyles = (status) => {
+    switch (status) {
+      case "matched":
+        return {
+          box: "bg-green-500/10 border-green-500/30 text-green-400",
+          badge: "bg-green-500/20 text-green-300 border-green-500/40",
+          label: "AI verification passed",
+        };
+      case "not_matched":
+        return {
+          box: "bg-red-500/10 border-red-500/30 text-red-400",
+          badge: "bg-red-500/20 text-red-300 border-red-500/40",
+          label: "AI verification failed",
+        };
+      default:
+        return {
+          box: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+          badge: "bg-amber-500/20 text-amber-200 border-amber-500/40",
+          label: "Manual review required",
+        };
+    }
+  };
 
   useEffect(() => {
     if (role === "provider") {
@@ -200,8 +252,8 @@ export default function RegisterPage() {
       setError(t("auth_passwords_mismatch"));
       return;
     }
-    if (!STRONG_PASSWORD_REGEX.test(password)) {
-      setError(STRONG_PASSWORD_HINT);
+    if (!isStrongPassword(password)) {
+      setError("Please meet all password requirements (all items must be green).");
       return;
     }
 
@@ -224,13 +276,10 @@ export default function RegisterPage() {
       const res = await api.post("/api/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      setRegisteredEmail(email);
       setMessage(res.data?.message || t("auth_register_success"));
-      resetForm();
-      
-      // Redirect to verification page
-      setTimeout(() => {
-        window.location.href = `/auth/verify-email?email=${encodeURIComponent(email)}`;
-      }, 1500);
+      setAiVerification(res.data?.ai_verification || null);
+      setRegistrationComplete(true);
     } catch (err) {
       console.error("Registration submission failed:", err);
       setError(err.response?.data?.message || t("auth_register_failed"));
@@ -318,13 +367,7 @@ export default function RegisterPage() {
           </div>
 
           <AnimatePresence>
-            {message && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
-                <div className="w-1.5 h-full rounded-full bg-green-500"></div>
-                {message}
-              </motion.div>
-            )}
-            {error && (
+            {error && !registrationComplete && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
                 <div className="w-1.5 h-full rounded-full bg-red-500"></div>
                 {error}
@@ -332,6 +375,75 @@ export default function RegisterPage() {
             )}
           </AnimatePresence>
 
+          {registrationComplete ? (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 sm:p-5 rounded-2xl text-sm sm:text-base flex items-start gap-3">
+                <CheckCircle2 size={22} className="shrink-0 mt-0.5" />
+                <p>{message}</p>
+              </div>
+
+              {aiVerification && (() => {
+                const styles = getAiStatusStyles(aiVerification.status);
+                return (
+                  <div className={`rounded-3xl border p-6 sm:p-8 space-y-4 ${styles.box}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-2xl bg-surface/50 border border-white/10">
+                        <Sparkles size={22} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest opacity-80">AI identity check</p>
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground">{styles.label}</h3>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full border ${styles.badge}`}>
+                        Status: {aiVerification.status?.replace(/_/g, " ") || "unknown"}
+                      </span>
+                      {aiVerification.score !== null && aiVerification.score !== undefined && (
+                        <span className="text-xs font-bold uppercase px-3 py-1 rounded-full border bg-surface/50 border-border text-foreground">
+                          Match score: {Number(aiVerification.score).toFixed(2)}%
+                        </span>
+                      )}
+                      {aiVerification.provider && (
+                        <span className="text-xs font-bold uppercase px-3 py-1 rounded-full border bg-surface/50 border-border text-text-muted">
+                          Engine: {aiVerification.provider}
+                        </span>
+                      )}
+                    </div>
+
+                    {aiVerification.message && (
+                      <div className="rounded-2xl bg-surface/40 border border-white/10 p-4 text-sm sm:text-base leading-relaxed text-foreground/90">
+                        <p className="font-semibold text-foreground mb-1 flex items-center gap-2">
+                          <AlertCircle size={16} className="shrink-0" />
+                          AI response
+                        </p>
+                        <p>{aiVerification.message}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div className="rounded-2xl border border-border bg-surface/30 p-4 sm:p-5 text-center text-sm text-text-muted">
+                Redirecting to email verification in{" "}
+                <span className="font-bold text-primary text-base">{redirectSeconds}</span>{" "}
+                second{redirectSeconds === 1 ? "" : "s"}…
+              </div>
+
+              <Button
+                type="button"
+                onClick={goToVerification}
+                className="w-full py-4 text-lg bg-gradient-to-r from-primary to-primary-hover border-0 shadow-[0_0_20px_rgba(249,115,22,0.3)] font-bold rounded-2xl"
+              >
+                Continue to email verification now
+              </Button>
+            </motion.div>
+          ) : (
           <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-8">
             {/* Basic Info Section */}
             <div className="bg-surface/30 border border-white/5 p-6 md:p-8 rounded-3xl space-y-5">
@@ -370,10 +482,9 @@ export default function RegisterPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_password")}</label>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     name="password"
                     id="password"
                     autoComplete="new-password"
@@ -381,14 +492,13 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 pl-4 pr-12 shadow-inner transition-all"
                   />
-                  <p className="text-xs text-text-muted mt-2 ml-1">{STRONG_PASSWORD_HINT}</p>
+                  <PasswordStrengthIndicator password={password} />
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_confirm_password")}</label>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     name="confirmPassword"
                     id="confirmPassword"
                     autoComplete="new-password"
@@ -396,8 +506,20 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className={`w-full bg-surface/50 backdrop-blur-sm border text-foreground placeholder:text-text-muted focus:ring-1 rounded-2xl py-3 pl-4 pr-12 shadow-inner transition-all ${
+                      confirmPassword.length > 0
+                        ? password === confirmPassword
+                          ? "border-green-500/50 focus:border-green-500 focus:ring-green-500/30"
+                          : "border-red-500/50 focus:border-red-500 focus:ring-red-500/30"
+                        : "border-border focus:border-primary focus:ring-primary/50"
+                    }`}
                   />
+                  {confirmPassword.length > 0 && password !== confirmPassword && (
+                    <p className="text-xs text-red-400 mt-2 ml-1 font-medium">{t("auth_passwords_mismatch")}</p>
+                  )}
+                  {confirmPassword.length > 0 && password === confirmPassword && isStrongPassword(password) && (
+                    <p className="text-xs text-green-500 mt-2 ml-1 font-medium">Passwords match</p>
+                  )}
                 </div>
               </div>
 
@@ -652,6 +774,7 @@ export default function RegisterPage() {
               </Button>
             </div>
           </form>
+          )}
 
           <div className="mt-8 text-center text-sm pt-6 border-t border-border">
             <p className="text-text-muted">

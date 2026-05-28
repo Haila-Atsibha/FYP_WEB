@@ -3,6 +3,7 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../../../../src/context/AuthContext";
 import Input from "../../../../src/components/Input";
+import PasswordInput from "../../../../src/components/PasswordInput";
 import Button from "../../../../src/components/Button";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -163,8 +164,7 @@ export default function LoginPage() {
                   {t("auth_forgot_pass_link")}
                 </Link>
               </div>
-              <Input
-                type="password"
+              <PasswordInput
                 name="password"
                 id="password"
                 autoComplete="current-password"
@@ -172,7 +172,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                className="w-full bg-surface/50 backdrop-blur-sm border border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 pl-4 pr-12 shadow-inner transition-all"
               />
             </div>
 

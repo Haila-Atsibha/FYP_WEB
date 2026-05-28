@@ -12,13 +12,13 @@ export default function ServiceCard({ service, user }) {
       <div className="absolute inset-0 bg-linear-to-tr from-primary/0 via-primary/0 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full shadow-sm">
+        <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
+          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 sm:px-3 py-1 rounded-full shadow-sm max-w-[70%] truncate">
             {service.category_name || service.category?.name || service.category || "Service"}
           </span>
-          <span className="font-bold text-xl text-foreground text-gradient">${price}</span>
+          <span className="font-bold text-lg sm:text-xl text-foreground text-gradient shrink-0">${price}</span>
         </div>
-        <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors leading-tight">{title}</h3>
+        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors leading-tight break-words">{title}</h3>
         <Link href={`/services/${provider_id}`} className="text-sm text-text-muted hover:text-foreground transition-colors block mb-4 font-medium">
           by {provider_name || service.provider?.name || service.provider}
         </Link>

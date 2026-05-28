@@ -38,6 +38,19 @@ exports.createCategory = async (req, res) => {
 
 exports.getAllCategories = async (req, res) => {
     try {
+        const { q } = req.query;
+        const values = [];
+        let whereClause = '';
+
+        if (q) {
+            const searchPattern = `%${String(q).toLowerCase()}%`;
+            whereClause = `WHERE (
+                LOWER(c.name) LIKE $1
+                OR LOWER(COALESCE(c.description, '')) LIKE $1
+            )`;
+            values.push(searchPattern);
+        }
+
         // Count providers based on those who have services in this category OR are explicitly linked
         const result = await pool.query(`
             SELECT 
@@ -45,9 +58,10 @@ exports.getAllCategories = async (req, res) => {
                 COUNT(DISTINCT s.provider_id)::int as "providerCount"
             FROM service_categories c
             LEFT JOIN services s ON c.id = s.category_id
+            ${whereClause}
             GROUP BY c.id
-            ORDER BY c.created_at DESC
-        `);
+            ORDER BY c.name ASC
+        `, values);
 
         res.json(result.rows);
 

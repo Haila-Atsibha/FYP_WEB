@@ -55,20 +55,16 @@ export default function CustomerDashboard() {
       if (searchQuery.trim().length > 1) {
         setIsSearching(true);
         try {
-          const sq = searchQuery.toLowerCase();
-          
           const [resServices, resCats, resProv] = await Promise.all([
             api.get(`/api/services`, { params: { q: searchQuery } }).catch(() => ({ data: [] })),
-            api.get(`/api/categories`).catch(() => ({ data: [] })),
-            api.get(`/api/providers`).catch(() => ({ data: [] }))
+            api.get(`/api/categories`, { params: { q: searchQuery } }).catch(() => ({ data: [] })),
+            api.get(`/api/providers`, { params: { q: searchQuery } }).catch(() => ({ data: [] }))
           ]);
           
           const matchedCats = resCats.data
-            .filter(c => c.name.toLowerCase().includes(sq))
             .map(c => ({ id: `cat_${c.id}`, title: c.name, type: 'Category', originalId: c.id }));
             
           const matchedProv = resProv.data
-            .filter(p => p.name.toLowerCase().includes(sq))
             .map(p => ({ id: `prov_${p.id}`, title: p.name, type: 'Provider', originalId: p.provider_profile_id || p.id }));
             
           const matchedServ = resServices.data

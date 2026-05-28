@@ -128,7 +128,7 @@ exports.updateMyProfile = async (req, res) => {
 };
 exports.getPublicProviders = async (req, res) => {
     try {
-        const { category } = req.query;
+        const { category, q } = req.query;
         let query = `
             SELECT 
                 u.id, u.name, u.profile_image_url, 
@@ -148,14 +148,42 @@ exports.getPublicProviders = async (req, res) => {
               AND p.subscription_expiry > CURRENT_DATE
         `;
         const values = [];
+        let idx = 1;
 
         if (category && !isNaN(parseInt(category))) {
             const catInt = parseInt(category);
             query += ` AND (
-                EXISTS (SELECT 1 FROM services s2 WHERE s2.provider_id = p.id AND s2.category_id = $1)
-                OR EXISTS (SELECT 1 FROM provider_categories pc WHERE pc.provider_id = u.id AND pc.category_id = $1)
+                EXISTS (SELECT 1 FROM services s2 WHERE s2.provider_id = p.id AND s2.category_id = $${idx})
+                OR EXISTS (SELECT 1 FROM provider_categories pc WHERE pc.provider_id = u.id AND pc.category_id = $${idx})
             )`;
             values.push(catInt);
+            idx++;
+        }
+
+        if (q) {
+            const searchPattern = `%${String(q).toLowerCase()}%`;
+            query += ` AND (
+                LOWER(u.name) LIKE $${idx}
+                OR LOWER(COALESCE(p.bio, '')) LIKE $${idx}
+                OR EXISTS (
+                    SELECT 1 FROM services s_search
+                    JOIN service_categories sc_search ON s_search.category_id = sc_search.id
+                    WHERE s_search.provider_id = p.id
+                    AND (
+                        LOWER(s_search.title) LIKE $${idx}
+                        OR LOWER(COALESCE(s_search.description, '')) LIKE $${idx}
+                        OR LOWER(sc_search.name) LIKE $${idx}
+                    )
+                )
+                OR EXISTS (
+                    SELECT 1 FROM provider_categories pc_search
+                    JOIN service_categories sc_pc ON pc_search.category_id = sc_pc.id
+                    WHERE pc_search.provider_id = u.id
+                    AND LOWER(sc_pc.name) LIKE $${idx}
+                )
+            )`;
+            values.push(searchPattern);
+            idx++;
         }
 
         query += ` GROUP BY u.id, p.id ORDER BY p.average_rating DESC NULLS LAST`;

@@ -82,8 +82,15 @@ exports.getAllServices = async (req, res) => {
         }
 
         if (q) {
-            query += ` AND (LOWER(s.title) LIKE $${idx} OR LOWER(s.description) LIKE $${idx})`;
-            values.push(`%${q.toLowerCase()}%`);
+            const searchPattern = `%${String(q).toLowerCase()}%`;
+            query += ` AND (
+                LOWER(s.title) LIKE $${idx}
+                OR LOWER(COALESCE(s.description, '')) LIKE $${idx}
+                OR LOWER(COALESCE(c.name, '')) LIKE $${idx}
+                OR LOWER(COALESCE(c.description, '')) LIKE $${idx}
+                OR LOWER(COALESCE(u.name, '')) LIKE $${idx}
+            )`;
+            values.push(searchPattern);
             idx++;
         }
 
