@@ -9,6 +9,10 @@ import Button from "../../../../src/components/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "../../../../src/hooks/useTranslation";
 
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const STRONG_PASSWORD_HINT =
+  "Use at least 8 characters with uppercase, lowercase, number, and special character.";
+
 export default function RegisterPage() {
   const { t } = useTranslation();
   const [name, setName] = useState("");
@@ -196,6 +200,10 @@ export default function RegisterPage() {
       setError(t("auth_passwords_mismatch"));
       return;
     }
+    if (!STRONG_PASSWORD_REGEX.test(password)) {
+      setError(STRONG_PASSWORD_HINT);
+      return;
+    }
 
     const formData = new FormData();
     formData.append("name", name);
@@ -375,6 +383,7 @@ export default function RegisterPage() {
                     required
                     className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
+                  <p className="text-xs text-text-muted mt-2 ml-1">{STRONG_PASSWORD_HINT}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-text-muted mb-1.5 ml-1">{t("auth_confirm_password")}</label>

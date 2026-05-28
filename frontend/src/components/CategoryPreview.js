@@ -12,17 +12,17 @@ export default function CategoryPreview({ categories }) {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <section className="py-24 bg-background relative z-10">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end mb-16 gap-6">
+    <section className="py-16 md:py-24 bg-background relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end mb-10 md:mb-16 gap-6">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground">{t("explore_services_title")}</h2>
-            <p className="text-text-muted mt-4 max-w-xl text-lg">{t("explore_services_subtitle")}</p>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground">{t("explore_services_title")}</h2>
+            <p className="text-text-muted mt-4 max-w-xl text-base md:text-lg">{t("explore_services_subtitle")}</p>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -49,7 +49,7 @@ export default function CategoryPreview({ categories }) {
             >
               <Link
                 href={`/services?category=${cat.id}`}
-                className="group relative block glass-card rounded-3xl p-8 overflow-hidden transition-all duration-300 h-full"
+                className="group relative block glass-card rounded-3xl p-5 sm:p-6 md:p-8 overflow-hidden transition-all duration-300 h-full"
               >
                 {/* Background glow on hover */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/0 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

@@ -19,8 +19,8 @@ const styles = {
 
 export default function Toast({ toast, onRemove }) {
     return (
-        <div className={`flex items-center gap-3 p-4 rounded-2xl border shadow-lg animate-in slide-in-from-right-full duration-300 min-w-[300px] ${styles[toast.type] || styles.info}`}>
-            <div className="flex-shrink-0">
+        <div className={`flex items-center gap-3 p-4 rounded-2xl border shadow-lg animate-in slide-in-from-right-full duration-300 min-w-[260px] max-w-[calc(100vw-2rem)] ${styles[toast.type] || styles.info}`}>
+            <div className="shrink-0">
                 {icons[toast.type] || icons.info}
             </div>
             <div className="flex-1 font-bold text-sm">
@@ -28,7 +28,7 @@ export default function Toast({ toast, onRemove }) {
             </div>
             <button
                 onClick={() => onRemove(toast.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
             >
                 <X size={16} />
             </button>

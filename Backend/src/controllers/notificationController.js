@@ -138,6 +138,19 @@ exports.createNotification = async (userId, title, message, type = 'system', lin
              VALUES ($1, $2, $3, $4, $5, false)`,
             [uId, title, message, type, link]
         );
+
+        // Send push notification if user has FCM token
+        const userRes = await pool.query("SELECT fcm_token FROM users WHERE id = $1", [uId]);
+        const fcmToken = userRes.rows[0]?.fcm_token;
+        if (fcmToken) {
+            const firebaseAdmin = require('../utils/firebaseAdmin');
+            await firebaseAdmin.sendPushNotification(
+                fcmToken,
+                title,
+                message,
+                { type: type || 'system', link: link || '' }
+            );
+        }
     } catch (error) {
         console.error("Failed to create notification:", error);
         logError(error, "createNotification Helper");

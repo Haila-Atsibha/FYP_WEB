@@ -4,6 +4,12 @@ const jwt = require('jsonwebtoken');
 const { ensureVerificationColumns, verifyRegistrationFaces } = require('../utils/faceVerification');
 const { sendOTPEmail, sendNewProviderEmailToAdmin } = require('../utils/emailService');
 
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+const isStrongPassword = (password) => STRONG_PASSWORD_REGEX.test(password || '');
+const strongPasswordMessage =
+    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+
 exports.registerUser = async (req, res) => {
     try {
         await ensureVerificationColumns();
@@ -14,6 +20,9 @@ exports.registerUser = async (req, res) => {
         // mandatory form fields
         if (!name || !email || !password || !role) {
             return res.status(400).json({ message: "All fields are required" });
+        }
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({ message: strongPasswordMessage });
         }
 
         let natIdFiles = req.files ? req.files.nationalId : null;
@@ -28,11 +37,9 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: "All verification files are required (including National ID)" });
         }
 
-        // We need an image for face matching, so PDFs are not accepted for national ID.
-        const hasNonImageIdFile = natIdFiles.some((file) => !file.mimetype?.startsWith('image/'));
-        if (hasNonImageIdFile) {
-            return res.status(400).json({ message: "National ID must be uploaded as image files." });
-        }
+        // National ID may be PDF; only images can be used for AI face matching.
+        // If user uploads only non-image files, we allow registration but force manual review.
+        const natIdImageFiles = natIdFiles.filter((file) => file.mimetype?.startsWith('image/'));
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -46,6 +53,7 @@ exports.registerUser = async (req, res) => {
         );
         
         let natIdUrls = [];
+        let natIdImageUrlsForAi = [];
         for (const file of natIdFiles) {
             const url = await upload(
                 file.buffer,
@@ -53,6 +61,9 @@ exports.registerUser = async (req, res) => {
                 'national-ids'
             );
             natIdUrls.push(url);
+            if (file.mimetype?.startsWith('image/')) {
+                natIdImageUrlsForAi.push(url);
+            }
         }
         const nationalIdUrl = natIdUrls.join(',');
 
@@ -62,10 +73,20 @@ exports.registerUser = async (req, res) => {
             'selfies'
         );
 
-        const aiVerification = await verifyRegistrationFaces({
-            nationalIdUrl,
-            verificationSelfieUrl
-        });
+        let aiVerification;
+        if (natIdImageUrlsForAi.length === 0) {
+            aiVerification = {
+                status: 'manual_review',
+                score: null,
+                message: 'National ID was not uploaded as an image, so AI verification cannot run. Manual review required.',
+                provider: 'none'
+            };
+        } else {
+            aiVerification = await verifyRegistrationFaces({
+                nationalIdUrl: natIdImageUrlsForAi.join(','),
+                verificationSelfieUrl
+            });
+        }
 
         // Only auto-approve if AI matches AND the user is not a provider.
         // Providers must always have their documents manually reviewed by an admin.
@@ -395,6 +416,9 @@ exports.resetPassword = async (req, res) => {
 
         if (!email || !otp || !newPassword) {
             return res.status(400).json({ message: "Email, OTP, and new password are required" });
+        }
+        if (!isStrongPassword(newPassword)) {
+            return res.status(400).json({ message: strongPasswordMessage });
         }
 
         const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);

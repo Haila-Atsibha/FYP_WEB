@@ -59,7 +59,7 @@ exports.getCustomerProfile = async (req, res) => {
 exports.updateCustomerProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { name, phone } = req.body;
+        const { name, phone, email } = req.body;
         
         let profileImageUrl;
         if (req.file) {
@@ -67,11 +67,12 @@ exports.updateCustomerProfile = async (req, res) => {
             profileImageUrl = await uploadFile(req.file.buffer, req.file.mimetype, 'profiles');
         }
 
-        let query = "UPDATE users SET name = $1, phone = $2";
-        const values = [name, phone];
+        // Mobile sends name + email (and may omit phone). Keep backward compatible.
+        let query = "UPDATE users SET name = $1, phone = $2, email = COALESCE($3, email)";
+        const values = [name, phone || null, email || null];
 
         if (profileImageUrl) {
-            query += ", profile_image_url = $3";
+            query += ", profile_image_url = $4";
             values.push(profileImageUrl);
         }
 

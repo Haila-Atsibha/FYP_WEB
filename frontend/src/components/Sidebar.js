@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useContext, useState, useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import { useTranslation } from "../hooks/useTranslation";
 import api from "../services/api";
@@ -37,7 +37,7 @@ const menuByRole = {
   ],
 };
 
-export default function Sidebar({ role }) {
+export default function Sidebar({ role, isMobile = false, onClose }) {
   const { t } = useTranslation();
   const { logout, user } = useContext(AuthContext);
   const [stats, setStats] = useState({ bookings: 0, messages: 0, reviews: 0, verification: 0 });
@@ -72,14 +72,32 @@ export default function Sidebar({ role }) {
   };
 
   return (
-    <aside className="w-64 glass border-r border-border min-h-screen flex flex-col relative z-20 shadow-2xl">
+    <aside
+      className={`glass flex flex-col relative z-20 shadow-2xl ${
+        isMobile
+          ? "w-full max-h-[85vh] rounded-b-3xl border-b border-border"
+          : "w-64 border-r border-border min-h-screen"
+      }`}
+    >
       <div className="p-8 flex-1">
-        <Link href="/" className="flex items-center gap-2 mb-10 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white shadow-lg shadow-primary/20">
-            <span className="font-bold text-lg">Q</span>
-          </div>
-          <span className="text-xl font-bold font-heading text-foreground tracking-tight group-hover:text-primary transition-colors">QuickServe</span>
-        </Link>
+        <div className="flex items-center justify-between mb-10">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white shadow-lg shadow-primary/20">
+              <span className="font-bold text-lg">Q</span>
+            </div>
+            <span className="text-xl font-bold font-heading text-foreground tracking-tight group-hover:text-primary transition-colors">QuickServe</span>
+          </Link>
+          {isMobile && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl border border-border text-text-muted hover:text-foreground hover:bg-surface/70 transition-colors"
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
         <h2 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-6">{t("sidebar_menu_header")}</h2>
         <ul className="space-y-3">
           {links.map((l) => {
@@ -88,6 +106,7 @@ export default function Sidebar({ role }) {
               <li key={l.href}>
                 <Link
                   href={l.href}
+                  onClick={isMobile ? onClose : undefined}
                   className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-surface-hover hover:text-foreground transition-all font-medium text-text-muted active:scale-95 group relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>

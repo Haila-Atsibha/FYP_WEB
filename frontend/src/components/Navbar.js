@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
-import { User, LogOut, BriefcaseBusiness, Globe } from "lucide-react";
+import { User, LogOut, BriefcaseBusiness, Globe, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "../hooks/useTranslation";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const { t, language, toggleLanguage } = useTranslation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <motion.nav 
@@ -29,7 +30,7 @@ export default function Navbar() {
           </span>
         </Link>
         
-        <div className="flex items-center space-x-8">
+        <div className="hidden md:flex items-center space-x-8">
           <Link href="/services" className="text-text-muted hover:text-foreground transition-colors font-medium">
             {t("nav_menu")}
           </Link>
@@ -85,7 +86,76 @@ export default function Navbar() {
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setMobileOpen((prev) => !prev)}
+          className="md:hidden p-2 rounded-xl border border-border text-text-muted hover:text-foreground hover:bg-surface/70 transition-colors"
+          aria-label="Toggle navigation menu"
+        >
+          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
       </div>
+
+      {mobileOpen && (
+        <div className="md:hidden border-t border-border px-6 py-4 bg-surface/90 backdrop-blur-xl">
+          <div className="flex flex-col gap-4">
+            <Link href="/services" onClick={() => setMobileOpen(false)} className="text-text-muted hover:text-foreground transition-colors font-medium">
+              {t("nav_menu")}
+            </Link>
+            <div className="flex items-center justify-between">
+              <ThemeToggle />
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1 text-text-muted hover:text-foreground transition-colors font-medium"
+                title="Toggle Language"
+              >
+                <Globe size={18} />
+                {language === 'en' ? 'EN' : 'አማ'}
+              </button>
+            </div>
+            {user ? (
+              <>
+                <Link
+                  href={`/${user.role}`}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 text-text-muted hover:text-foreground transition-colors font-medium"
+                >
+                  <User size={16} />
+                  {t("nav_dashboard")}
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileOpen(false);
+                  }}
+                  className="flex items-center gap-2 text-text-muted hover:text-red-500 transition-colors font-medium"
+                >
+                  <LogOut size={18} />
+                  {t("nav_logout")}
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-text-muted hover:text-foreground transition-colors font-medium"
+                >
+                  {t("nav_login")}
+                </Link>
+                <Link
+                  href="/auth/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="bg-gradient-to-r from-primary to-secondary text-white px-5 py-2.5 rounded-full shadow-lg font-semibold text-center"
+                >
+                  {t("nav_join")}
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </motion.nav>
   );
 }

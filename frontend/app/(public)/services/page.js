@@ -75,7 +75,7 @@ function ServicesContent() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 relative z-10 w-full overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10 w-full overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -85,12 +85,12 @@ function ServicesContent() {
         <p className="text-text-muted text-lg max-w-2xl mx-auto">{t("services_explore_desc")}</p>
       </motion.div>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 sm:mb-10 gap-4 sm:gap-6">
         {/* Search Bar */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="relative flex-1 max-w-lg"
+          className="relative flex-1 w-full max-w-lg"
         >
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-text-muted" />
@@ -100,7 +100,7 @@ function ServicesContent() {
             placeholder={t("services_search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-surface/50 border border-border text-foreground placeholder:text-text-muted rounded-full pl-12 pr-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-lg backdrop-blur-md"
+            className="w-full bg-surface/50 border border-border text-foreground placeholder:text-text-muted rounded-full pl-12 pr-5 py-3.5 sm:py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-lg backdrop-blur-md"
           />
         </motion.div>
 
@@ -108,7 +108,7 @@ function ServicesContent() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide md:max-w-[50%]"
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide w-full md:w-auto md:max-w-[50%]"
         >
           <button
             onClick={() => handleCategoryChange("")}
@@ -151,7 +151,7 @@ function ServicesContent() {
         )}
         <motion.div
           layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8"
         >
           <AnimatePresence>
             {!loading && services.map((s, idx) => (

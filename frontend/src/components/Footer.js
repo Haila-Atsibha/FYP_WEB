@@ -6,9 +6,9 @@ export default function Footer() {
   const { t } = useTranslation();
   return (
     <footer className="relative bg-surface/40 backdrop-blur-md border-t border-border mt-20 overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-      <div className="max-w-7xl mx-auto px-6 py-12 text-center relative z-10">
-        <div className="flex justify-center space-x-8 mb-6">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 text-center relative z-10">
+        <div className="flex justify-center flex-wrap gap-x-6 gap-y-3 mb-6">
           <a href="/" className="text-text-muted hover:text-foreground dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all font-medium">
             {t("footer_home")}
           </a>

@@ -6,7 +6,7 @@ const AdminDataTable = ({ columns, data, loading, emptyMessage = "No data availa
     if (loading) {
         return (
             <div className="w-full overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full min-w-[640px] text-left">
                     <thead>
                         <tr className="border-b border-border">
                             {columns.map((col, i) => (
@@ -42,7 +42,7 @@ const AdminDataTable = ({ columns, data, loading, emptyMessage = "No data availa
 
     return (
         <div className="w-full overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full min-w-[640px] text-left">
                 <thead>
                     <tr className="border-b border-border">
                         {columns.map((col, i) => (
