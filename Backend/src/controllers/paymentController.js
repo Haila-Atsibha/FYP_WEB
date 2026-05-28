@@ -193,3 +193,31 @@ exports.verifyPayment = async (req, res) => {
         });
     }
 };
+
+exports.getPaymentHistory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const providerRes = await pool.query(
+            "SELECT id FROM provider_profiles WHERE user_id = $1",
+            [userId]
+        );
+
+        if (providerRes.rows.length === 0) {
+            return res.status(404).json({ message: "Provider profile not found" });
+        }
+
+        const providerId = providerRes.rows[0].id;
+        const historyRes = await pool.query(
+            `SELECT id, tx_ref, amount, status, payment_method, created_at
+             FROM payments
+             WHERE provider_id = $1
+             ORDER BY created_at DESC`,
+            [providerId]
+        );
+
+        return res.json(historyRes.rows);
+    } catch (error) {
+        console.error("Get Payment History Error:", error.message);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

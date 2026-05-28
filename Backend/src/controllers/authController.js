@@ -455,3 +455,23 @@ exports.verifyResetOtp = async (req, res) => {
         res.status(500).json({ message: "Server error", error });
     }
 };
+
+exports.updateFcmToken = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { fcm_token } = req.body;
+
+        if (!fcm_token) {
+            return res.status(400).json({ message: "fcm_token is required" });
+        }
+
+        await pool.query(
+            "UPDATE users SET fcm_token = $1 WHERE id = $2",
+            [fcm_token, userId]
+        );
+
+        res.json({ message: "FCM token updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
