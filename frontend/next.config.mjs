@@ -7,6 +7,14 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/favicon.ico",
+        destination: "/vercel.svg",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
