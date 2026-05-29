@@ -98,8 +98,9 @@ export default function AiApprovedUsers() {
                       <p className="text-sm text-text-muted font-bold truncate max-w-[250px]">{u.email}</p>
                       <div className="mt-2 flex items-center gap-2 text-xs">
                         <Badge variant="success" className="capitalize">AI: matched</Badge>
+                        <Badge variant={u.role === 'provider' ? 'info' : 'warning'} className="capitalize">{u.role}</Badge>
                         {u.ai_verification_score !== null && u.ai_verification_score !== undefined && (
-                          <Badge variant="info">{Number(u.ai_verification_score).toFixed(2)}%</Badge>
+                          <Badge variant="default">{Number(u.ai_verification_score).toFixed(2)}%</Badge>
                         )}
                       </div>
                       {u.ai_verification_message && (

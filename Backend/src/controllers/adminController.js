@@ -49,7 +49,7 @@ exports.getAiApprovedUsers = async (req, res) => {
             `SELECT id, name, email, role, status, profile_image_url, national_id_url, verification_selfie_url,
                     ai_verification_status, ai_verification_score, ai_verification_message, ai_verification_provider, ai_verification_checked_at
              FROM users
-             WHERE role = 'provider'
+             WHERE role IN ('provider', 'customer')
                AND status = 'approved'
                AND ai_verification_status = 'matched'
              ORDER BY ai_verification_checked_at DESC NULLS LAST, created_at DESC`

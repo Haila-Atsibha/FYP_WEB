@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 
 // Trigger redeployment with updated root directory settings
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://quickserve-api.onrender.com",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
   headers: {
     Accept: "application/json",
   },

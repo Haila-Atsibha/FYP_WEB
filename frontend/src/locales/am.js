@@ -1,11 +1,11 @@
 export const am = {
-  nav_menu: "ምናሌ",
+  nav_menu: "አገልግሎቶች",
   nav_track: "ትዕዛዝ ተከታተል",
   nav_dashboard: "ዳሽቦርድ",
   nav_logout: "ውጣ",
   nav_login: "ግባ",
   nav_join: "አሁን ይቀላቀሉ",
-
+  
   hero_badge: "QuickServe • ፕሪሚየም ፈጣን የአገልግሎት ተሞክሮ",
   hero_title_1: "ፈጣን አገልግሎት",
   hero_title_2: "ምንም ጥበቃ የለም።",
@@ -163,7 +163,7 @@ export const am = {
   stats_completed: "ተጠናቋል",
   stats_notifications: "ማሳወቂያዎች",
   stats_saved: "የተቀመጡ",
-  service_categories: "የአ አገልግሎት ምድቦች",
+  service_categories: "የአገልግሎት ምድቦች",
   explore_all: "ሁሉንም ያስሱ",
   explore_services_title: "የአገልግሎት ምድቦችን ያስሱ",
   explore_services_subtitle: "የሚገኙ ምድቦችን ያስሱ እና ለሚፈልጉት ስራዎች ከታመኑ አቅራቢዎች ጋር ይገናኙ።",

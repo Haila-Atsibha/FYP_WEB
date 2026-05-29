@@ -127,7 +127,7 @@ exports.registerUser = async (req, res) => {
                 aiVerification.provider,
                 otp,
                 otpExpires,
-                shouldAutoApprove ? true : false
+                false
             ]
         );
 
