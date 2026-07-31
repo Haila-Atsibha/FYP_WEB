@@ -462,7 +462,7 @@ export default function RegisterPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
                 </div>
                 <div>
@@ -476,7 +476,7 @@ export default function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
+                    className="w-full bg-surface/50 backdrop-blur-sm border border-border text-foreground placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/50 rounded-2xl py-3 px-4 shadow-inner transition-all"
                   />
                 </div>
               </div>
@@ -529,7 +529,7 @@ export default function RegisterPage() {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full bg-surface/50 backdrop-blur-sm border-border text-foreground rounded-2xl px-4 py-3 appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all shadow-inner"
+                    className="w-full bg-surface/50 backdrop-blur-sm border border-border text-foreground rounded-2xl px-4 py-3 appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all shadow-inner"
                   >
                     <option value="customer" className="bg-surface text-foreground">{t("auth_customer")} - {t("auth_customer_desc")}</option>
                     <option value="provider" className="bg-surface text-foreground">{t("auth_provider")} - {t("auth_provider_desc")}</option>
